@@ -17,3 +17,15 @@ npm run build
 ```
 
 ข้อมูลเซนเซอร์ประมวลผลในเบราว์เซอร์เท่านั้น ไม่มีบัญชีผู้ใช้หรือ API สำหรับส่งข้อมูลเซนเซอร์
+
+## สร้างไฟล์ IPA สำหรับ Sideloadly
+
+โปรเจ็กต์ iOS อยู่ใน `ios/` และใช้ Capacitor 8 + Swift Package Manager ไฟล์เว็บถูกบันเดิลอยู่ในแอป จึงเล่นได้โดยไม่ต้องเปิดเว็บหรือเข้าสู่ระบบ
+
+บน macOS ที่มี Xcode 26 ขึ้นไป รัน:
+
+```bash
+bash scripts/build-unsigned-ipa.sh
+```
+
+ผลลัพธ์คือ `build/ios/Gyro-Space-Lab-unsigned.ipa` ไฟล์นี้ยังไม่เซ็นชื่อ ให้นำเข้า Sideloadly บน Windows/Mac เพื่อให้ Sideloadly เซ็นด้วย Apple ID และติดตั้งลง iPhone การกด “เปิดเซนเซอร์” ในแอปยังต้องได้รับอนุญาตจาก iOS

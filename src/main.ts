@@ -1,4 +1,5 @@
 import QRCode from 'qrcode';
+import { Capacitor } from '@capacitor/core';
 import { createGame } from './game';
 import { SensorController, type Telemetry } from './sensor';
 import './style.css';
@@ -61,9 +62,9 @@ app.innerHTML = `
   <dialog id="help-dialog" class="help-dialog">
     <button id="close-help" class="close-help" aria-label="ปิด">×</button>
     <span class="eyebrow">PILOT GUIDE</span><h2>วิธีเล่น</h2>
-    <ol><li>เปิดหน้านี้บนมือถือผ่าน HTTPS</li><li>กด <b>เปิดเซนเซอร์</b> และอนุญาต Motion หากเบราว์เซอร์ถาม</li><li>ถือเครื่องในท่าที่ถนัด แล้วกด <b>ตั้งศูนย์</b></li><li>กดเริ่มบิน เอียงเครื่องเพื่อเคลื่อนยาน</li></ol>
+    <ol><li>${Capacitor.isNativePlatform() ? 'เปิดแอปบน iPhone' : 'เปิดหน้านี้บนมือถือผ่าน HTTPS'}</li><li>กด <b>เปิดเซนเซอร์</b> และอนุญาต Motion หากเบราว์เซอร์ถาม</li><li>ถือเครื่องในท่าที่ถนัด แล้วกด <b>ตั้งศูนย์</b></li><li>กดเริ่มบิน เอียงเครื่องเพื่อเคลื่อนยาน</li></ol>
     <p>ยิงอัตโนมัติ • อุกกาบาตสีชมพูให้คะแนนพิเศษ • ลากนิ้วหรือกดลูกศรแทนได้</p>
-    <div class="qr-wrap"><canvas id="qr" aria-label="QR สำหรับเปิดเกมบนมือถือ"></canvas><small>สแกนเพื่อเปิดเกมบนมือถือ<br>ใช้บัญชีเดียวกันหากเว็บนี้เปิดแบบส่วนตัว</small></div>
+    <div class="qr-wrap"><canvas id="qr" aria-label="QR สำหรับเปิดเกมบนมือถือ"></canvas><small>สแกนเพื่อเปิดเว็บเกมบนมือถือ<br>ลิงก์นี้เปิดได้โดยไม่ต้องเข้าสู่ระบบ</small></div>
   </dialog>`;
 
 function el<T extends HTMLElement = HTMLElement>(id: string): T { return document.getElementById(id) as T; }
@@ -145,5 +146,5 @@ const help = el<HTMLDialogElement>('help-dialog');
 el('help-button').addEventListener('click', () => help.showModal());
 el('close-help').addEventListener('click', () => help.close());
 help.addEventListener('click', event => { if (event.target === help) help.close(); });
-QRCode.toCanvas(el<HTMLCanvasElement>('qr'), location.href, { width: 124, margin: 1, color: { dark: '#dff8ff', light: '#101831' } }).catch(() => {});
+QRCode.toCanvas(el<HTMLCanvasElement>('qr'), Capacitor.isNativePlatform() ? 'https://gyro-space-lab-th.mjadsakul.chatgpt.site/' : location.href, { width: 124, margin: 1, color: { dark: '#dff8ff', light: '#101831' } }).catch(() => {});
 window.setInterval(() => sensor.tick(), 400);

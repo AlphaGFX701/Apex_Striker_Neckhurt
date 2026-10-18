@@ -3,3 +3,6 @@ dist/
 .vite/
 coverage/
 *.tgz
+build/
+ios/App/Pods/
+ios/App/DerivedData/

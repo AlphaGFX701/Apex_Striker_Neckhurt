@@ -9,12 +9,15 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/ios": "^8.5.3",
     "phaser": "^3.90.0",
     "qrcode": "^1.5.4"
   },
   "devDependencies": {
-    "typescript": "^5.9.3",
+    "@capacitor/cli": "^8.5.3",
     "@types/qrcode": "^1.5.5",
+    "typescript": "^5.9.3",
     "vite": "^7.1.11",
     "vitest": "^4.1.12"
   }

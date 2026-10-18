@@ -1,3 +1,5 @@
+import { Capacitor } from '@capacitor/core';
+
 export type SensorState = 'idle' | 'waiting' | 'active' | 'denied' | 'unavailable' | 'stale' | 'recalibrate';
 
 export interface Telemetry {
@@ -88,7 +90,7 @@ export class SensorController {
   private getScreenAngle() { return window.screen.orientation?.angle ?? (window.orientation || 0); }
 
   async enable() {
-    if (!window.isSecureContext) {
+    if (!window.isSecureContext && !Capacitor.isNativePlatform()) {
       this.setState('unavailable', 'เซนเซอร์ต้องเปิดเว็บผ่าน HTTPS');
       return false;
     }
