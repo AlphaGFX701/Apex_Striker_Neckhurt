@@ -28,10 +28,19 @@ describe('tilt control', () => {
     filter.clear();
     expect(filter.update({ x: 90, y: 0 })).toEqual({ x: 0, y: 0 });
   });
+  it('uses elapsed time for equivalent filtering at different frame rates', () => {
+    const results = [30, 60, 120].map(hz => {
+      const f = new TiltFilter(); f.calibrate({ x: 0, y: 0 });
+      let out = { x: 0, y: 0 };
+      for (let i = 0; i < hz; i++) out = f.update({ x: 15, y: -15 }, 1 / hz);
+      return out.x;
+    });
+    expect(Math.max(...results) - Math.min(...results)).toBeLessThan(0.00001);
+  });
 });
 
 describe('sensor setup', () => {
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
   function fakeBrowser(permission: 'granted' | 'denied' = 'granted') {
     const fakeWindow = new EventTarget() as EventTarget & { isSecureContext: boolean; screen: { orientation: EventTarget & { angle: number } }; orientation: number; DeviceOrientationEvent: typeof DeviceOrientationEvent };
@@ -83,5 +92,61 @@ describe('sensor setup', () => {
     browser.screen.orientation.dispatchEvent(new Event('change'));
     expect(sensor.telemetry.state).toBe('recalibrate');
     expect(sensor.telemetry.calibrated).toBe(false);
+  });
+
+  it('requests both permissions during activation and preserves tilt if motion is denied', async () => {
+    const browser = fakeBrowser();
+    const motionPermission = vi.fn(async () => 'denied');
+    Object.assign(browser, { DeviceMotionEvent: { requestPermission: motionPermission } });
+    const s = new SensorController(); const enabled = s.enable();
+    expect(motionPermission).toHaveBeenCalledOnce();
+    expect(await enabled).toBe(true); expect(s.telemetry.motionState).toBe('denied');
+    browser.dispatchEvent(Object.assign(new Event('deviceorientation'), { alpha: 0, beta: 10, gamma: 12 }));
+    expect(s.calibrate()).toBe(true);
+  });
+
+  it('reports missing individual motion fields and marks gravity subtraction as estimated', async () => {
+    const browser = fakeBrowser(); Object.assign(browser, { DeviceMotionEvent: class {} });
+    const s = new SensorController(); await s.enable();
+    browser.dispatchEvent(Object.assign(new Event('devicemotion'), { acceleration: { x: 1, y: 2, z: 3 }, rotationRate: { alpha: null, beta: null, gamma: null } }));
+    expect(s.telemetry.strength).toBeCloseTo(Math.sqrt(14)); expect(s.telemetry.roll).toBeNull(); expect(s.telemetry.estimated).toBe(false);
+    browser.dispatchEvent(Object.assign(new Event('devicemotion'), { acceleration: null, accelerationIncludingGravity: { x: 0, y: 0, z: 9.81 } }));
+    expect(s.telemetry.estimated).toBe(true); expect(s.telemetry.strength).toBeNull();
+    expect(s.telemetry.rotation.alpha).toBeNull();
+  });
+
+  it('rejects insecure origins and clears stale motion data', async () => {
+    const browser = fakeBrowser(); browser.isSecureContext = false;
+    const s = new SensorController(); expect(await s.enable()).toBe(false);
+    expect(s.telemetry.message).toContain('HTTPS');
+    browser.isSecureContext = true; Object.assign(browser, { DeviceMotionEvent: class {} }); await s.enable();
+    browser.dispatchEvent(Object.assign(new Event('devicemotion'), { acceleration: { x: 0, y: 0, z: 0 }, rotationRate: { alpha: 0, beta: 0, gamma: 0 } }));
+    s.tick(performance.now() + 3100);
+    expect(s.telemetry.motionState).toBe('stale'); expect(s.telemetry.strength).toBeNull(); expect(s.consumeActions()).toEqual([]);
+  });
+
+  it('clears queued gestures on pause/restart and ignores motion while disarmed', async () => {
+    let now = 1000; vi.spyOn(performance, 'now').mockImplementation(() => now);
+    const browser = fakeBrowser(); Object.assign(browser, { DeviceMotionEvent: class {} });
+    const s = new SensorController(); await s.enable();
+    browser.dispatchEvent(Object.assign(new Event('deviceorientation'), { alpha: 0, beta: 10, gamma: 12 }));
+    s.calibrate(); s.setGestureActive(true);
+    const move = () => browser.dispatchEvent(Object.assign(new Event('devicemotion'), { acceleration: { x: 0, y: 0, z: 0 }, rotationRate: { alpha: 0, beta: 0, gamma: 200 } }));
+    for (now = 1700; now < 1800; now += 16) move();
+    expect(s.telemetry.lastGesture).toBe('dodgeRight');
+    s.setGestureActive(false); expect(s.consumeActions()).toEqual([]);
+    for (now = 2600; now < 2800; now += 16) move();
+    expect(s.consumeActions()).toEqual([]);
+    s.setGestureActive(true); s.resetTransient(); expect(s.consumeActions()).toEqual([]);
+  });
+
+  it('times out unusable motion events and can retry setup', async () => {
+    let now = 1000; vi.spyOn(performance, 'now').mockImplementation(() => now);
+    const browser = fakeBrowser(); Object.assign(browser, { DeviceMotionEvent: class {} });
+    const s = new SensorController(); await s.enable();
+    now = 4500;
+    browser.dispatchEvent(Object.assign(new Event('devicemotion'), { acceleration: null, rotationRate: null }));
+    s.tick(now); expect(s.telemetry.motionState).toBe('unavailable');
+    expect(await s.enable()).toBe(true); expect(s.telemetry.motionState).toBe('waiting');
   });
 });
