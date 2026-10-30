@@ -283,6 +283,17 @@ function graph(id: string, points: (number | null)[], bound: number, color: stri
 }
 window.setInterval(() => {
   sensor.tick(); const t = sensor.telemetry;
+  if (view === 'preflight') {
+    const preview = el<HTMLCanvasElement>('preflight-preview');
+    if (source === 'sensor' && t.state === 'active' && t.calibrated) {
+      const axes = sensor.getAxes(.1);
+      preview.style.transform = `translate(${axes.x * 24}px, ${axes.y * 24}px)`;
+      el('preflight-help').textContent = 'เซนเซอร์พร้อม • เอียงมือถือเพื่อทดลองเลื่อนยาน';
+    } else {
+      preview.style.transform = '';
+      if (source === 'sensor') el('preflight-help').textContent = t.message;
+    }
+  }
   el('sensor-message').textContent = t.message; el('motion-message').textContent = t.motionMessage;
   el('sensor-state').textContent = `${labels[t.state]} / ${labels[t.motionState]}`;
   el('hz').textContent = `${value(t.hz)} / ${value(t.motionHz)} Hz`;
