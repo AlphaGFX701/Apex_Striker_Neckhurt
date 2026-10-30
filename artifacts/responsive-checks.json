@@ -1,0 +1,128 @@
+[
+  {
+    "englishOnly": true,
+    "height": 568,
+    "scrollWidth": 310,
+    "view": "home",
+    "width": 320
+  },
+  {
+    "englishOnly": true,
+    "height": 568,
+    "scrollWidth": 310,
+    "view": "hangar",
+    "width": 320
+  },
+  {
+    "englishOnly": true,
+    "height": 568,
+    "scrollWidth": 310,
+    "view": "stages",
+    "width": 320
+  },
+  {
+    "englishOnly": true,
+    "height": 568,
+    "scrollWidth": 310,
+    "view": "controller",
+    "width": 320
+  },
+  {
+    "englishOnly": true,
+    "height": 568,
+    "scrollWidth": 310,
+    "view": "records",
+    "width": 320
+  },
+  {
+    "englishOnly": true,
+    "height": 568,
+    "scrollWidth": 310,
+    "view": "settings",
+    "width": 320
+  },
+  {
+    "englishOnly": true,
+    "height": 390,
+    "scrollWidth": 834,
+    "view": "home",
+    "width": 844
+  },
+  {
+    "englishOnly": true,
+    "height": 390,
+    "scrollWidth": 834,
+    "view": "hangar",
+    "width": 844
+  },
+  {
+    "englishOnly": true,
+    "height": 390,
+    "scrollWidth": 834,
+    "view": "stages",
+    "width": 844
+  },
+  {
+    "englishOnly": true,
+    "height": 390,
+    "scrollWidth": 834,
+    "view": "controller",
+    "width": 844
+  },
+  {
+    "englishOnly": true,
+    "height": 390,
+    "scrollWidth": 834,
+    "view": "records",
+    "width": 844
+  },
+  {
+    "englishOnly": true,
+    "height": 390,
+    "scrollWidth": 834,
+    "view": "settings",
+    "width": 844
+  },
+  {
+    "englishOnly": true,
+    "height": 900,
+    "scrollWidth": 1280,
+    "view": "home",
+    "width": 1280
+  },
+  {
+    "englishOnly": true,
+    "height": 900,
+    "scrollWidth": 1270,
+    "view": "hangar",
+    "width": 1280
+  },
+  {
+    "englishOnly": true,
+    "height": 900,
+    "scrollWidth": 1270,
+    "view": "stages",
+    "width": 1280
+  },
+  {
+    "englishOnly": true,
+    "height": 900,
+    "scrollWidth": 1270,
+    "view": "controller",
+    "width": 1280
+  },
+  {
+    "englishOnly": true,
+    "height": 900,
+    "scrollWidth": 1280,
+    "view": "records",
+    "width": 1280
+  },
+  {
+    "englishOnly": true,
+    "height": 900,
+    "scrollWidth": 1270,
+    "view": "settings",
+    "width": 1280
+  }
+]

@@ -37,3 +37,11 @@ Original retained at `/assets/originals/Rawdanitsu-Background-1.png`. Derivative
 
 Shared wing-mount bridge: tiled crop (56,58,72,74) from Skorpio Human-Fighter.png, same CC-BY-SA 3.0 source credited above. Engine placement overlaps hull rear to prevent disconnected modules. Module layers share 320×320 transparent canvas; hull is frontmost.
 
+
+## Tactical Fleet / English edition (v6)
+
+The current tactical assembly uses Skorpio Original Human Ships hulls (Human-Fighter, Human-Cruiser, Human-Battlecruiser), with PSD-derived wing and engine pieces from the construction kit. Changes: uniform resizing, swept mirrored wings, a mounting brace cropped from the artist's Human-Fighter hull, normalized 640x640 transparent canvases, brighter cyan lighting, three engine layouts, and red recoloring for bosses. The hull/wing/engine selection remains cosmetic. These ship, boss, drone and module derivatives remain CC-BY-SA 3.0.
+
+Three portrait combat environments crop different regions of Rawdanitsu Background-1, darken them and encode WebP without stretching; these remain CC0. Equipment and upgrade symbols in assets/tactical/*.svg are hand-authored geometric vector drawings, CC0. Combat trails, warning beams and hitbox indicators are code-drawn effects. No generative image model was used.
+
+Current derivative download: /assets/tactical-art-CC-BY-SA-3.0.zip. Rebuild with scripts/build-tactical-assets.py (Python + Pillow); check all 27 compositions with scripts/check-tactical-assets.py. Original artist files remain in assets/originals/. Earlier adaptation ZIPs describe the earlier art versions, not the tactical update.

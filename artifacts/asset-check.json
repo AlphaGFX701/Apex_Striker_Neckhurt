@@ -1,0 +1,164 @@
+[
+  {
+    "ship": "ship-0-0-0",
+    "majorAlphaComponents": [
+      4300
+    ]
+  },
+  {
+    "ship": "ship-0-0-1",
+    "majorAlphaComponents": [
+      4346
+    ]
+  },
+  {
+    "ship": "ship-0-0-2",
+    "majorAlphaComponents": [
+      4304
+    ]
+  },
+  {
+    "ship": "ship-0-1-0",
+    "majorAlphaComponents": [
+      4561
+    ]
+  },
+  {
+    "ship": "ship-0-1-1",
+    "majorAlphaComponents": [
+      4607
+    ]
+  },
+  {
+    "ship": "ship-0-1-2",
+    "majorAlphaComponents": [
+      4565
+    ]
+  },
+  {
+    "ship": "ship-0-2-0",
+    "majorAlphaComponents": [
+      4111
+    ]
+  },
+  {
+    "ship": "ship-0-2-1",
+    "majorAlphaComponents": [
+      4157
+    ]
+  },
+  {
+    "ship": "ship-0-2-2",
+    "majorAlphaComponents": [
+      4115
+    ]
+  },
+  {
+    "ship": "ship-1-0-0",
+    "majorAlphaComponents": [
+      4143
+    ]
+  },
+  {
+    "ship": "ship-1-0-1",
+    "majorAlphaComponents": [
+      4276
+    ]
+  },
+  {
+    "ship": "ship-1-0-2",
+    "majorAlphaComponents": [
+      4225
+    ]
+  },
+  {
+    "ship": "ship-1-1-0",
+    "majorAlphaComponents": [
+      4419
+    ]
+  },
+  {
+    "ship": "ship-1-1-1",
+    "majorAlphaComponents": [
+      4552
+    ]
+  },
+  {
+    "ship": "ship-1-1-2",
+    "majorAlphaComponents": [
+      4501
+    ]
+  },
+  {
+    "ship": "ship-1-2-0",
+    "majorAlphaComponents": [
+      3939
+    ]
+  },
+  {
+    "ship": "ship-1-2-1",
+    "majorAlphaComponents": [
+      4072
+    ]
+  },
+  {
+    "ship": "ship-1-2-2",
+    "majorAlphaComponents": [
+      4021
+    ]
+  },
+  {
+    "ship": "ship-2-0-0",
+    "majorAlphaComponents": [
+      5093
+    ]
+  },
+  {
+    "ship": "ship-2-0-1",
+    "majorAlphaComponents": [
+      5168
+    ]
+  },
+  {
+    "ship": "ship-2-0-2",
+    "majorAlphaComponents": [
+      5172
+    ]
+  },
+  {
+    "ship": "ship-2-1-0",
+    "majorAlphaComponents": [
+      5354
+    ]
+  },
+  {
+    "ship": "ship-2-1-1",
+    "majorAlphaComponents": [
+      5429
+    ]
+  },
+  {
+    "ship": "ship-2-1-2",
+    "majorAlphaComponents": [
+      5433
+    ]
+  },
+  {
+    "ship": "ship-2-2-0",
+    "majorAlphaComponents": [
+      4831
+    ]
+  },
+  {
+    "ship": "ship-2-2-1",
+    "majorAlphaComponents": [
+      4906
+    ]
+  },
+  {
+    "ship": "ship-2-2-2",
+    "majorAlphaComponents": [
+      4910
+    ]
+  }
+]

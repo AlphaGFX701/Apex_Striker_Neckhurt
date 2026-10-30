@@ -1,71 +1,58 @@
-# Gyro Space Combat
+# Gyro Space Combat — Tactical Fleet
 
-เว็บเกมภาษาไทย Phaser + TypeScript + Vite สำหรับ Mini Project: Accel & Gyroscope
+English browser space shooter built with Phaser, TypeScript and Vite. Play three 90-second stages, customize 27 cosmetic ship builds, equip four combat systems, choose temporary upgrades and unlock Endless. All game data stays in your browser.
 
-เล่น: https://gyro-space-lab-th.mjadsakul.chatgpt.site/
+Public game: https://gyro-space-lab-th.mjadsakul.chatgpt.site/
 
-## รันและตรวจ
+## Run and build
 
-```bash
+```sh
 npm ci
 npm run dev
 npm test
 npm run build
 ```
 
-เซนเซอร์มือถือใช้ลิงก์ HTTPS จริง การเปิด IP ใน Wi-Fi ผ่าน HTTP ใช้ทดสอบเซนเซอร์ไม่ได้ คอมใช้ลากเมาส์/ลูกศร/WASD, Q/E หลบ, Space ใช้ EMP ได้ ผลบิลด์อยู่ใน dist/
+Vite serves the local preview; `dist/` is the static deployment. Phone sensors require HTTPS (localhost is an exception only on the device running the server). Opening a computer's LAN address over HTTP does not enable phone sensors.
 
-## วิธีเล่น
+## Controls
 
-1. ถือมือถือแนวตั้งสองมือ กดเปิดเซนเซอร์และอนุญาต Motion
-2. ถือในท่าถนัด กดตั้งศูนย์ แล้วลองห้องฝึกท่าทางก่อน
-3. เอียงช้า ๆ เพื่อบังคับยาน หมุนข้อมือซ้าย/ขวาเร็วเพื่อกลิ้งหลบ
-4. เขย่าสั้น ๆ ไปกลับหลายจังหวะเพื่อปล่อย EMP เมื่อพลังเต็ม
-5. เล่นด่าน 90 วินาที บอสปรากฏวินาที 60 กำจัดก่อนหมดเวลา
+- Phone: enable sensors, hold comfortably, set center. Tilt to move, flick sideways to dodge, shake in repeated short alternating movements to deploy a charged EMP.
+- Touch: drag below the ship. Releasing the movement finger pauses flight. Other fingers may use the skill buttons without cancelling movement.
+- Keyboard: arrows / WASD, Q / E dodge, Space EMP.
+- Controller: pair in OS Bluetooth settings and press a button. Defaults: left stick / D-pad move, LB / RB dodge, bottom button EMP, Start pause. Remap in Controller Lab.
 
-ชีวิต 3 หน่วย ยิงอัตโนมัติ กลิ้งอมตะ 0.6 วินาที คูลดาวน์ร่วมซ้าย/ขวา 3 วินาที EMP เติม 5% ต่อวินาทีและเพิ่มเมื่อกำจัดศัตรู ล้างกระสุนศัตรู โจมตีบอส 18 หน่วย โหมดฝึกไม่เสียชีวิตและเติม EMP ด้วยปุ่มได้ เลือกโหมดฝึกก่อนเริ่มรอบ
+Controller Lab shows both stick positions, button numbers, trigger pressure, action lamps, selected device, observed checks and a mini flight test. Its raw inputs and exported observations describe browser data, not physical-device compatibility certification. Standard Gamepad API does not provide raw gyroscope data. Mapped tilt is enabled only after an observed trial and explicit user confirmation.
 
-เมื่อสลับแอปหรือหน้าต่างเสียโฟกัส เกมพักและรอกดเล่นต่อ เปลี่ยนแนวจอแล้วต้องตั้งศูนย์ใหม่ เปิดวิธีเล่นระหว่างเกมจะพักเกมอัตโนมัติ
+## Combat and progression
 
-## หลักการเซนเซอร์
+Asteroid Belt, Orbital Convoy and Citadel Assault each introduce a different boss, weakness and environment. Bosses appear at 60 seconds; defeat them before 90 seconds. Main weapons: Pulse, Plasma Spread and piercing Laser. Secondary: retargeting missiles. Armor: regenerating shield. Wingman: support drones. Equipment has three visible upgrade levels; cosmetic hull parts do not affect speed or collision.
 
-- src/sensor.ts: ขอสิทธิ์ Orientation และ Motion จากการกดปุ่มเดียว อ่านข้อมูลแยกสถานะ ตัด null/NaN และตรวจข้อมูลขาด
-- TiltFilter ใช้มุม beta/gamma เทียบศูนย์ แปลงตามแนวจอ มี dead zone 3 องศา ช่วงเอียงเริ่มต้น 28 องศา ตัวกรองใช้ elapsed time (tau 65 ms)
-- src/motion.ts: ตรวจท่าแยกจากการเคลื่อนที่ ใช้ rotationRate แกน roll ตามแนวจอสำหรับหลบ (เริ่มต้น 140 °/s และสะสมอย่างน้อย 12°)
-- เขย่าใช้ความเร่งเชิงเส้น magnitude เริ่มต้น 11 m/s² ต้องมี 3 peak ที่แรงสลับทิศภายใน 700 ms เว้นอย่างน้อย 80 ms และต้องลดต่ำกว่าเกณฑ์ปล่อยระหว่าง peak
-- เมื่อเริ่มพบ peak เขย่า จะระงับหลบขณะรอดูรูปแบบ หลังท่าติดมี lockout 850–900 ms หลังตั้งศูนย์/เริ่ม/พักมีเวลารอ 650 ms
-- ใช้ event.acceleration ก่อน หากไม่มีใช้ accelerationIncludingGravity ลบแรงโน้มถ่วงประมาณจาก low-pass tau 500 ms รอปรับตัว 700 ms และแสดงคำว่าประมาณค่า ค่าประมาณอาจผิดเมื่อเครื่องเคลื่อนเร็ว จึงปรับความไวและทดสอบเครื่องจริงได้
-- src/model.ts: กติกาเกม คูลดาวน์ พลังงาน การชน และผลจบ อยู่แยกจาก Phaser กรองอินพุตเคลื่อนที่ tau 55 ms
-- ค่าขาดแสดงว่าไม่พร้อมใช้งาน ไม่อ้างค่าศูนย์เป็นค่าที่วัดได้ มีปุ่มสำรองให้ใช้
+Stage upgrades appear at 20 and 40 seconds. Endless has 30-second waves and a boss every third wave; boss fights stop wave advancement. Perk selection pauses simulation and resumes after a two-second countdown. Dodge grants 0.6 seconds invulnerability and starts with a shared three-second cooldown. EMP charges at 5%/second and on kills.
 
-นี่คือการใช้เซนเซอร์ต่างชนิดแยกหน้าที่ ไม่อ้างว่าเป็นระบบ sensor fusion สำหรับประมาณ orientation เอง
+Progression is local: regular enemies drop 2 credits, armored enemies 6; bosses award 30; clear bonuses are 50 plus 100 for a first clear. New systems cost 90; upgrades cost 60 then 120. Rewards settle once per completed/withdrawn run. Refreshing an unfinished run forfeits its unbanked salvage. Clearing stage one opens stage two and Endless; stage two opens stage three.
 
-## ผลตรวจและการทดสอบอุปกรณ์จริง
+Practice opens all stages and lets you equip otherwise locked systems without buying them. The Practice equipment level selector chooses its level independently of purchases. Practice does not grant credits, unlocks or score records.
 
-ดู TESTING.md สำหรับขอบเขตผลจำลองและรายการทดลองจริง ห้องทดสอบในเว็บมีกราฟข้อมูลสด ตารางให้ผู้ทดลองบันทึกถูก/ไม่ติด/ผิดท่า และดาวน์โหลด JSON ผลทดลองบนเครื่องได้ ผลไม่ส่งไปเซิร์ฟเวอร์ ตารางเริ่มว่างและไม่สร้างผลผ่านอัตโนมัติ
+## Code boundaries
 
-งานนี้ไม่มีบัญชีหรือหลังบ้าน ข้อมูลเซนเซอร์อยู่ในเบราว์เซอร์ เสียงสร้างด้วย Web Audio ส่วนการสั่นเป็นทางเลือกบนเครื่องที่รองรับ Vibration API; iPhone Safari ใช้ภาพและเสียง
+- `model.ts`: deterministic combat, waves, projectiles, pickup attraction, hitboxes, powers and results.
+- `equipment.ts` / `progress.ts`: shared weapon definitions, loadouts, weakness rules and local progression.
+- `game.ts`: Phaser rendering and input boundary. `screens.ts` holds screen markup; `main.ts` connects screen state and systems.
+- `sensor.ts` / `motion.ts`: permission-aware phone telemetry and time-based movement/gesture filters, independent of combat.
+- `controller-lab.ts` / `gamepad.ts`: visual diagnostics and polling adapter, including multiple devices and analog buttons.
 
-## งานต่อยอด iOS
+Legacy v4 control preferences and v5 cosmetic ships are preserved. The v6 progress save keeps old weapons available. Invalid or blocked storage falls back to a playable session.
 
-โครง Capacitor ใน ios/ ยังคงอยู่ แต่รุ่นส่งงานนี้เผยแพร่เป็นเว็บ ยังไม่ได้สร้างหรือทดสอบ IPA/ไจโรจอย FANTECH
+## Art and verification
 
-หากต้องการบิลด์ในภายหลัง ใช้ macOS และ Xcode 26+:
+Read ASSET-CREDITS.md for artist provenance and derivative downloads. No generative image model is used. Rebuild the tactical art with Python + Pillow:
 
-```bash
-bash scripts/build-unsigned-ipa.sh
+```sh
+python scripts/build-tactical-assets.py
+python scripts/check-tactical-assets.py
 ```
 
-สคริปต์จะบิลด์เว็บและ sync iOS ก่อนสร้าง build/ios/Gyro-Space-Lab-unsigned.ipa สำหรับนำไปเซ็นด้วย Sideloadly
+The earlier PSD extraction script additionally requires psd-tools. TESTING.md records automated, browser and physical-device verification separately. FANTECH / iPhone hardware compatibility remains unverified until tested on the actual devices.
 
-## Artist fleet + controller update
-Choose Falcon, Raven or Atlas and Precision or Spread in the hangar. All hulls use the same collision radius, speed and three lives. Spread fires 3 half-damage projectiles every .27s at -12/0/+12 degrees; Precision fires 1 damage every .18s. Choices and sensitivity are saved locally when storage is available.
-
-Pair FANTECH in OS Bluetooth settings, select gamepad input, then press a physical button so the browser exposes it. Open Settings > FANTECH to inspect real axes/buttons and rebind skills. Defaults: left stick/Dpad movement, LB/RB dodge, bottom button EMP, Start pause. Disconnect pauses play. For tilt-as-stick: select axes, release sticks, run a five-second trial, explicitly confirm that movement came only from tilting, then center. No raw gamepad gyroscope is claimed. iPhone/FANTECH physical compatibility remains unverified.
-
-Art credits and original/adapted downloads: ASSET-CREDITS.md and public/assets/CREDITS.md. Rebuild atlas with scripts/build-assets.py (Pillow). Run npm install, npm test, npm run dev, npm run build. Public URL and QR remain unchanged.
-
-## Cinematic hangar
-Start at the title screen; use ประกอบยาน to choose a hull, wings, engine, accent and weapon. Save the draft before flying; changes are stored locally where available. Preflight selects touch, phone motion, gamepad or verified tilt-as-stick. Gamepad raw gyroscope remains unavailable to the standard browser API. The phone sensor permission must be requested by tapping the screen. Pause to open settings, restart or return to the hangar.
-
-Run `npm install`, `npm run dev`, `npm test`, `npm run build`. The modular artist layers can be regenerated with `scripts/build-modular-assets.py` using Python, Pillow and psd-tools. Original art and adapted artwork licenses are in ASSET-CREDITS.md.
+The retained Capacitor iOS project is optional future work; this delivery is a static web game, not a newly tested IPA.

@@ -1,37 +1,41 @@
-# บันทึกการตรวจ Gyro Space Combat
+# Verification — Tactical Fleet / English Edition
 
-## ผลจำลองอัตโนมัติ
+Date: 31 October 2026 (Asia/Bangkok). Source update from the previous public v5 game.
 
-Vitest: ตรวจการตั้งศูนย์ ทิศแกน ความไว ตัวกรองที่ 30/60/120 fps การรับ/ปฏิเสธสิทธิ์ทั้งสอง API, ไม่มีข้อมูล, HTTPS, ค่า null, ความเร่งประมาณ, สัญญาณขาด, การล้างคำสั่งค้าง, ตรวจหลบและเขย่าที่อัตราข้อมูลต่างกัน, คูลดาวน์ร่วม, EMP, ขอบจอ, เริ่มใหม่, ชีวิต, จบรอบ, บอส และโหมดฝึก
+## Automated checks
 
-นี่เป็นการป้อนข้อมูลจำลองในชุดทดสอบ ไม่ใช่หลักฐานว่า iPhone 14 หรือ Android ตรวจท่าได้แม่นจริง
+- `npm test`: 57 tests across six files passed. This includes all 39 previous cases plus weapon scaling, non-stacking weakness bonuses, analog trigger pressure, controller selection, drift centering, local-save migration, invalid/blocked storage, reward settlement across reload, shield regeneration, missile retargeting, directional laser collision, perk pause/reset and Endless transitions.
+- `npm run build`: TypeScript check and Vite production build passed. Phaser produces a large bundle warning (~1.33 MB minified / ~377 KB gzip); this is a packaging warning, not a build failure.
+- Twenty simulated minutes of Endless: 24,500 steps of up to 50 ms, with full equipment, power choices and automatic boss targeting. The run remains active beyond 1,200 simulated seconds. Player bullets stay <=240, hostile bullets <=220, enemies <=18; pickups and explosion history are capped. This is accelerated deterministic simulation, not a claim of twenty minutes of wall-clock browser or phone testing, and not a measured mobile heap profile.
+- `scripts/check-tactical-assets.py`: all 27 ship compositions have one connected major alpha silhouette at the checking scale. Contact sheet and per-build component areas are in artifacts/.
+- Premium UI static audit in strict mode: zero findings after dynamic cards were given explicit action ownership. `git diff --check` reports no whitespace errors. English scan of runtime source and visible screens finds no Thai UI strings.
 
-## การตรวจเบราว์เซอร์บนคอม
+## Browser tests
 
-ใช้ viewport จำลองมือถือ 390×844 แนวตั้ง และ 844×390 แนวนอน รวมถึงจอ desktop ตรวจการเริ่มเกม ปุ่มหลบ เติม/ใช้ EMP ในโหมดฝึก พัก/เล่นต่อ วิธีเล่น ห้องฝึก กราฟไม่มีข้อมูล สรุปผล และเริ่มใหม่ การปรับ viewport ไม่ได้จำลองเซนเซอร์หรือสิทธิ์ของ Safari/Android
+Performed in the available desktop browser, with real DOM/canvas rendering and mouse/keyboard controls. Viewport resizing is not physical-device testing.
 
-## ต้องทำบนอุปกรณ์จริงก่อนนำเสนอ
+- Practice completed through boss defeat: Asteroid Belt 79.8 seconds; Orbital Convoy 75.5 seconds; Citadel Assault 81.3 seconds. The last two runs used Laser, Missiles, Shield and Drones. Citadel used one EMP. Practice left credits at zero and did not create records.
+- Perk selections at 20/40 seconds pause flight and resume through a countdown. Cancelled resume was checked: reopening Pause during the countdown kept the clock fixed at 70 seconds.
+- Pause -> Settings -> Controller Lab -> Back -> Back returns to the paused mission and resumes correctly.
+- Appearance selection/save, dirty-draft cancel/discard and selected ship persistence were exercised. Four practice equipment slots were equipped and their visible slot state matched Preflight. Upgrade preview is separate from ownership.
+- 320x568, 390x844, 844x390 and 1280x900 were inspected. Title, Hangar, Stage Select, Controller Lab, Records and Settings showed no horizontal overflow. Battle was checked in portrait and landscape; field ratio remains 9:16 and page height equals the viewport. Landscape's portrait field is intentionally smaller.
+- Empty records, locked stages, no-controller messaging, unavailable phone telemetry, reduced effects and English text were checked. Fresh final-load browser error logs were empty; earlier development-only missing background messages were resolved before final verification.
+- Representative actual screenshots: artifacts/title-390.jpg, hangar-390.jpg, battle-390.jpg, power-choice-390.jpg, controller-390.jpg, results-390.jpg and results-citadel.jpg. Full-page menu screenshots include scrollable content.
 
-สถานะเริ่มต้น: ยังไม่ได้ทดสอบบน iPhone 14 หรือ Android ของเพื่อน
+## Simulated controller UI test
 
-1. เปิดลิงก์ HTTPS จริงใน Safari iPhone 14 และ Chrome Android จดเวอร์ชันระบบ/เบราว์เซอร์
-2. ทดลองอนุญาตและปฏิเสธ Motion ตรวจข้อความ/ปุ่มสำรอง และวิธีขอสิทธิ์ใหม่
-3. ตั้งศูนย์ในท่าถือปกติ แล้วเอียงช้าแต่ละทิศ ยานต้องไปถูกทิศและไม่ใช้สกิลเอง
-4. เปิดห้องฝึกท่าทางและตารางบันทึก เลือกหลบซ้าย เริ่มนับ รอ 0.7 วินาทีแล้วทำท่าหนึ่งครั้ง เมื่อครบ 5 วินาทีบันทึกถูก/ไม่ติด/ผิดท่าตามจริง ทำให้ครบ 10 ครั้ง
-5. ทำเช่นเดียวกันกับหลบขวาและเขย่า EMP อย่างละ 10 ครั้ง ถ้าไม่แม่นปรับความไวแล้วบันทึกชุดใหม่ พร้อมส่งออก JSON ก่อนล้าง
-6. ทดสอบในเกมจริงว่าเขย่าเมื่อพลังไม่เต็มไม่ใช้ EMP หลบช่วงคูลดาวน์ไม่ติด และหนึ่งท่าไม่ปล่อยสองสกิล
-7. สลับแอป กลับมา เล่นต่อ หมุนจอ ตั้งศูนย์ใหม่ และเริ่มใหม่ ต้องไม่มีคำสั่งท่าค้างหรือความเร็วค้าง
-8. เล่นให้จบรอบทั้งโหมดปกติและโหมดฝึก ดูบอส สรุปเวลา คะแนน จำนวนหลบและ EMP
-9. ตรวจเสียง การลากนิ้ว ปุ่มสำรอง พื้นที่ safe area และการอ่าน HUD
+`qa/controller.html` is a development-only fixture, excluded from the production build entry. It explicitly says SIMULATED INPUT — NOT A PHYSICAL DEVICE. It imports the production adapter and Controller Lab.
 
-ผลการทดลองเครื่องจริงให้รายงานอุปกรณ์ ความไว จำนวนถูก/ไม่ติด/ผิดท่า และข้อสังเกต ไม่กรอกผลล่วงหน้า
+Observed in the browser: left stick displacement, EMP button highlight/check, 50% LT trigger indicator, remapping Dodge Left from button 4 to 0, disconnect clearing observed checks, and a five-second stationary tilt test reporting No tilt signal detected with confirmation still false. Unit tests cover multi-device selection, held-button suppression and replacement. No simulated result is presented as a physical FANTECH test.
 
-## ก่อนส่งอาจารย์
+## Physical-device tests still required
 
-ยืนยันว่าเว็บแอปเป็นรูปแบบงานที่รับได้ และเปรียบเทียบกับงานเซนเซอร์ที่เคยทำในชั้นเรียนเพื่อยืนยันว่าไม่ซ้ำ ข้อมูลสองข้อนี้ยังไม่ได้รับจากอาจารย์/ผู้ใช้
+No iPhone 14, Android handset or physical FANTECH EOS PRO I WGP15 V2S was connected during this implementation. Bluetooth mode compatibility, actual stick/button mappings, mapped tilt, iOS permission prompts, real gyro gestures and sustained mobile performance remain unverified.
 
-## 2026-10-30 fleet/controller revision
-Automated: 34 tests pass (existing sensor/combat plus gamepad drift, edge presses, reconnect, mapping, tilt confirmation and both weapon patterns). TypeScript/Vite build checked separately. Real iPhone14/FANTECH and Android physical trials are NOT performed by the agent; user device testing remains required. An observed analog change alone never proves gyroscope origin; the user must confirm they did not touch sticks.
+For each physical device: open the HTTPS public URL, enable sensors from a tap, set center, perform ten left/right dodge and shake trials in Settings, and export the user-labelled trial report. In Controller Lab, verify buttons/sticks/triggers, disconnect/reconnect, remap and the mapped tilt trial. Raw gamepad gyroscope access is not claimed.
 
-## Cinematic redesign
-Automated: `npm test` passes 39 cases, including fixed-slot selection, legacy migration, blocked storage and gamepad behavior. Manual browser: build/save ship, launch, pause, confirm/cancel, resume; four viewport widths checked. Physical iPhone 14, FANTECH and Android tests remain outstanding and are not represented as passed.
+## Review and delivery
+
+Two read-only review passes identified and corrected countdown cancellation, nested return routing, movement-pointer ownership, laser direction/range, practice loadout display and post-boss Endless wave advancement. Stage-specific formations, Citadel escorts and separate cropped sector backgrounds were added before final checks. Legacy control saves retain unrelated fields when preferences are updated.
+
+Publication uses the existing public Site and its static hosting manifest. No accounts, server storage, paid currency or analytics were added. QR destination is unchanged.

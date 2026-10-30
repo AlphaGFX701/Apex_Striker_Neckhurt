@@ -1,405 +1,1215 @@
-import { ShipBuildStore, loadShipParts, composeShip, type ShipPartImages, type ShipSlot } from './ship-build';
-import { GamepadAdapter, type PadFrame, type PadCommand } from './gamepad';
-import QRCode from 'qrcode';
-import { createGame } from './game';
-import { SensorController, type Telemetry } from './sensor';
-import { Feedback } from './feedback';
-import type { Action } from './motion';
-import type { GameSnapshot } from './model';
-import './style.css';
-
-const PUBLIC_URL = 'https://gyro-space-lab-th.mjadsakul.chatgpt.site/';
-const names: Record<Action, string> = { dodgeLeft: 'หลบซ้าย', dodgeRight: 'หลบขวา', emp: 'เขย่า EMP' };
-const app = document.querySelector<HTMLDivElement>('#app')!;
-app.innerHTML = `
-<main class="shell" data-view="home">
-  <header class="topbar">
-    <div class="brand"><span class="brand-mark">✧</span><span><strong>GYRO SPACE</strong><small>COMBAT / เอียงบิน · กลิ้งหลบ · เขย่า EMP</small></span></div>
-    <button id="help-button" class="icon-button" aria-label="วิธีเล่นและ QR">?</button>
-  </header>
-  <section id="home-screen" class="screen home-screen">
-    <div class="home-copy"><span class="mission-tag">MOTION ARCADE · ภารกิจ 90 วินาที</span><h1>GYRO<br><em>SPACE</em><br>COMBAT</h1><p>เตรียมยานให้พร้อม แล้วฝ่ากองกำลังศัตรู<br>เอียงบิน · กลิ้งหลบ · ปลดปล่อย EMP</p><div class="home-actions"><button id="home-launch" class="primary">เริ่มภารกิจ <span>↗</span></button><button id="home-hangar" class="secondary">ประกอบยาน <span>→</span></button><button id="home-settings" class="text-button">⚙ ตั้งค่าและทดสอบ</button></div></div>
-    <div class="home-visual"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><canvas id="home-ship" width="512" height="512" aria-label="ยานที่บันทึกไว้"></canvas><div class="home-caption"><span>FLEET // 01</span><strong>YOUR SHIP</strong><small>พร้อมรับคำสั่ง</small></div></div><div class="home-footer">SPACE COMBAT LAB <span>ระบบควบคุม · MOTION / GAMEPAD</span></div>
-  </section>
-  <section id="hangar-screen" class="screen hangar-screen"><header class="screen-head"><button id="hangar-back" class="back-button">← กลับ</button><div><span class="mission-tag">SHIPYARD / โรงประกอบยาน</span><h1>สร้างยานของคุณ</h1></div><span class="head-note">ทุกชิ้นส่วนเปิดใช้แล้ว</span></header><div class="hangar-layout"><div class="hangar-stage"><div class="stage-grid"></div><div class="hangar-light"></div><canvas id="build-preview" width="512" height="512" aria-label="ตัวอย่างยานที่กำลังประกอบ"></canvas><span class="stage-label">LIVE PREVIEW <b>01 / 01</b></span></div><div class="hangar-controls"><div class="hangar-intro"><span class="mission-tag">CONFIGURATION</span><h2>ปรับแต่งยาน</h2><p>ลำตัว ปีก และเครื่องยนต์เปลี่ยนรูปลักษณ์ ความเร็วและชีวิตเท่ากันทุกลำ</p></div><div id="build-options"></div><fieldset class="build-group"><legend>สีพลังงาน</legend><div class="option-row colors"><button data-color="0" aria-label="ฟ้าน้ำแข็ง">ICE</button><button data-color="1" aria-label="ขาวเงิน">SILVER</button><button data-color="2" aria-label="ทองอำพัน">AMBER</button></div></fieldset><label class="weapon-choice">อาวุธ<select id="builder-weapon"><option value="straight">PRECISION · กระสุนตรง</option><option value="spread">SPREAD · กระจายสามนัด</option></select></label><div class="build-actions"><button id="build-save" class="primary">บันทึกยาน <span>✓</span></button><button id="build-reset" class="secondary">คืนค่าเริ่มต้น</button><button id="build-fly" class="secondary">เตรียมบิน →</button></div><p id="build-message" class="micro-copy" role="status">เลือกชิ้นส่วนเพื่อดูยานของคุณ</p></div></div></section>
-  <section id="preflight-screen" class="screen preflight-screen"><header class="screen-head"><button id="preflight-back" class="back-button">← กลับ</button><div><span class="mission-tag">PREFLIGHT / ก่อนออกเดินทาง</span><h1>เตรียมภารกิจ</h1></div></header><div class="preflight-layout"><div class="preflight-ship"><canvas id="preflight-preview" width="512" height="512" aria-label="ยานพร้อมบิน"></canvas><div><span class="mission-tag">YOUR LOADOUT</span><h2>ยานพร้อมปฏิบัติการ</h2><p>90 วินาที · ชีวิต 3 หน่วย · ยิงอัตโนมัติ</p></div></div><div class="preflight-options"><span class="mission-tag">CONTROL SYSTEM</span><h2>เลือกวิธีควบคุม</h2><p>เลือกอุปกรณ์ที่ถนัด แล้วตรวจความพร้อมก่อนออกบิน</p><div id="preflight-loadout"></div><div id="preflight-help" class="preflight-help">ลากนิ้วหรือใช้ลูกศรเพื่อเคลื่อนที่</div><button id="preflight-settings" class="secondary">ตั้งค่าเซนเซอร์ / จอย</button><button id="preflight-start" class="primary">เริ่มภารกิจ <span>↗</span></button><p id="preflight-error" class="micro-copy" role="status"></p></div></div></section>
-  <section id="result-screen" class="screen result-screen"><span class="mission-tag">MISSION REPORT</span><h1 id="result-title">จบภารกิจ</h1><p id="result-description">รายงานการบินของคุณ</p><canvas id="result-ship" width="512" height="512" aria-label="ยานที่ใช้ในภารกิจ"></canvas><div id="result-stats" class="result-stats"></div><div class="result-actions"><button id="result-retry" class="primary">เล่นอีกครั้ง ↗</button><button id="result-hangar" class="secondary">กลับโรงประกอบยาน</button></div></section>
-  <section class="flight" aria-label="เกมยานอวกาศ">
-    <div class="play-shell">
-      <div class="hud"><button id="combat-pause" class="combat-pause" aria-label="พักเกม">Ⅱ</button>
-        <div><span class="hud-label">SCORE</span><strong id="score">0000</strong></div>
-        <div class="hud-center"><span id="timer">90s</span><span id="status-dot" class="status-dot"></span></div>
-        <div class="hud-right"><span class="hud-label">SHIELD</span><strong id="lives">♥ ♥ ♥</strong></div>
-      </div>
-      <div id="stage" class="stage-chip">ภารกิจ 90 วินาที</div>
-      <div id="game" class="game" aria-label="สนามเกม ใช้ลูกศรหรือ WASD เคลื่อนที่ Q E หลบ Space ปล่อย EMP"></div>
-      <div id="flight-tip" class="flight-tip">เอียงบิน · หมุนเร็วเพื่อหลบ · เขย่าเมื่อ EMP เต็ม</div>
-      <div id="center-card" class="center-card">
-        <span class="eyebrow">MOTION COMBAT / 90 SECONDS</span><div class="ship-emblem"><img id="hangar-ship" src="/assets/player-0.png" alt="ยานเกราะโลหะ"></div>
-        <h1>เลือกยานออกรบ</h1>
-        <p>เอียงเพื่อบิน หมุนเร็วเพื่อกลิ้งหลบ<br>เขย่าเมื่อพลังเต็มเพื่อปล่อย EMP</p>
-        <div class="loadout"><div class="ship-options" role="group" aria-label="เลือกยาน"><button data-ship="0" aria-pressed="true">FALCON</button><button data-ship="1" aria-pressed="false">RAVEN</button><button data-ship="2" aria-pressed="false">ATLAS</button></div><label>อาวุธ <select id="weapon"><option value="straight">กระสุนตรง / PRECISION</option><option value="spread">กระจาย 3 นัด / SPREAD</option></select></label><label>ควบคุม <select id="input-source"><option value="manual">สัมผัส / คีย์บอร์ด</option><option value="sensor">เอียงมือถือ</option><option value="pad">จอย / อนาล็อก</option><option value="tilt">เอียงจอยที่ผ่านการทดสอบ</option></select></label></div>
-        <div id="round-summary" class="round-summary hidden"></div>
-        <button id="start-button" class="primary">เริ่มภารกิจ <span>↗</span></button>
-        <span class="minor">เปิดเซนเซอร์ + ตั้งศูนย์ก่อนเล่น<br>ลากนิ้ว / ลูกศร และปุ่มสกิล ก็เล่นได้</span>
-      </div>
-      <div id="pause-banner" class="pause-banner hidden"><span id="pause-message">พักเกมแล้ว</span><button id="resume-button" class="primary">▶ เล่นต่อ</button><button id="pause-settings" class="secondary">ตั้งค่า</button><button id="pause-restart" class="secondary">เริ่มรอบใหม่</button><button id="pause-hangar" class="secondary">กลับโรงประกอบยาน</button></div>
-    </div>
-    <div class="skill-bar" aria-label="สกิลสำรอง">
-      <button id="dodge-left" class="skill"><span>↶ หลบซ้าย</span><small class="dodge-status">พร้อม / Q</small></button>
-      <button id="emp-button" class="skill emp"><span>◎ EMP <b id="energy">0%</b></span><span class="energy-track"><i id="energy-fill"></i></span></button>
-      <button id="dodge-right" class="skill"><span>หลบขวา ↷</span><small class="dodge-status">พร้อม / E</small></button>
-    </div>
-    <p id="action-message" class="action-message" role="status" aria-live="polite">ใช้ปุ่มสกิล หรือเปิดเซนเซอร์เพื่อเล่นด้วยท่าทาง</p>
-  </section>
-  <button id="console-toggle" class="secondary console-toggle">⚙ ตั้งค่า / เซนเซอร์ / จอย</button><section class="controls" aria-label="ตั้งค่าการควบคุมและห้องทดสอบ">
-    <div class="settings-header"><button id="settings-back" class="back-button">← กลับ</button><h1>ตั้งค่าและห้องทดสอบ</h1><p>ควบคุมการบินและตรวจสัญญาณอุปกรณ์</p></div><div class="section-heading"><span class="eyebrow">FLIGHT CONSOLE</span><span id="mode-pill">TOUCH / KEY</span></div>
-    <div class="sensor-line"><span class="sensor-led"></span><span id="sensor-message"></span></div>
-    <div class="button-row">
-      <button id="enable-button" class="secondary">◎ เปิดเซนเซอร์</button>
-      <button id="calibrate-button" class="secondary" disabled>⊕ ตั้งศูนย์</button>
-      <button id="pause-button" class="secondary compact" disabled aria-label="พักเกม">Ⅱ</button>
-    </div>
-    <button id="lab-button" class="lab-button" aria-pressed="false">⌁ ห้องฝึกท่าทาง / ไม่เริ่มด่าน</button>
-    <details id="pad-panel" class="settings"><summary>เชื่อมต่อ FANTECH / ทดสอบจอย</summary><div class="settings-body"><p>จับคู่จอยในการตั้งค่า Bluetooth แล้วกดปุ่มบนจอยหนึ่งครั้ง</p><p id="pad-status" role="status">ยังไม่พบจอย</p><pre id="pad-data">ไม่พร้อมใช้งาน</pre><label>แกน X <input id="pad-x" type="number" min="0" max="15" value="0"></label><label>แกน Y <input id="pad-y" type="number" min="0" max="15" value="1"></label><label>Dead zone <input id="pad-deadzone" type="range" min="0" max="0.5" step="0.01" value="0.15"></label><label>ความไวจอย <input id="pad-sensitivity" type="range" min="0.25" max="3" step="0.05" value="1"></label><label><input type="checkbox" id="pad-invert-x"> กลับแกน X</label><label><input type="checkbox" id="pad-invert-y"> กลับแกน Y</label><div id="pad-bindings"></div><button id="tilt-begin" class="secondary">เริ่มทดสอบเอียงจอย 5 วินาที</button><p id="tilt-message" role="status">ไม่ได้อ่านไจโรจอยโดยตรง • ทดสอบสัญญาณอนาล็อกที่เกิดจากการเอียง</p><label><input type="checkbox" id="tilt-confirm"> ยืนยันว่าปล่อยอนาล็อกและเอียงจอยเท่านั้น</label><button id="pad-center" class="secondary">ตั้งศูนย์จอย</button></div></details>
-    <details class="settings">
-      <summary>ปรับการควบคุม <span class="chevron">⌄</span></summary>
-      <div class="settings-body">
-        <label class="slider-label" for="sensitivity">ความไวเอียง <strong id="sensitivity-value">1.0×</strong></label>
-        <input id="sensitivity" type="range" min="0.5" max="2" step="0.1" value="1">
-        <label class="slider-label" for="gesture-sensitivity">ความไวท่าทาง <strong id="gesture-value">1.0×</strong></label>
-        <input id="gesture-sensitivity" type="range" min="0.6" max="1.5" step="0.1" value="1">
-        <label class="toggle-line"><span>โหมดฝึก ไม่เสียชีวิต</span><input id="practice" type="checkbox"></label>
-        <button id="fill-energy" class="secondary hidden">เติม EMP สำหรับโหมดฝึก</button>
-        <label class="toggle-line"><span>เสียงเอฟเฟกต์</span><input id="sound" type="checkbox" checked></label>
-        <label class="toggle-line"><span id="haptic-label">สั่น (เฉพาะเครื่องที่รองรับ)</span><input id="haptics" type="checkbox"></label>
-        <p class="setting-tip">ปรับโหมดฝึกก่อนเริ่มรอบ • เมื่อหมุนจอให้ตั้งศูนย์ใหม่<br>ยิ่งเพิ่มความไวท่าทาง ยิ่งตรวจติดง่ายและอาจเรียกผิดได้</p>
-      </div>
-    </details>
-    <details id="telemetry-panel" class="telemetry">
-      <summary>ห้องทดสอบเซนเซอร์ <span class="chevron">⌄</span></summary>
-      <div class="lab-content">
-        <p id="motion-message" class="setting-tip"></p>
-        <div class="data-grid">
-          <div><span>การเอียง / Motion</span><strong id="sensor-state"></strong></div>
-          <div><span>ความถี่ เอียง / Motion</span><strong id="hz"></strong></div>
-          <div><span>มุม β / γ (°)</span><strong id="angles"></strong></div>
-          <div><span>ความเร่งเชิงเส้น X/Y/Z (m/s²)</span><strong id="acceleration"></strong></div>
-          <div class="wide"><span>อัตราหมุน α/β/γ (°/s)</span><strong id="rotation"></strong></div>
-        </div>
-        <div class="chart-label"><span>ความเร่งรวม (m/s²)</span><b id="strength-value">—</b></div>
-        <canvas id="accel-chart" width="640" height="140" role="img" aria-label="กราฟความเร่งเชิงเส้นย้อนหลัง 12 วินาที"></canvas>
-        <div class="chart-label"><span>อัตราหมุนแกนหลบ (°/s)</span><b id="roll-value">—</b></div>
-        <canvas id="roll-chart" width="640" height="140" role="img" aria-label="กราฟอัตราหมุนย้อนหลัง 12 วินาที"></canvas>
-        <p class="gesture-result">ท่าล่าสุด: <strong id="last-gesture">ยังไม่ตรวจพบ</strong></p>
-        <p class="setting-tip">ห้องฝึกใช้เซนเซอร์จริง: ตั้งศูนย์ก่อน แล้วฝึกหมุนเร็วหรือเขย่าโดยไม่มีศัตรู กราฟขาดช่วงหมายถึงไม่มีข้อมูล</p>
-        <details class="test-record">
-          <summary>บันทึกการลองจริง 10 ครั้งต่อท่า</summary>
-          <p class="setting-tip">เลือกท่า → เริ่มนับ → ทำท่าหนึ่งครั้ง → บันทึกผลตามสิ่งที่เกิดขึ้น จำนวนครั้งไม่ใช่ผลจำลอง</p>
-          <label class="slider-label" for="test-action">ท่าที่กำลังทดสอบ</label>
-          <select id="test-action"><option value="dodgeLeft">หลบซ้าย</option><option value="dodgeRight">หลบขวา</option><option value="emp">เขย่า EMP</option></select>
-          <button id="begin-attempt" class="secondary">เริ่มนับครั้งนี้ (5 วินาที)</button>
-          <p id="attempt-message" class="setting-tip" role="status">เปิดห้องฝึกและตั้งศูนย์ก่อนบันทึก</p>
-          <div class="record-buttons"><button id="record-correct">ถูก</button><button id="record-miss">ไม่ติด</button><button id="record-wrong">ผิดท่า</button></div>
-          <table><caption>ผลบนเครื่องนี้ (ยังต้องทดลองเอง)</caption><thead><tr><th>ท่า</th><th>ครั้ง</th><th>ถูก</th><th>ไม่ติด</th><th>ผิดท่า</th></tr></thead><tbody id="test-rows"></tbody></table>
-          <button id="download-record" class="secondary">ดาวน์โหลดผลทดสอบ JSON</button>
-          <button id="reset-record" class="text-button">ล้างผลบันทึก</button>
-        </details>
-      </div>
-    </details>
-  </section>
-  <footer><span>GYRO SPACE COMBAT</span><span>ข้อมูลเซนเซอร์ประมวลผลบนเครื่อง</span></footer>
-</main>
-<dialog id="confirm-dialog" class="help-dialog confirm-dialog" aria-labelledby="confirm-title"><h2 id="confirm-title"></h2><p id="confirm-copy"></p><div class="confirm-actions"><button id="confirm-cancel" class="secondary">ยกเลิก</button><button id="confirm-accept" class="primary">ยืนยัน</button></div></dialog>
-<dialog id="help-dialog" class="help-dialog">
-  <button id="close-help" class="close-help" aria-label="ปิดวิธีเล่น">×</button>
-  <span class="eyebrow">PILOT GUIDE</span><h2>เอียงบิน กลิ้งหลบ เขย่า EMP</h2>
-  <ol><li>เปิดบนมือถือผ่าน HTTPS กด <b>เปิดเซนเซอร์</b> และอนุญาต Motion</li><li>ถือเครื่องแนวตั้งสองมือในท่าถนัด แล้วกด <b>ตั้งศูนย์</b></li><li>ลองใน <b>ห้องฝึกท่าทาง</b> ก่อนเริ่มภารกิจ</li><li>เอียงช้าเพื่อบิน หมุนข้อมือเร็วซ้าย/ขวาเพื่อหลบ</li><li>เขย่าสั้น ๆ ไปกลับหลายจังหวะเมื่อ EMP เต็ม</li></ol>
-  <p>ยิงอัตโนมัติ • หลบอมตะ 0.6 วินาที ฟื้น 3 วินาที • EMP เติมตามเวลาและเมื่อยิงศัตรู • บอสเข้าที่วินาที 60 กำจัดก่อนหมดเวลา</p>
-  <p><a href='/assets/CREDITS.md' target='_blank' rel='noopener'>เครดิตภาพ Skorpio / CC-BY-SA 3.0</a> · <a href='/assets/adapted-art-CC-BY-SA-3.0.zip'>ดาวน์โหลดงานภาพดัดแปลง</a></p><p>คอม: ลูกศร/WASD เคลื่อนที่, Q/E หลบ, Space ใช้ EMP<br>มือถือ: ลากนิ้วและใช้ปุ่มสกิลสำรองได้<br>iPhone ใช้ภาพและเสียง การสั่นเปิดได้เฉพาะเครื่องที่รองรับ</p>
-  <p>เซนเซอร์ทำงานแยกหน้าที่: มุมเอียงบังคับยาน ความเร็วหมุนใช้หลบ ความเร่งเชิงเส้นใช้ตรวจเขย่า หากเป็นค่าประมาณจะแจ้งในห้องทดสอบ</p>
-  <div class="qr-wrap"><canvas id="qr" aria-label="QR เปิดเกมบนมือถือ"></canvas><small>สแกนเปิดเว็บเกม<br>public • ไม่ต้องเข้าสู่ระบบ</small></div>
-</dialog>`;
-
-function el<T extends HTMLElement = HTMLElement>(id: string): T { return document.getElementById(id) as T; }
-const sensor = new SensorController(), feedback = new Feedback();
-const pad = new GamepadAdapter();
-let padFrame: PadFrame | null = null, shipStyle = 0, bindCommand: PadCommand | null = null;
-let source = 'manual';
-const save = () => { try { localStorage.setItem('gyro-loadout-v4', JSON.stringify({ ship: shipStyle, weapon: el<HTMLSelectElement>('weapon').value, source, pad: pad.settings, sensitivity: el<HTMLInputElement>('sensitivity').value, gesture: el<HTMLInputElement>('gesture-sensitivity').value })); } catch {} };
-
-type View = 'home'|'hangar'|'preflight'|'flight'|'result'|'settings';
-const store = new ShipBuildStore();
-let parts: ShipPartImages | null = null, settingsReturn: View = 'home';
-let view: View = 'home';
-function show(next: View) { view=next; document.querySelector<HTMLElement>('.shell')!.dataset.view=next; document.body.classList.toggle('flight-view',next==='flight'); window.scrollTo(0,0); }
-function paint(id: string, draft = false) { if (!parts) return; const canvas=el<HTMLCanvasElement>(id); const image=composeShip(draft ? store.draft : store.saved, parts, 512); const ctx=canvas.getContext('2d')!; ctx.clearRect(0,0,512,512);ctx.drawImage(image,0,0); }
-function paintAll() { paint('home-ship');paint('build-preview',true);paint('preflight-preview');paint('result-ship'); }
-function drawOptions() { const labels={hull:['FALCON','RAVEN','ATLAS'],wing:['STRIKE','VECTOR','TITAN'],engine:['ION','PULSE','NOVA']}; const titles={hull:'ลำตัว',wing:'ปีก',engine:'เครื่องยนต์'}; el('build-options').innerHTML=(['hull','wing','engine'] as ShipSlot[]).map(slot => `<fieldset class="build-group"><legend>${titles[slot]}</legend><div class="option-row">${labels[slot].map((label,i)=>`<button data-slot="${slot}" data-index="${i}" aria-pressed="${store.draft[slot]===i}"><img src="/assets/modules/raw/${slot === "wing" ? "wings" : slot}-${i}.png" alt=""><span>${label}</span></button>`).join('')}</div></fieldset>`).join(''); document.querySelectorAll<HTMLButtonElement>('[data-color]').forEach(b=>{b.setAttribute('aria-pressed',String(store.draft.color===Number(b.dataset.color)));b.onclick=()=>{store.selectColor(Number(b.dataset.color));drawOptions();paint('build-preview',true);};}); el<HTMLSelectElement>('builder-weapon').value=store.draft.weapon; el('build-options').querySelectorAll<HTMLButtonElement>('[data-slot]').forEach(b=>b.onclick=()=>{store.select(b.dataset.slot as ShipSlot,Number(b.dataset.index));drawOptions();paint('build-preview',true);}); }
-loadShipParts().then(x=>{parts=x;paintAll();}).catch(()=>{el('build-message').textContent='โหลดภาพยานไม่สำเร็จ กรุณารีเฟรชหน้า';});
-const centerCard = el('center-card'), pauseBanner = el('pause-banner');
-let lab = false, lastHud = '', roundEnded = false, lastLives = 3, beforeHelp = false;
-let lastSensorState: Telemetry['state'] = 'idle';
-const { scene } = createGame(el('game'), {
-  manual: () => source === 'manual',
-  tick() {
-    padFrame = pad.poll();
-    if (padFrame.disconnected && (source === 'pad' || source === 'tilt') && scene.isRunning) pause('จอยหลุด • เชื่อมต่อใหม่แล้วกดเล่นต่อ');
-    if (bindCommand && !scene.isRunning) { const index = padFrame.buttons.findIndex(Boolean); if (index >= 0) { pad.rebind(bindCommand,index); bindCommand = null; save(); renderBindings(); } }
-    if ((source === 'pad' || source === 'tilt') && padFrame.pause && scene.hasStarted) { if (scene.isRunning) pause(); else resume(); }
-  },
-  axes: dt => source === 'sensor' ? sensor.getAxes(dt) : source === 'pad' || source === 'tilt' ? {...(padFrame?.axes ?? {x:0,y:0})} : {x:0,y:0},
-  actions: () => source === 'sensor' ? sensor.consumeActions() : source === 'pad' || source === 'tilt' ? [...(padFrame?.actions ?? [])] : [],
-  onAction(action, accepted, reason) {
-    el('action-message').textContent = `${accepted ? '✓' : '·'} ${reason}`;
-    if (accepted) feedback.play(action === 'emp' ? 'emp' : 'dodge');
-  },
-  onHud: updateHud,
-});
-function updateHud(s: GameSnapshot) {
-  sensor.setGestureActive(((source === 'sensor' && scene.isRunning) || lab) && !document.hidden);
-  const key = `${s.score}/${s.lives}/${Math.ceil(s.time)}/${Math.floor(s.energy)}/${s.dodgeCooldown.toFixed(1)}/${s.gameOver}`;
-  if (s.lives < lastLives) feedback.play('hit'); lastLives = s.lives;
-  if (key === lastHud) return; lastHud = key;
-  el('score').textContent = s.score.toString().padStart(4, '0');
-  el('lives').textContent = s.lives ? '♥ '.repeat(s.lives).trim() : '—';
-  el('timer').textContent = `${Math.max(0, Math.ceil(90 - s.time))}s`;
-  el('energy').textContent = `${Math.floor(s.energy)}%`; el('energy-fill').style.width = `${s.energy}%`;
-  el('emp-button').classList.toggle('charged', s.energy >= 100);
-  const playable = scene.isRunning;
-  el<HTMLButtonElement>('emp-button').disabled = !playable || s.energy < 100;
-  for (const id of ['dodge-left', 'dodge-right']) el<HTMLButtonElement>(id).disabled = !playable || s.dodgeCooldown > 0;
-  document.querySelectorAll('.dodge-status').forEach(e => { e.textContent = s.dodgeCooldown > 0 ? `${s.dodgeCooldown.toFixed(1)}s` : 'พร้อม'; });
-  el('stage').textContent = s.time >= 60 ? 'BOSS / กำจัดก่อนหมดเวลา' : s.time >= 15 ? 'WAVE 02 / หลบกระสุน · สะสม EMP' : 'WAVE 01 / เอียงช้า ๆ เพื่อบิน';
-  el('flight-tip').textContent = s.time < 8 ? 'เอียงช้า ๆ / ลากนิ้วเพื่อเคลื่อนที่' : s.time < 15 ? 'หมุนข้อมือเร็ว → กลิ้งหลบ' : s.energy >= 100 ? 'EMP พร้อม! เขย่าสั้น ๆ ไปกลับหลายจังหวะ' : 'หลบกระสุนสีส้ม • ยิงอัตโนมัติ';
-  if (s.gameOver && !roundEnded) {
-    roundEnded = true; document.body.classList.remove('in-combat'); sensor.resetTransient(); feedback.play('end');
-    show('result'); paint('result-ship'); centerCard.classList.remove('hidden'); centerCard.classList.add('result-card'); pauseBanner.classList.add('hidden');
-    const titles = { won: 'ภารกิจสำเร็จ!', lost: 'ยานเสียหาย!', timeout: 'หมดเวลาภารกิจ', practice: 'จบการฝึกแล้ว' };
-    el('result-title').textContent = titles[s.result!]; centerCard.querySelector('h1')!.textContent = titles[s.result!];
-    centerCard.querySelector('p')!.textContent = s.result === 'won' ? 'กำจัดบอสได้แล้ว นักบิน!' : 'ปรับความไวหรือเปิดโหมดฝึก แล้วลองอีกครั้ง';
-    el('round-summary').classList.remove('hidden');
-    el('round-summary').innerHTML = `<div><small>คะแนน</small><b>${s.score}</b></div><div><small>เวลา</small><b>${s.time.toFixed(1)}s</b></div><div><small>กลิ้งหลบ</small><b>${s.dodges}</b></div><div><small>EMP</small><b>${s.emps}</b></div>`;
-    el('result-stats').innerHTML = el('round-summary').innerHTML;
-    el('start-button').innerHTML = 'เริ่มใหม่ <span>↗</span>'; el<HTMLButtonElement>('pause-button').disabled = true;
-    el<HTMLInputElement>('practice').disabled = false;
+import { screens } from "./screens";
+import {
+  ShipBuildStore,
+  loadShipParts,
+  composeShip,
+  type ShipPartImages,
+  type ShipSlot,
+} from "./ship-build";
+import { GamepadAdapter, type PadFrame, type PadCommand } from "./gamepad";
+import { ControllerLab } from "./controller-lab";
+import { SensorController } from "./sensor";
+import { Feedback } from "./feedback";
+import { createGame } from "./game";
+import { GameModel, type GameSnapshot } from "./model";
+import { ProgressStore } from "./progress";
+import {
+  EQUIPMENT,
+  STAGES,
+  defaultRun,
+  defaultEquipment,
+  equipmentStat,
+  type EquipmentId,
+  type RunConfig,
+} from "./equipment";
+import type { Action } from "./motion";
+import QRCode from "qrcode";
+import "./style.css";
+const app = document.querySelector<HTMLElement>("#app")!;
+app.innerHTML = screens;
+const el = <T extends HTMLElement = HTMLElement>(id: string) =>
+  document.getElementById(id) as T;
+const dialog = (id: string) => el<HTMLDialogElement>(id);
+const icon = (id: string) => `<img src="/assets/tactical/${id}.svg" alt="">`;
+const progress = new ProgressStore(),
+  build = new ShipBuildStore(),
+  sensor = new SensorController(),
+  pad = new GamepadAdapter(),
+  feedback = new Feedback();
+let source = "sensor",
+  view = "home",
+  settingsReturn = "home",
+  selectedStage = 0,
+  mode: "stage" | "endless" = "stage",
+  parts: ShipPartImages | undefined,
+  rotation = 0,
+  selectedItem: EquipmentId = progress.state.equipment.main,
+  slot = "main";
+const returnRoutes: string[] = [];
+let runId = "",
+  settled = false,
+  lastLives = 3,
+  padFrame: PadFrame | undefined,
+  padMenu: boolean[] = [],
+  labActive = false,
+  countdownUntil = 0,
+  renderedPower = false,
+  toastTimer = 0;
+const names: Record<Action, string> = {
+  dodgeLeft: "Dodge left",
+  dodgeRight: "Dodge right",
+  emp: "Shake EMP",
+};
+function toast(message: string) {
+  el("toast").textContent = message;
+  el("toast").classList.add("visible");
+  clearTimeout(toastTimer);
+  toastTimer = window.setTimeout(
+    () => el("toast").classList.remove("visible"),
+    3500,
+  );
+}
+function savePreferences() {
+  try {
+    let previous: Record<string, unknown> = {};
+    try {
+      const candidate = JSON.parse(
+        localStorage.getItem("gyro-loadout-v4") || "{}",
+      );
+      if (
+        candidate &&
+        typeof candidate === "object" &&
+        !Array.isArray(candidate)
+      )
+        previous = candidate;
+    } catch {
+      /* Keep preference saving usable when legacy JSON is corrupt. */
+    }
+    localStorage.setItem(
+      "gyro-loadout-v4",
+      JSON.stringify({
+        ...previous,
+        source,
+        pad: pad.settings,
+        sensitivity: el<HTMLInputElement>("tilt-sensitivity").value,
+        gesture: el<HTMLInputElement>("gesture-sensitivity").value,
+      }),
+    );
+  } catch {
+    toast("Settings are available for this session only.");
   }
 }
-function refreshHud() { lastHud = ''; updateHud(scene.model.state); }
-function pause(message = 'พักเกมแล้ว') {
-  scene.pause(); pad.reset(); sensor.setGestureActive(false); sensor.resetTransient();
-  el('pause-message').textContent = message; pauseBanner.classList.remove('hidden'); refreshHud();
+try {
+  const old = JSON.parse(localStorage.getItem("gyro-loadout-v4") || "null");
+  if (old) {
+    if (["sensor", "manual", "pad", "tilt"].includes(old.source))
+      source = old.source;
+    for (const key of ["deadzone", "sensitivity", "axisX", "axisY"] as const)
+      if (Number.isFinite(old.pad?.[key])) pad.settings[key] = old.pad[key];
+    for (const key of ["invertX", "invertY"] as const)
+      pad.settings[key] = old.pad?.[key] === true;
+    for (const key of [
+      "dodgeLeft",
+      "dodgeRight",
+      "emp",
+      "pause",
+    ] as PadCommand[])
+      pad.rebind(key, old.pad?.buttons?.[key]);
+    for (const [id, v] of [
+      ["tilt-sensitivity", old.sensitivity],
+      ["gesture-sensitivity", old.gesture],
+    ])
+      if (Number.isFinite(Number(v)))
+        el<HTMLInputElement>(id).value = String(v);
+  }
+} catch {}
+el<HTMLSelectElement>("input-source").value = source;
+pad.mode = source === "tilt" ? "tilt" : "stick";
+sensor.setSensitivity(Number(el<HTMLInputElement>("tilt-sensitivity").value));
+sensor.setGestureSensitivity(
+  Number(el<HTMLInputElement>("gesture-sensitivity").value),
+);
+const controller = new ControllerLab(el("controller"), pad, savePreferences);
+const { scene } = createGame(el("game"), {
+  reducedEffects: () =>
+    el<HTMLInputElement>("low-effects").checked ||
+    matchMedia("(prefers-reduced-motion: reduce)").matches,
+  manual: () => source === "manual",
+  tick: () => {
+    padFrame = pad.poll();
+    if (
+      padFrame.disconnected &&
+      (source === "pad" || source === "tilt") &&
+      scene.isRunning
+    )
+      pause("Controller disconnected. Reconnect before resuming.");
+    if (padFrame.pause && scene.isRunning)
+      pause("Paused from your controller.");
+  },
+  axes: (dt) =>
+    source === "sensor"
+      ? sensor.getAxes(dt)
+      : source === "pad" || source === "tilt"
+        ? padFrame?.axes || { x: 0, y: 0 }
+        : { x: 0, y: 0 },
+  actions: () =>
+    source === "sensor"
+      ? sensor.consumeActions()
+      : source === "pad" || source === "tilt"
+        ? padFrame?.actions || []
+        : [],
+  onFire: (weapon) => feedback.play(weapon),
+  onHud: updateHud,
+  onAction: (action, accepted, reason) => {
+    if (accepted) feedback.play(action === "emp" ? "emp" : "dodge");
+    else toast(reason);
+  },
+  onRelease: () => pause("Touch released. Resume when you are ready."),
+});
+function clearInput() {
+  scene.clearInput();
+  pad.reset();
+  sensor.resetTransient();
+}
+function balance() {
+  el("balance").textContent = progress.state.credits.toLocaleString("en-US");
+  el("save-status").textContent = progress.persistent
+    ? "Progress saves locally in this browser."
+    : "Local storage is unavailable. Progress lasts for this session.";
+}
+function setView(next: string) {
+  if (next !== "controller") controller.cancelRemap();
+  view = next;
+  document.body.dataset.view = next;
+  document.querySelectorAll<HTMLElement>(".screen").forEach((s) => {
+    s.hidden = s.id !== next;
+  });
+  document
+    .querySelectorAll<HTMLButtonElement>(".bottom-nav button")
+    .forEach((b) =>
+      b.setAttribute("aria-current", String(b.dataset.go === next)),
+    );
+  sensor.setGestureActive(
+    (next === "battle" && scene.isRunning) ||
+      (next === "settings" && labActive),
+  );
+  if (next !== "battle") window.scrollTo(0, 0);
+  if (next === "hangar") {
+    renderHangar();
+    paintAll();
+  }
+  if (next === "stages") renderStages();
+  if (next === "preflight") renderPreflight();
+  if (next === "records") renderRecords();
+  balance();
+}
+function confirmAction(title: string, text: string, action: () => void) {
+  el("confirm-title").textContent = title;
+  el("confirm-description").textContent = text;
+  dialog("confirm-dialog").showModal();
+  el("confirm-cancel").focus();
+  el("confirm-ok").onclick = () => {
+    dialog("confirm-dialog").close();
+    action();
+  };
+}
+el("confirm-cancel").onclick = () => dialog("confirm-dialog").close();
+function navigate(next: string) {
+  if (next === view) return;
+  if (next === "settings" || next === "controller") {
+    settingsReturn = view;
+    returnRoutes.push(view);
+    if (scene.isRunning) pause("Flight systems are open.");
+    dialog("pause-dialog").close();
+    setView(next);
+    return;
+  }
+  if (scene.hasStarted && next !== "battle" && next !== "results") {
+    confirmAction(
+      "Leave this mission?",
+      "Withdraw and bank collected credits. Clear bonuses are not awarded.",
+      () => {
+        scene.model.withdraw();
+        completeRound();
+        setView(next);
+      },
+    );
+    return;
+  }
+  if (view === "hangar" && build.dirty && next !== "hangar") {
+    confirmAction(
+      "Discard appearance changes?",
+      "Your saved ship will stay unchanged.",
+      () => {
+        build.discard();
+        paintAll();
+        setView(next);
+      },
+    );
+    return;
+  }
+  setView(next);
+}
+document.querySelectorAll<HTMLElement>("[data-go]").forEach(
+  (b) =>
+    (b.onclick = (e) => {
+      e.preventDefault();
+      if (
+        b.classList.contains("back") &&
+        (view === "settings" || view === "controller")
+      ) {
+        {
+          const back = returnRoutes.pop() || "home";
+          settingsReturn = returnRoutes.at(-1) || "home";
+          setView(back);
+          if (back === "battle") dialog("pause-dialog").showModal();
+        }
+        return;
+      }
+      navigate(b.dataset.go!);
+    }),
+);
+el("title-hangar").onclick = () => navigate("hangar");
+function paint(id: string, draft = false) {
+  if (!parts) return;
+  const c = el<HTMLCanvasElement>(id),
+    ctx = c.getContext("2d")!;
+  ctx.clearRect(0, 0, c.width, c.height);
+  ctx.drawImage(
+    composeShip(draft ? build.draft : build.saved, parts, c.width),
+    0,
+    0,
+  );
+}
+function paintAll() {
+  for (const id of ["title-ship", "preflight-ship", "result-ship"]) paint(id);
+  paint("ship-preview", true);
+  el("title-ship-name").textContent = ["FALCON", "RAVEN", "ATLAS"][
+    build.saved.hull
+  ];
+  el("ship-name").textContent = ["FALCON", "RAVEN", "ATLAS"][build.draft.hull];
+}
+loadShipParts()
+  .then((images) => {
+    parts = images;
+    paintAll();
+    previewDirty = true;
+  })
+  .catch((e) => toast(e.message));
+function renderHangar() {
+  const labels: Record<ShipSlot, string> = {
+    hull: "Hull",
+    wing: "Wings",
+    engine: "Engine",
+  };
+  const choices: Record<ShipSlot, string[]> = {
+    hull: ["Falcon", "Raven", "Atlas"],
+    wing: ["Swept", "Delta", "Heavy"],
+    engine: ["Ion", "Fusion", "Vector"],
+  };
+  const partHost = el("part-options");
+  partHost.replaceChildren();
+  for (const part of ["hull", "wing", "engine"] as ShipSlot[]) {
+    const field = document.createElement("fieldset"),
+      legend = document.createElement("legend"),
+      row = document.createElement("div");
+    legend.textContent = labels[part];
+    row.className = "part-options";
+    for (let i = 0; i < 3; i++) {
+      const button = document.createElement("button"),
+        image = document.createElement("img"),
+        caption = document.createElement("span");
+      button.dataset.part = part;
+      button.dataset.index = String(i);
+      button.setAttribute("aria-pressed", String(build.draft[part] === i));
+      image.src = `/assets/modules/${part === "wing" ? "wings" : part}-${i}.png`;
+      image.alt = "";
+      caption.textContent = choices[part][i];
+      button.append(image, caption);
+      button.onclick = () => {
+        build.select(part, i);
+        renderHangar();
+        paintAll();
+        previewDirty = true;
+        el("part-options")
+          .querySelector<HTMLButtonElement>(
+            `[data-part="${part}"][data-index="${i}"]`,
+          )
+          ?.focus();
+      };
+      row.append(button);
+    }
+    field.append(legend, row);
+    partHost.append(field);
+  }
+  document
+    .querySelectorAll<HTMLButtonElement>("[data-color]")
+    .forEach((b) =>
+      b.setAttribute(
+        "aria-pressed",
+        String(Number(b.dataset.color) === build.draft.color),
+      ),
+    );
+  renderEquipment();
+}
+document.querySelectorAll<HTMLButtonElement>("[data-color]").forEach(
+  (b) =>
+    (b.onclick = () => {
+      build.selectColor(Number(b.dataset.color));
+      paintAll();
+      renderHangar();
+      previewDirty = true;
+    }),
+);
+el("save-build").onclick = () => {
+  const ok = build.save();
+  paintAll();
+  toast(ok ? "Appearance saved." : "Appearance applied for this session.");
+};
+el("reset-build").onclick = () => {
+  for (const s of ["hull", "wing", "engine"] as ShipSlot[]) build.select(s, 0);
+  build.selectColor(0);
+  renderHangar();
+  paintAll();
+  previewDirty = true;
+};
+el("rotate-left").onclick = () => rotate(-30);
+el("rotate-right").onclick = () => rotate(30);
+el("rotate-reset").onclick = () => {
+  rotation = 0;
+  rotate(0);
+};
+function rotate(delta: number) {
+  rotation += delta;
+  el("ship-preview").style.transform = `rotate(${rotation}deg)`;
+}
+function hangarTab(equipment: boolean) {
+  el("appearance-panel").hidden = equipment;
+  el("equipment-panel").hidden = !equipment;
+  el("appearance-tab").setAttribute("aria-selected", String(!equipment));
+  el("appearance-tab").tabIndex = equipment ? -1 : 0;
+  el("equipment-tab").tabIndex = equipment ? 0 : -1;
+  el("equipment-tab").setAttribute("aria-selected", String(equipment));
+}
+el("appearance-tab").onclick = () => hangarTab(false);
+el("equipment-tab").onclick = () => hangarTab(true);
+for (const id of ["appearance-tab", "equipment-tab"])
+  el(id).onkeydown = (e) => {
+    if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) {
+      e.preventDefault();
+      const next =
+        e.key === "Home"
+          ? false
+          : e.key === "End"
+            ? true
+            : id === "appearance-tab";
+      hangarTab(next);
+      el(next ? "equipment-tab" : "appearance-tab").focus();
+    }
+  };
+function practice() {
+  return el<HTMLInputElement>("practice-mode").checked;
+}
+function renderEquipment() {
+  el("hangar-status").textContent = practice()
+    ? "PRACTICE LOADOUT: unlocked systems can be equipped without spending credits."
+    : "";
+  el("equipment-slots").innerHTML = (
+    ["main", "secondary", "armor", "wingman"] as const
+  )
+    .map((s) => {
+      const item = EQUIPMENT.find(
+        (e) =>
+          e.id ===
+          (practice() ? practiceEquipment : progress.state.equipment)[s],
+      );
+      return `<button data-slot="${s}" class="slot ${slot === s ? "selected" : ""}">${icon(item?.id || "shield")}<small>${{ main: "MAIN WEAPON", secondary: "SECONDARY", armor: "ARMOR", wingman: "WINGMAN" }[s]}</small><strong>${item?.name || "Empty slot"}</strong><span>${item ? `LEVEL ${practice() ? practiceLevels[item.id] : progress.state.levels[item.id]}` : "Choose a system"}</span></button>`;
+    })
+    .join("");
+  el("equipment-slots")
+    .querySelectorAll<HTMLButtonElement>("[data-slot]")
+    .forEach(
+      (b) =>
+        (b.onclick = () => {
+          slot = b.dataset.slot!;
+          renderEquipment();
+        }),
+    );
+  const catalog = el("equipment-catalog");
+  catalog.replaceChildren();
+  for (const item of EQUIPMENT.filter((e) => e.slot === slot)) {
+    const button = document.createElement("button");
+    button.className = "catalog-item";
+    button.dataset.equipment = item.id;
+    const detail = practice()
+      ? equipmentStat(item.id, practiceLevels[item.id]) + " · PRACTICE"
+      : progress.state.levels[item.id]
+        ? equipmentStat(item.id, progress.state.levels[item.id])
+        : "Unlock · 90 credits";
+    button.innerHTML = `${icon(item.id)}<span><strong>${item.name}</strong><small>${detail}</small></span><b>↗</b>`;
+    button.onclick = () => openEquipment(item.id);
+    catalog.append(button);
+  }
+}
+
+function openEquipment(id: EquipmentId) {
+  selectedItem = id;
+  const item = EQUIPMENT.find((e) => e.id === id)!,
+    level = progress.state.levels[id];
+  el("practice-level-label").hidden = !practice();
+  el<HTMLSelectElement>("practice-level").value = String(practiceLevels[id]);
+  el("unequip-item").hidden = item.slot === "main";
+  el("equipment-name").textContent = item.name;
+  el("equipment-description").textContent = item.description;
+  el("equipment-comparison").innerHTML =
+    `<div><small>CURRENT · ${level ? "LEVEL " + level : "LOCKED"}</small><strong>${level ? equipmentStat(id, level) : "Not owned"}</strong></div><div><small>${level === 3 ? "MAXIMUM LEVEL" : "NEXT · LEVEL " + (level + 1)}</small><strong>${equipmentStat(id, Math.min(3, level + 1))}</strong><span class="positive">${level < 3 ? (level === 0 ? "New combat system" : "+20% base firepower / improved system") : "Fully upgraded"}</span></div>`;
+  el<HTMLButtonElement>("equip-item").disabled = level === 0 && !practice();
+  el<HTMLButtonElement>("upgrade-item").disabled =
+    practice() || level >= 3 || progress.state.credits < progress.cost(id);
+  el("upgrade-item").textContent = practice()
+    ? "All levels available"
+    : level >= 3
+      ? "Maximum level"
+      : `${level ? "Upgrade" : "Unlock"} · ◈ ${progress.cost(id)}`;
+  el("equipment-status").textContent = practice()
+    ? "Practice can equip any system without purchasing."
+    : "";
+  el<HTMLSelectElement>("preview-level").value = String(
+    practice() ? practiceLevels[id] : Math.max(1, level),
+  );
+  previewDirty = true;
+  if (!dialog("equipment-dialog").open) dialog("equipment-dialog").showModal();
+}
+let practiceEquipment = defaultEquipment();
+let practiceLevels = {
+  pulse: 3,
+  plasma: 3,
+  laser: 3,
+  missile: 3,
+  shield: 3,
+  drone: 3,
+};
+el("equip-item").onclick = () => {
+  const item = EQUIPMENT.find((e) => e.id === selectedItem)!;
+  if (practice()) {
+    practiceEquipment[item.slot] = item.id;
+    practiceLevels[item.id] = Number(
+      el<HTMLSelectElement>("practice-level").value,
+    );
+    toast("Equipped for practice only.");
+  } else {
+    progress.equip(selectedItem);
+    toast("System equipped.");
+  }
+  renderEquipment();
+  previewDirty = true;
+  dialog("equipment-dialog").close();
+};
+el("upgrade-item").onclick = () => {
+  if (progress.upgrade(selectedItem)) {
+    balance();
+    renderEquipment();
+    openEquipment(selectedItem);
+    toast("Upgrade installed.");
+  } else toast("Upgrade unavailable.");
+};
+el("try-upgrade").onclick = () => {
+  el<HTMLSelectElement>("preview-level").value = String(
+    Math.min(3, progress.state.levels[selectedItem] + 1),
+  );
+  previewDirty = true;
+  dialog("equipment-dialog").close();
+  el("firing-preview").scrollIntoView({ block: "center", behavior: "smooth" });
+};
+el("practice-level").onchange = () => {
+  el<HTMLSelectElement>("preview-level").value =
+    el<HTMLSelectElement>("practice-level").value;
+  previewDirty = true;
+};
+el("unequip-item").onclick = () => {
+  const item = EQUIPMENT.find((e) => e.id === selectedItem)!;
+  if (item.slot === "main") return;
+  if (practice()) practiceEquipment[item.slot] = null;
+  else {
+    progress.state.equipment[item.slot] = null;
+    progress.save();
+  }
+  renderEquipment();
+  previewDirty = true;
+  dialog("equipment-dialog").close();
+};
+el("close-equipment").onclick = () => dialog("equipment-dialog").close();
+el("preview-level").onchange = () => {
+  previewDirty = true;
+};
+function renderStages() {
+  el("stage-cards").innerHTML =
+    STAGES.map((s, i) => {
+      const locked =
+        !practice() && i > 0 && !progress.state.cleared.includes(i - 1);
+      return `<article class="stage-card stage-${i}"><span class="eyebrow">SECTOR 0${i + 1} · ${progress.state.cleared.includes(i) ? "CLEARED" : locked ? "LOCKED" : "AVAILABLE"}</span><img src="/assets/tactical/boss-${i}.png" alt="${s.boss}"><h2>${s.name}</h2><p>${s.description}</p><div class="stage-meta"><span>BOSS <b>${s.boss}</b></span><span>WEAKNESS <b>${s.weakness.toUpperCase()} ×1.25</b></span><span>REWARD <b>50 clear + 100 first clear + drops</b></span></div><button class="${locked ? "secondary" : "primary"}" data-stage="${i}" ${locked ? "disabled" : ""}>${locked ? "Clear the previous stage" : "Prepare mission →"}</button></article>`;
+    }).join("") +
+    `<article class="stage-card endless-card"><span class="eyebrow">SURVIVAL OPERATIONS</span><h2>Endless frontier.</h2><p>No time limit. Escalating waves, rotating threats and a boss every three waves.</p><button class="primary" id="endless-start" ${!practice() && !progress.state.cleared.includes(0) ? "disabled" : ""}>${!practice() && !progress.state.cleared.includes(0) ? "Clear Asteroid Belt to unlock" : "Prepare endless run →"}</button></article>`;
+  el("stage-cards")
+    .querySelectorAll<HTMLButtonElement>("[data-stage]")
+    .forEach(
+      (b) =>
+        (b.onclick = () => {
+          selectedStage = Number(b.dataset.stage);
+          mode = "stage";
+          setView("preflight");
+        }),
+    );
+  el("endless-start").onclick = () => {
+    selectedStage = 0;
+    mode = "endless";
+    setView("preflight");
+  };
+}
+el("practice-mode").onchange = () => renderStages();
+function config(): RunConfig {
+  const c = defaultRun();
+  c.mode = mode;
+  c.stage = selectedStage;
+  c.powerups = true;
+  c.equipment = structuredClone(
+    practice() ? practiceEquipment : progress.state.equipment,
+  );
+  c.levels = practice() ? { ...practiceLevels } : { ...progress.state.levels };
+  return c;
+}
+function renderPreflight() {
+  paint("preflight-ship");
+  const c = config();
+  el("mission-name").textContent =
+    mode === "endless" ? "Endless Frontier" : STAGES[selectedStage].name;
+  el("mission-detail").textContent =
+    `${practice() ? "PRACTICE · " : ""}${mode === "stage" ? "90 seconds · " : ""}3 lives · Auto-fire`;
+  el("mission-loadout").innerHTML = Object.values(c.equipment)
+    .filter(Boolean)
+    .map((id) => {
+      const e = EQUIPMENT.find((e) => e.id === id)!;
+      return `<span>${icon(e.id)}${e.name} · Lv ${c.levels[e.id]}</span>`;
+    })
+    .join("");
+  updateControlHelp();
+}
+function updateControlHelp() {
+  const copy: Record<string, string> = {
+    sensor:
+      "1. Enable sensors and allow Motion. 2. Hold comfortably and set center. 3. Tilt to move the ship preview.",
+    manual:
+      "Drag below the ship. Arrows / WASD to move. Q / E dodge. Space deploys EMP. Releasing a touch drag pauses flight.",
+    pad: "Pair in Bluetooth settings, then press a button. Left stick / D-pad move, LB / RB dodge, bottom button EMP, Start pauses.",
+    tilt: "Run and confirm a mapped tilt test in Controller Lab, then set center. Only analog signals reported by the browser are used.",
+  };
+  el("control-help").textContent = copy[source];
+  el("enable-sensors").hidden = source !== "sensor";
+  el("center-sensors").hidden = source !== "sensor";
+}
+el<HTMLSelectElement>("input-source").onchange = () => {
+  source = el<HTMLSelectElement>("input-source").value;
+  pad.mode = source === "tilt" ? "tilt" : "stick";
+  clearInput();
+  savePreferences();
+  updateControlHelp();
+};
+for (const id of ["enable-sensors", "settings-enable"])
+  el(id).onclick = async () => {
+    await sensor.enable();
+    toast(sensor.telemetry.message);
+  };
+for (const id of ["center-sensors", "settings-center", "power-center"])
+  el(id).onclick = () => {
+    sensor.calibrate();
+    clearInput();
+    toast(sensor.telemetry.message);
+  };
+function ready() {
+  if (
+    source === "sensor" &&
+    (!sensor.telemetry.calibrated || sensor.telemetry.state !== "active")
+  )
+    return "Enable phone sensors and set center, or select touch / keyboard.";
+  if ((source === "pad" || source === "tilt") && !padFrame?.connected)
+    return "Connect a controller and press a button, or choose another control source.";
+  if (source === "tilt" && !pad.tiltReady)
+    return "Complete the mapped tilt test in Controller Lab first.";
+  return "";
+}
+el("launch").onclick = () => {
+  const message = ready();
+  if (message) {
+    el("preflight-status").textContent = message;
+    return;
+  }
+  if (!parts) {
+    toast("Ship artwork is still loading. Try again shortly.");
+    return;
+  }
+  feedback.unlock();
+  scene.model.configure(config());
+  scene.setPractice(practice());
+  scene.setShipCanvas(composeShip(build.saved, parts, 512));
+  runId = crypto.randomUUID();
+  settled = false;
+  lastLives = 3;
+  renderedPower = false;
+  clearInput();
+  setView("battle");
+  scene.start();
+  sensor.setGestureActive(source === "sensor");
+  el("practice-energy").hidden = !practice();
+};
+function pause(reason = "Take a breath. The frontier can wait.") {
+  if (view !== "battle") return;
+  countdownUntil = 0;
+  scene.pause();
+  clearInput();
+  sensor.setGestureActive(false);
+  el("pause-reason").textContent = reason;
+  if (!dialog("pause-dialog").open && !dialog("power-dialog").open)
+    dialog("pause-dialog").showModal();
 }
 function resume() {
-  if (lab) leaveLab();
-  if (!scene.hasStarted || document.hidden) return;
-  if ((source === 'pad' || source === 'tilt') && !padFrame?.connected) { el('pause-message').textContent = 'ยังไม่พบจอย • เชื่อมต่อก่อนเล่นต่อ'; return; }
-  if (source === 'tilt' && !pad.tiltReady) { el('pause-message').textContent = 'ทดสอบการเอียงจอยอีกครั้งก่อนเล่นต่อ'; return; }
-  if (source === 'sensor' && (sensor.telemetry.state !== 'active' || !sensor.telemetry.calibrated)) { el('pause-message').textContent = 'ตั้งศูนย์เซนเซอร์อีกครั้งก่อนเล่นต่อ'; return; }
-  sensor.resetTransient(); scene.resume(); sensor.setGestureActive(true);
-  show('flight'); document.body.classList.remove('console-open'); pauseBanner.classList.add('hidden'); el('pause-button').textContent = 'Ⅱ'; refreshHud();
-}
-function leaveLab() {
-  lab = false; sensor.setGestureActive(false); sensor.resetTransient();
-  el('resume-button').classList.remove('hidden'); centerCard.classList.toggle('hidden', scene.hasStarted);
-  el('lab-button').setAttribute('aria-pressed', 'false'); el('lab-button').textContent = '⌁ ห้องฝึกท่าทาง / ไม่เริ่มด่าน';
-}
-el('start-button').addEventListener('click', () => {
-  feedback.unlock(); leaveLab(); sensor.resetTransient(); roundEnded = false; lastLives = 3; lastHud = '';
-  if (!parts) { el('preflight-error').textContent = 'กำลังโหลดภาพยาน หรือโหลดไม่สำเร็จ • ลองรีเฟรช'; return; }
-  if ((source === 'pad' || source === 'tilt') && !padFrame?.connected) { el('preflight-error').textContent = el('action-message').textContent = 'ยังไม่พบจอย • เชื่อมต่อและกดปุ่มบนจอย หรือเลือกวิธีควบคุมอื่น'; return; }
-  if (source === 'tilt' && !pad.tiltReady) { el('preflight-error').textContent = el('action-message').textContent = 'ทดสอบและยืนยันการเอียงจอยในเมนูตั้งค่าก่อน'; return; }
-  if (source === 'sensor' && (!sensor.telemetry.calibrated || sensor.telemetry.state !== 'active')) { el('preflight-error').textContent = el('action-message').textContent = 'เปิดเซนเซอร์และตั้งศูนย์ในเมนูตั้งค่าก่อนเริ่ม หรือเลือกสัมผัส/คีย์บอร์ด'; return; }
-  scene.model.weapon = el<HTMLSelectElement>('weapon').value as 'straight' | 'spread'; scene.shipStyle = shipStyle; if (parts) scene.setShipCanvas(composeShip(store.saved, parts)); pad.reset(); save(); show('flight');
-  document.body.classList.add('in-combat'); document.body.classList.remove('console-open');
-  scene.start(); sensor.setGestureActive(true); centerCard.classList.add('hidden'); pauseBanner.classList.add('hidden');
-  el<HTMLButtonElement>('pause-button').disabled = false; el('pause-button').textContent = 'Ⅱ'; el<HTMLInputElement>('practice').disabled = true;
-  el('action-message').textContent = 'เริ่มภารกิจแล้ว • หลบกระสุนและไปให้ถึงบอส';
-});
-el('pause-button').addEventListener('click', () => { if (scene.isRunning) pause(); else resume(); });
-el('resume-button').addEventListener('click', resume);
-el('enable-button').addEventListener('click', async () => {
-  const b = el<HTMLButtonElement>('enable-button'); b.disabled = true;
-  try { await sensor.enable(); } finally { b.disabled = false; }
-});
-el('calibrate-button').addEventListener('click', () => { scene.clearInput(); sensor.calibrate(); });
-for (const [id, action] of [['dodge-left', 'dodgeLeft'], ['dodge-right', 'dodgeRight'], ['emp-button', 'emp']] as const) {
-  el(id).addEventListener('click', () => { feedback.unlock(); scene.action(action); });
-}
-el('lab-button').addEventListener('click', () => {
-  if (lab) {
-    leaveLab(); pauseBanner.classList.toggle('hidden', !scene.hasStarted);
-    el('action-message').textContent = 'ออกจากห้องฝึกแล้ว • กดเริ่มภารกิจหรือเล่นต่อ';
-  } else {
-    if (scene.isRunning) scene.pause(); lab = true; sensor.resetTransient(); sensor.setGestureActive(true);
-    centerCard.classList.add('hidden'); el('resume-button').classList.add('hidden');
-    el('lab-button').setAttribute('aria-pressed', 'true'); el('lab-button').textContent = '✓ อยู่ในห้องฝึก / กดเพื่อออก';
-    el<HTMLDetailsElement>('telemetry-panel').open = true;
-    el('pause-message').textContent = 'ห้องฝึกท่าทาง • ทดลองแล้วดูผลด้านล่าง'; pauseBanner.classList.remove('hidden');
-    el('action-message').textContent = 'ห้องฝึก: ท่าที่ตรวจพบจะไม่ใช้สกิลในเกม';
+  feedback.unlock();
+  const reason = ready();
+  if (reason) {
+    el("pause-reason").textContent = reason;
+    return;
   }
-  refreshHud();
-});
-for (const [id, label, setter] of [
-  ['sensitivity', 'sensitivity-value', (v: number) => sensor.setSensitivity(v)],
-  ['gesture-sensitivity', 'gesture-value', (v: number) => sensor.setGestureSensitivity(v)],
-] as const) el<HTMLInputElement>(id).addEventListener('input', e => { const v = Number((e.target as HTMLInputElement).value); setter(v); scene.clearInput(); el(label).textContent = `${v.toFixed(1)}×`; });
-el<HTMLInputElement>('practice').addEventListener('change', e => {
-  const on = (e.target as HTMLInputElement).checked; scene.setPractice(on); el('fill-energy').classList.toggle('hidden', !on);
-});
-el('fill-energy').addEventListener('click', () => { scene.model.fillEnergy(); refreshHud(); });
-el<HTMLInputElement>('sound').addEventListener('change', e => { feedback.enabled = (e.target as HTMLInputElement).checked; if (feedback.enabled) feedback.unlock(); });
-if (!('vibrate' in navigator)) { el<HTMLInputElement>('haptics').disabled = true; el('haptic-label').textContent = 'เครื่องนี้ไม่มี Vibration API'; }
-el<HTMLInputElement>('haptics').addEventListener('change', e => { feedback.haptics = (e.target as HTMLInputElement).checked; });
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden) {
-    if (scene.isRunning) pause('พักเมื่อสลับแอป • กดเล่นต่อเมื่อพร้อม');
-    sensor.setGestureActive(false); sensor.resetTransient(); endAttempt();
-  } else { sensor.resetTransient(); sensor.setGestureActive(lab); }
-});
-window.addEventListener('blur', () => { if (scene.isRunning) pause('พักเมื่อหน้าต่างไม่พร้อม • กดเล่นต่อ'); });
-const labels: Record<Telemetry['state'], string> = { idle: 'ยังไม่เปิด', waiting: 'รอข้อมูล', active: 'พร้อม', denied: 'ปฏิเสธสิทธิ์', unavailable: 'ไม่พร้อมใช้งาน', stale: 'ข้อมูลหยุด', recalibrate: 'ต้องตั้งศูนย์' };
-sensor.subscribe(t => {
-  if (t.state !== lastSensorState && ['recalibrate', 'stale', 'denied', 'unavailable'].includes(t.state)) {
-    scene.clearInput(); if (source === 'sensor' && scene.isRunning && lastSensorState === 'active') pause(t.message);
-  }
-  lastSensorState = t.state;
-});
-function value(n: number | null, unit = '') { return n === null || !Number.isFinite(n) ? 'ไม่พร้อมใช้งาน' : `${n.toFixed(1)}${unit}`; }
-function triple(v: { x: number | null; y: number | null; z: number | null }) { return [v.x, v.y, v.z].map(n => value(n)).join(' / '); }
-const traces: { strength: number | null; roll: number | null }[] = [];
-function graph(id: string, points: (number | null)[], bound: number, color: string, signed: boolean) {
-  const canvas = el<HTMLCanvasElement>(id), ctx = canvas.getContext('2d')!;
-  ctx.clearRect(0, 0, 640, 140); ctx.strokeStyle = '#30425d'; ctx.lineWidth = 1;
-  for (let y = 10; y <= 130; y += 30) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(640, y); ctx.stroke(); }
-  ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.beginPath(); let pen = false;
-  points.forEach((v, i) => {
-    if (v === null) { pen = false; return; }
-    const x = i / 119 * 640, normalized = Math.max(signed ? -1 : 0, Math.min(1, v / bound));
-    const y = signed ? 70 - normalized * 58 : 130 - normalized * 116;
-    if (!pen) { ctx.moveTo(x, y); pen = true; } else ctx.lineTo(x, y);
-  }); ctx.stroke();
-  ctx.fillStyle = '#8da7c9'; ctx.font = '18px sans-serif'; ctx.fillText(`${signed ? '±' : '0–'}${bound}`, 8, 23);
+  dialog("pause-dialog").close();
+  clearInput();
+  countdownUntil = performance.now() + 2000;
+  el("battle-hint").textContent = "GET READY · 2";
 }
+el("pause").onclick = () => pause();
+el("resume").onclick = resume;
+dialog("pause-dialog").addEventListener("cancel", (e) => e.preventDefault());
+dialog("power-dialog").addEventListener("cancel", (e) => e.preventDefault());
+el("pause-settings").onclick = () => navigate("settings");
+el("restart").onclick = () => {
+  dialog("pause-dialog").close();
+  confirmAction(
+    "Restart this mission?",
+    "The current run ends and collected credits are banked.",
+    () => {
+      scene.model.withdraw();
+      completeRound();
+      setView("preflight");
+    },
+  );
+};
+el("withdraw").onclick = () => {
+  dialog("pause-dialog").close();
+  confirmAction(
+    "Withdraw from this mission?",
+    "Collected credits will be banked. Clear bonuses are not awarded.",
+    () => {
+      scene.model.withdraw();
+      completeRound();
+    },
+  );
+};
+dialog("confirm-dialog").addEventListener("close", () => {
+  if (
+    view === "battle" &&
+    scene.hasStarted &&
+    !scene.isRunning &&
+    !countdownUntil &&
+    !dialog("power-dialog").open
+  )
+    dialog("pause-dialog").showModal();
+});
+for (const [id, action] of [
+  ["dodge-left", "dodgeLeft"],
+  ["dodge-right", "dodgeRight"],
+  ["emp", "emp"],
+] as const)
+  el(id).onclick = () => scene.action(action);
+el("practice-energy").onclick = () => scene.model.fillEnergy();
+const perkNames: Record<string, [string, string]> = {
+  damage: ["Damage Boost", "+10% main weapon damage"],
+  rapid: ["Rapid Fire", "+10% main weapon fire rate"],
+  magnet: ["Magnet Field", "+40 pickup attraction range"],
+  charger: ["EMP Charger", "+1% EMP energy per second"],
+  evasive: ["Evasive Drive", "Dodge cooldown reduced by 0.3s"],
+  repair: ["Repair", "Restore one life; at full hull, gain 30% EMP"],
+  energy: ["EMP Supply", "Fully charge your EMP"],
+  credits: ["Salvage Cache", "Collect 20 additional credits"],
+};
+function showPowers(s: GameSnapshot) {
+  renderedPower = true;
+  scene.pause();
+  clearInput();
+  sensor.setGestureActive(false);
+  el("power-cards").innerHTML = s.powerChoices
+    .map(
+      (id) =>
+        `<button class="power-card" data-power="${id}">${icon(id)}<small>FIELD UPGRADE${s.perks[id] ? ` · STACK ${s.perks[id] + 1}/2` : ""}</small><h3>${perkNames[id][0]}</h3><p>${perkNames[id][1]}</p><span>Install upgrade →</span></button>`,
+    )
+    .join("");
+  el("power-cards")
+    .querySelectorAll<HTMLButtonElement>("[data-power]")
+    .forEach(
+      (b) =>
+        (b.onclick = () => {
+          scene.model.choosePower(b.dataset.power!);
+          dialog("power-dialog").close();
+          renderedPower = false;
+          resume();
+        }),
+    );
+  dialog("power-dialog").showModal();
+}
+function updateHud(s: GameSnapshot) {
+  el("score").textContent = String(s.score).padStart(6, "0");
+  el("time").textContent =
+    scene.model.config.mode === "endless"
+      ? `${Math.floor(s.time / 60)}:${String(Math.floor(s.time % 60)).padStart(2, "0")}`
+      : String(Math.ceil(90 - s.time));
+  el("wave").textContent =
+    scene.model.config.mode === "endless" ? `WAVE ${s.wave}` : "TIME LEFT";
+  el("combo").textContent = s.combo > 1 ? `${s.combo} CHAIN` : "";
+  el("lives").textContent = "◆ ".repeat(Math.max(0, s.lives));
+  el("shield-status").textContent = s.shield
+    ? "SHIELD ONLINE"
+    : scene.model.config.equipment.armor
+      ? `SHIELD ${Math.ceil(s.shieldTimer)}s`
+      : "";
+  el("run-credits").textContent = `◈ ${s.credits}`;
+  el("emp-state").textContent =
+    s.energy >= 100 ? "READY" : `${Math.floor(s.energy)}%`;
+  el("emp").classList.toggle("charged", s.energy >= 100);
+  el("dodge-state").textContent =
+    s.dodgeCooldown > 0 ? `${s.dodgeCooldown.toFixed(1)}s` : "READY";
+  el("boss-hud").hidden = !s.boss;
+  if (s.boss) {
+    el("boss-name").textContent = STAGES[scene.model.config.stage].boss;
+    el("boss-phase").textContent = `PHASE ${s.boss.phase || 1}`;
+    el<HTMLProgressElement>("boss-health").value = Math.max(
+      0,
+      s.boss.health / s.boss.maxHealth,
+    );
+  }
+  if (s.lives < lastLives) feedback.play("hit");
+  lastLives = s.lives;
+  if (s.powerChoices.length && !renderedPower && view === "battle")
+    showPowers(s);
+  if (s.gameOver && !settled) completeRound();
+}
+function completeRound() {
+  if (settled) return;
+  settled = true;
+  scene.pause();
+  clearInput();
+  sensor.setGestureActive(false);
+  dialog("pause-dialog").close();
+  dialog("power-dialog").close();
+  const s = scene.model.state,
+    c = scene.model.config,
+    reward = progress.settle(runId, {
+      practice: scene.model.practice,
+      mode: c.mode,
+      stage: c.stage,
+      won: s.result === "won",
+      credits: s.credits,
+      score: s.score,
+      time: s.time,
+    });
+  el("result-title").textContent = {
+    won: "Sector secured.",
+    lost: "Signal lost.",
+    timeout: "Time expired.",
+    practice: "Practice complete.",
+    withdrawn: "Fleet recalled.",
+  }[s.result || "withdrawn"];
+  el("result-mode").textContent =
+    `${scene.model.practice ? "PRACTICE / " : ""}${c.mode === "endless" ? "ENDLESS FRONTIER" : STAGES[c.stage].name.toUpperCase()}`;
+  el("result-description").textContent = scene.model.practice
+    ? "Training only. No progression or records changed."
+    : s.result === "won"
+      ? "Route cleared. Return stronger for the next frontier."
+      : "Every flight teaches you something. Refit and try again.";
+  el("result-stats").innerHTML = [
+    ["Score", s.score.toLocaleString("en-US")],
+    ["Flight time", s.time.toFixed(1) + "s"],
+    ["Dodges", s.dodges],
+    ["EMP uses", s.emps],
+  ]
+    .map(([l, v]) => `<div><small>${l}</small><b>${v}</b></div>`)
+    .join("");
+  el("reward-breakdown").innerHTML =
+    `<h3>Mission salvage</h3><p>Collected <b>◈ ${reward.collected}</b></p><p>Clear bonus <b>◈ ${reward.clear}</b></p><p>First clear <b>◈ ${reward.first}</b></p><p class="reward-total">Banked <strong>◈ ${reward.total}</strong></p>`;
+  el("result-perks").innerHTML = Object.entries(s.perks)
+    .map(([p, n]) => `<span>${perkNames[p][0]} ×${n}</span>`)
+    .join("");
+  el("next-stage").hidden =
+    c.mode !== "stage" ||
+    c.stage >= 2 ||
+    !progress.state.cleared.includes(c.stage);
+  paint("result-ship");
+  setView("results");
+  feedback.play("end");
+}
+el("retry").onclick = () => setView("preflight");
+el("next-stage").onclick = () => {
+  selectedStage = Math.min(2, selectedStage + 1);
+  setView("preflight");
+};
+el("result-upgrade").onclick = () => {
+  setView("hangar");
+  hangarTab(true);
+};
+function renderRecords() {
+  el("record-list").replaceChildren();
+  if (!progress.state.records.length) {
+    el("record-list").innerHTML =
+      '<div class="panel"><h2>Your story starts in flight.</h2><p>Finish a mission or an Endless run to record your first score.</p><button class="primary" id="record-battle">Choose a mission →</button></div>';
+    el("record-battle").onclick = () => setView("stages");
+    return;
+  }
+  progress.state.records.forEach((r, i) => {
+    const e = document.createElement("article");
+    e.className = "panel record-row";
+    e.innerHTML = `<b>${String(i + 1).padStart(2, "0")}</b><div><strong>${r.mode === "endless" ? "Endless Frontier" : STAGES[r.stage]?.name || "Mission"}</strong><small></small></div><strong>${Number(r.score).toLocaleString("en-US")}</strong><span>${Number(r.time).toFixed(1)}s</span>`;
+    e.querySelector("small")!.textContent = new Date(r.date).toLocaleDateString(
+      "en-US",
+    );
+    el("record-list").append(e);
+  });
+}
+for (const id of ["tilt-sensitivity", "gesture-sensitivity"])
+  el<HTMLInputElement>(id).oninput = () => {
+    sensor.setSensitivity(
+      Number(el<HTMLInputElement>("tilt-sensitivity").value),
+    );
+    sensor.setGestureSensitivity(
+      Number(el<HTMLInputElement>("gesture-sensitivity").value),
+    );
+    clearInput();
+    savePreferences();
+  };
+el<HTMLInputElement>("sound").onchange = () => {
+  feedback.enabled = el<HTMLInputElement>("sound").checked;
+  feedback.unlock();
+};
+el<HTMLInputElement>("haptics").disabled = !("vibrate" in navigator);
+el<HTMLInputElement>("haptics").onchange = () => {
+  feedback.haptics = el<HTMLInputElement>("haptics").checked;
+};
+el<HTMLInputElement>("low-effects").onchange = () =>
+  document.body.classList.toggle(
+    "reduced-effects",
+    el<HTMLInputElement>("low-effects").checked,
+  );
+el("gesture-lab-toggle").onclick = () => {
+  labActive = !labActive;
+  sensor.setGestureActive(labActive);
+  el("gesture-lab-toggle").textContent = labActive
+    ? "Stop gesture lab"
+    : "Start gesture lab";
+  el("gesture-lab-toggle").setAttribute("aria-pressed", String(labActive));
+};
+let trial: { expected: Action; detected: Action[]; finished: boolean } | null =
+  null;
+const trials: {
+  expected: Action;
+  detected: Action[];
+  result: string;
+  date: string;
+}[] = [];
+sensor.onGesture((action) => {
+  if (labActive) el("gesture-event").textContent = `Detected: ${names[action]}`;
+  if (trial && !trial.finished) trial.detected.push(action);
+});
+el("trial-start").onclick = () => {
+  if (
+    !labActive ||
+    !sensor.telemetry.calibrated ||
+    sensor.telemetry.motionState !== "active"
+  ) {
+    el("trial-status").textContent =
+      "Enable sensors, set center and start the gesture lab first.";
+    return;
+  }
+  el<HTMLButtonElement>("trial-start").disabled = true;
+  trial = {
+    expected: el<HTMLSelectElement>("trial-action").value as Action,
+    detected: [],
+    finished: false,
+  };
+  sensor.resetTransient();
+  el("trial-status").textContent =
+    "Wait 0.7 seconds, then perform one gesture. Recording for five seconds.";
+  setTimeout(() => {
+    if (!trial) return;
+    trial.finished = true;
+    el("trial-status").textContent =
+      `Detected: ${trial.detected.map((a) => names[a]).join(", ") || "none"}. Label the result below.`;
+    document
+      .querySelectorAll<HTMLButtonElement>("[data-trial]")
+      .forEach((b) => (b.disabled = false));
+  }, 5000);
+};
+document.querySelectorAll<HTMLButtonElement>("[data-trial]").forEach(
+  (b) =>
+    (b.onclick = () => {
+      if (!trial?.finished) return;
+      trials.push({
+        expected: trial.expected,
+        detected: trial.detected,
+        result: b.dataset.trial!,
+        date: new Date().toISOString(),
+      });
+      trial = null;
+      el<HTMLButtonElement>("trial-start").disabled = false;
+      document
+        .querySelectorAll<HTMLButtonElement>("[data-trial]")
+        .forEach((b) => (b.disabled = true));
+      el("trial-counts").textContent = Object.entries(names)
+        .map(([id, label]) => {
+          const rows = trials.filter((t) => t.expected === id);
+          return `${label}: ${rows.length}/10 · ${rows.filter((t) => t.result === "correct").length} correct · ${rows.filter((t) => t.result === "miss").length} missed · ${rows.filter((t) => t.result === "wrong").length} wrong`;
+        })
+        .join(" | ");
+    }),
+);
+el("trial-export").onclick = () => {
+  const u = URL.createObjectURL(
+    new Blob(
+      [
+        JSON.stringify(
+          {
+            type: "user-labelled-physical-device-trials",
+            userAgent: navigator.userAgent,
+            trials,
+          },
+          null,
+          2,
+        ),
+      ],
+      { type: "application/json" },
+    ),
+  );
+  const a = document.createElement("a");
+  a.href = u;
+  a.download = "gyro-space-device-trials.json";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(u), 1000);
+};
+function stopForVisibility() {
+  if (scene.isRunning)
+    pause("App switched or window lost focus. Resume when ready.");
+  sensor.setGestureActive(false);
+  clearInput();
+  if (countdownUntil) {
+    countdownUntil = 0;
+    pause("Resume interrupted.");
+  }
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) stopForVisibility();
+});
+window.addEventListener("blur", stopForVisibility);
+sensor.subscribe((t) => {
+  if (
+    source === "sensor" &&
+    scene.isRunning &&
+    ["stale", "recalibrate", "denied", "unavailable"].includes(t.state)
+  )
+    pause(t.message);
+});
+el("help-open").onclick = () => dialog("help-dialog").showModal();
+el("help-close").onclick = () => dialog("help-dialog").close();
+QRCode.toCanvas(
+  el<HTMLCanvasElement>("qr"),
+  "https://gyro-space-lab-th.mjadsakul.chatgpt.site/",
+  { width: 160, margin: 1, color: { dark: "#eaf2fa", light: "#101a2b" } },
+).catch(() => {});
+let traces: { a: number | null; r: number | null }[] = [];
+const val = (v: number | null | undefined) =>
+  v == null || !Number.isFinite(v) ? "Unavailable" : v.toFixed(1);
 window.setInterval(() => {
-  sensor.tick(); const t = sensor.telemetry;
-  if (view === 'preflight') {
-    const preview = el<HTMLCanvasElement>('preflight-preview');
-    if (source === 'sensor' && t.state === 'active' && t.calibrated) {
-      const axes = sensor.getAxes(.1);
-      preview.style.transform = `translate(${axes.x * 24}px, ${axes.y * 24}px)`;
-      el('preflight-help').textContent = 'เซนเซอร์พร้อม • เอียงมือถือเพื่อทดลองเลื่อนยาน';
-    } else {
-      preview.style.transform = '';
-      if (source === 'sensor') el('preflight-help').textContent = t.message;
+  sensor.tick();
+  const wasRemapping = controller.remapping;
+  if (padFrame && view === "controller") controller.update(padFrame);
+  const t = sensor.telemetry;
+  el("sensor-status").textContent =
+    `${t.state.toUpperCase()} · ${t.message} ${t.motionMessage}`;
+  if (view === "preflight") {
+    el("preflight-status").textContent =
+      source === "sensor"
+        ? t.message
+        : source === "manual"
+          ? "Touch / keyboard ready."
+          : padFrame?.connected
+            ? "Controller connected."
+            : "Press a controller button to connect.";
+    const a = source === "sensor" ? sensor.getAxes(0.1) : padFrame?.axes;
+    el("preflight-ship").style.transform = a
+      ? `translate(${a.x * 18}px,${a.y * 18}px)`
+      : "";
+  }
+  el("sensor-numbers").innerHTML =
+    `<span>TILT / MOTION RATE<b>${val(t.hz)} / ${val(t.motionHz)} Hz</b></span><span>BETA / GAMMA<b>${val(t.beta)}° / ${val(t.gamma)}°</b></span><span>ACCEL X / Y / Z<b>${val(t.acceleration.x)} / ${val(t.acceleration.y)} / ${val(t.acceleration.z)}</b></span><span>ROTATION α / β / γ<b>${val(t.rotation.alpha)} / ${val(t.rotation.beta)} / ${val(t.rotation.gamma)}</b></span><span>ACCEL SOURCE<b>${t.motionState !== "active" ? "Unavailable" : t.estimated ? "Estimated gravity removal" : "Device linear acceleration"}</b></span>`;
+  traces.push({
+    a: t.motionState === "active" ? t.strength : null,
+    r: t.motionState === "active" ? t.roll : null,
+  });
+  traces = traces.slice(-120);
+  if (view === "settings") {
+    const ctx = el<HTMLCanvasElement>("sensor-graph").getContext("2d")!;
+    ctx.clearRect(0, 0, 720, 180);
+    for (const [key, max, color] of [
+      ["a", 25, "#60d8ff"],
+      ["r", 300, "#f0bc74"],
+    ] as const) {
+      ctx.beginPath();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      let pen = false;
+      traces.forEach((v, i) => {
+        if (v[key] === null) {
+          pen = false;
+          return;
+        }
+        const x = (i / 119) * 720,
+          y = 170 - Math.min(1, Math.abs(v[key]!) / max) * 150;
+        if (pen) ctx.lineTo(x, y);
+        else ctx.moveTo(x, y);
+        pen = true;
+      });
+      ctx.stroke();
+    }
+    if (labActive) sensor.consumeActions();
+  }
+  if (padFrame) {
+    const b = padFrame.buttons,
+      edge = (i: number) => b[i] && !padMenu[i];
+    if (
+      !wasRemapping &&
+      !controller.remapping &&
+      (view !== "battle" || !!document.querySelector("dialog[open]"))
+    ) {
+      const host =
+        document.querySelector<HTMLDialogElement>("dialog[open]") || el(view);
+      const buttons = Array.from(
+        host.querySelectorAll<HTMLButtonElement>("button:not(:disabled)"),
+      ).filter((x) => x.offsetWidth > 0 && x.offsetHeight > 0);
+      const index = buttons.indexOf(
+        document.activeElement as HTMLButtonElement,
+      );
+      if (edge(12) || edge(14))
+        buttons[(index <= 0 ? buttons.length : index) - 1]?.focus();
+      if (edge(13) || edge(15)) buttons[(index + 1) % buttons.length]?.focus();
+      if (edge(0) && document.activeElement instanceof HTMLButtonElement)
+        document.activeElement.click();
+      if (edge(1) && !dialog("power-dialog").open) {
+        if (dialog("equipment-dialog").open) dialog("equipment-dialog").close();
+        else if (view === "controller" || view === "settings") {
+          {
+            const back = returnRoutes.pop() || "home";
+            settingsReturn = returnRoutes.at(-1) || "home";
+            setView(back);
+            if (back === "battle") dialog("pause-dialog").showModal();
+          }
+        }
+      }
+    }
+    padMenu = [...b];
+  }
+}, 100);
+let previewDirty = true,
+  preview = new GameModel(),
+  previewArt: HTMLCanvasElement | undefined,
+  lastFrame = performance.now();
+function animate(now: number) {
+  const dt = Math.min(0.05, (now - lastFrame) / 1000);
+  lastFrame = now;
+  if (countdownUntil && view === "battle") {
+    const remaining = countdownUntil - now;
+    el("battle-hint").textContent =
+      `GET READY · ${Math.max(1, Math.ceil(remaining / 1000))}`;
+    if (remaining <= 0) {
+      countdownUntil = 0;
+      const reason = ready();
+      if (reason || document.querySelector("dialog[open]")) {
+        pause(reason || "Mission paused.");
+        requestAnimationFrame(animate);
+        return;
+      }
+      clearInput();
+      scene.resume();
+      sensor.setGestureActive(source === "sensor");
+      el("battle-hint").textContent = "";
     }
   }
-  el('sensor-message').textContent = t.message; el('motion-message').textContent = t.motionMessage;
-  el('sensor-state').textContent = `${labels[t.state]} / ${labels[t.motionState]}`;
-  el('hz').textContent = `${value(t.hz)} / ${value(t.motionHz)} Hz`;
-  el('angles').textContent = `${value(t.beta)} / ${value(t.gamma)}`; el('acceleration').textContent = triple(t.acceleration);
-  el('rotation').textContent = [t.rotation.alpha, t.rotation.beta, t.rotation.gamma].map(v => value(v)).join(' / ');
-  el('strength-value').textContent = value(t.strength); el('roll-value').textContent = value(t.roll);
-  el('last-gesture').textContent = t.lastGesture ? `${names[t.lastGesture]} (${Math.max(0, (performance.now() - t.gestureTime) / 1000).toFixed(1)}s ก่อน)` : 'ยังไม่ตรวจพบ';
-  el<HTMLButtonElement>('calibrate-button').disabled = t.beta === null || t.gamma === null || ['stale', 'denied', 'unavailable'].includes(t.state);
-  el('status-dot').classList.toggle('ready', t.state === 'active'); el('mode-pill').textContent = lab ? 'GESTURE LAB' : t.state === 'active' ? 'MOTION ON' : 'TOUCH / KEY';
-  traces.push({ strength: t.motionState === 'active' ? t.strength : null, roll: t.motionState === 'active' ? t.roll : null });
-  if (traces.length > 120) traces.shift();
-  if (el<HTMLDetailsElement>('telemetry-panel').open) { graph('accel-chart', traces.map(p => p.strength), 25, '#76f3eb', false); graph('roll-chart', traces.map(p => p.roll), 300, '#ffa4b7', true); }
-  if (lab) sensor.consumeActions();
-}, 100);
-
-// Explicitly user-labelled physical-device trials; nothing here manufactures test results.
-interface Trial { expected: Action; detected: Action[]; result: 'correct' | 'miss' | 'wrong'; date: string }
-let trials: Trial[] = [], attempt: { expected: Action; detected: Action[]; ends: number } | null = null;
-let attemptFinished = false;
-function endAttempt() { if (attempt) { attemptFinished = true; el('attempt-message').textContent = `ตรวจพบ: ${attempt.detected.map(a => names[a]).join(', ') || 'ไม่มี'} • เลือกผลเพื่อบันทึก`; updateRecordButtons(); } }
-sensor.onGesture(action => {
-  if (lab) el('action-message').textContent = `ห้องฝึกตรวจพบ: ${names[action]}`;
-  if (attempt && !attemptFinished && performance.now() <= attempt.ends) attempt.detected.push(action);
-});
-el('begin-attempt').addEventListener('click', () => {
-  if (!lab || !sensor.telemetry.calibrated || sensor.telemetry.motionState !== 'active') { el('attempt-message').textContent = 'เปิดห้องฝึก เปิดเซนเซอร์ และตั้งศูนย์ให้พร้อมก่อน'; return; }
-  attempt = { expected: el<HTMLSelectElement>('test-action').value as Action, detected: [], ends: performance.now() + 5000 };
-  attemptFinished = false; sensor.resetTransient();
-  el('attempt-message').textContent = 'รอ 0.7 วินาที แล้วทำท่าหนึ่งครั้ง • กำลังนับ 5 วินาที'; updateRecordButtons();
-});
-window.setInterval(() => { if (attempt && !attemptFinished && performance.now() >= attempt.ends) { endAttempt(); updateRecordButtons(); } }, 100);
-function updateRecordButtons() { for (const id of ['record-correct', 'record-miss', 'record-wrong']) el<HTMLButtonElement>(id).disabled = !attempt || !attemptFinished; }
-function renderTrials() {
-  el('test-rows').innerHTML = (Object.keys(names) as Action[]).map(action => {
-    const rows = trials.filter(t => t.expected === action);
-    return `<tr><th>${names[action]}</th><td>${rows.length}/10</td>${(['correct', 'miss', 'wrong'] as const).map(r => `<td>${rows.filter(t => t.result === r).length}</td>`).join('')}</tr>`;
-  }).join(''); updateRecordButtons();
+  if (view === "hangar" && parts) {
+    if (previewDirty) {
+      previewDirty = false;
+      const c = defaultRun();
+      c.equipment = structuredClone(
+        practice() ? practiceEquipment : progress.state.equipment,
+      );
+      const item = EQUIPMENT.find((e) => e.id === selectedItem)!;
+      c.equipment[item.slot] = item.id;
+      c.levels = {
+        ...(practice() ? practiceLevels : progress.state.levels),
+        [selectedItem]: Number(el<HTMLSelectElement>("preview-level").value),
+      };
+      preview = new GameModel();
+      preview.configure(c);
+      preview.practice = true;
+      previewArt = composeShip(build.draft, parts, 256);
+      el("firing-stat").textContent =
+        `${item.name} · ${equipmentStat(item.id, c.levels[item.id])} · Preview only, no purchase applied`;
+    }
+    preview.update(dt, { x: 0, y: 0 });
+    preview.state.rocks = [];
+    preview.state.enemies = [];
+    if (preview.state.time > 5) preview.reset();
+    const ctx = el<HTMLCanvasElement>("firing-preview").getContext("2d")!;
+    ctx.clearRect(0, 0, 480, 240);
+    ctx.fillStyle = "#080f1c";
+    ctx.fillRect(0, 0, 480, 240);
+    ctx.strokeStyle = "#182b40";
+    for (let x = 0; x < 480; x += 40) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, 240);
+      ctx.stroke();
+    }
+    const sx = 480 / 390,
+      offset = preview.state.ship.y - 300;
+    for (const b of preview.state.bullets) {
+      ctx.fillStyle = b.missile
+        ? "#f0bc74"
+        : b.type === "plasma"
+          ? "#c3a5ff"
+          : "#8be7ff";
+      ctx.fillRect(b.x * sx - 2, (b.y - offset) * 0.65, 4, 14);
+    }
+    if (preview.state.laser > 0) {
+      ctx.fillStyle = "#a3f4ff";
+      ctx.fillRect(
+        preview.state.ship.x * sx - 3 - (preview.config.levels.laser || 1) * 2,
+        0,
+        6 + (preview.config.levels.laser || 1) * 4,
+        180,
+      );
+    }
+    if (previewArt)
+      ctx.drawImage(previewArt, preview.state.ship.x * sx - 43, 154, 86, 86);
+    if (preview.config.equipment.wingman && previewArt) {
+      ctx.drawImage(previewArt, preview.state.ship.x * sx - 72, 185, 30, 30);
+      if (preview.config.levels.drone > 1)
+        ctx.drawImage(previewArt, preview.state.ship.x * sx + 45, 185, 30, 30);
+    }
+  }
+  requestAnimationFrame(animate);
 }
-for (const [id, result] of [['record-correct', 'correct'], ['record-miss', 'miss'], ['record-wrong', 'wrong']] as const) el(id).addEventListener('click', () => {
-  if (!attempt || !attemptFinished) return;
-  trials.push({ expected: attempt.expected, detected: [...attempt.detected], result, date: new Date().toISOString() });
-  attempt = null; attemptFinished = false; el('attempt-message').textContent = 'บันทึกแล้ว • เริ่มนับครั้งถัดไป'; renderTrials();
-});
-el('reset-record').addEventListener('click', () => { trials = []; attempt = null; attemptFinished = false; renderTrials(); });
-el('download-record').addEventListener('click', () => {
-  const blob = new Blob([JSON.stringify({ type: 'user-labelled-physical-device-trials', userAgent: navigator.userAgent, tiltSensitivity: el<HTMLInputElement>('sensitivity').value, gestureSensitivity: el<HTMLInputElement>('gesture-sensitivity').value, trials }, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = 'gyro-space-device-tests.json'; a.click(); window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-});
-renderTrials(); refreshHud();
-const help = el<HTMLDialogElement>('help-dialog');
-el('help-button').addEventListener('click', () => { beforeHelp = scene.isRunning; if (beforeHelp) pause('พักระหว่างเปิดวิธีเล่น'); sensor.setGestureActive(false); help.showModal(); });
-el('close-help').addEventListener('click', () => help.close());
-help.addEventListener('click', e => { if (e.target === help) help.close(); });
-help.addEventListener('close', () => { sensor.resetTransient(); if (beforeHelp) resume(); else sensor.setGestureActive(lab); beforeHelp = false; });
-QRCode.toCanvas(el<HTMLCanvasElement>('qr'), PUBLIC_URL, { width: 124, margin: 1, color: { dark: '#dff8ff', light: '#101831' } }).catch(() => {});
-
-function renderBindings() {
-  el('pad-bindings').innerHTML = (['dodgeLeft','dodgeRight','emp','pause'] as PadCommand[]).map(command => `<button class="secondary" data-bind="${command}">${command === 'pause' ? 'พักเกม' : names[command]}: ปุ่ม ${pad.settings.buttons[command]} / เปลี่ยน</button>`).join('');
-  el('pad-bindings').querySelectorAll<HTMLButtonElement>('button').forEach(b => b.onclick = () => { bindCommand = b.dataset.bind as PadCommand; b.textContent = 'กดปุ่มจอยที่ต้องการ…'; });
-}
-function chooseShip(index: number) { shipStyle = index; el<HTMLImageElement>('hangar-ship').src = `/assets/player-${index}.png`; document.querySelectorAll<HTMLButtonElement>('[data-ship]').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.ship) === index))); save(); }
-document.querySelectorAll<HTMLButtonElement>('[data-ship]').forEach(b => b.onclick = () => chooseShip(Number(b.dataset.ship)));
-el('weapon').addEventListener('change',save);
-el('input-source').addEventListener('change', () => { source = el<HTMLSelectElement>('input-source').value; pad.mode = source === 'tilt' ? 'tilt' : 'stick'; scene.clearInput(); sensor.resetTransient(); save(); });
-el('console-toggle').onclick = () => { if(scene.isRunning) pause('พักระหว่างตั้งค่า'); settingsReturn=scene.hasStarted?'flight':view; show('settings'); document.body.classList.add('console-open'); };
-for (const [id,key] of [['pad-x','axisX'],['pad-y','axisY'],['pad-deadzone','deadzone'],['pad-sensitivity','sensitivity']] as const) el(id).addEventListener('input', () => { pad.settings[key] = Number(el<HTMLInputElement>(id).value); pad.reset(); save(); });
-for (const [id,key] of [['pad-invert-x','invertX'],['pad-invert-y','invertY']] as const) el(id).addEventListener('change', () => { pad.settings[key] = el<HTMLInputElement>(id).checked; save(); });
-el('tilt-begin').onclick = () => { el<HTMLInputElement>('tilt-confirm').checked = false; if(pad.beginTiltTrial()) { el<HTMLButtonElement>('tilt-begin').disabled = true; window.setTimeout(() => { pad.finishTiltTrial(); el<HTMLButtonElement>('tilt-begin').disabled = false; },5000); } };
-el('tilt-confirm').addEventListener('change', () => { if (el<HTMLInputElement>('tilt-confirm').checked && !pad.confirmTiltTrial()) el<HTMLInputElement>('tilt-confirm').checked = false; });
-el('pad-center').onclick = () => { pad.calibrate(); scene.clearInput(); };
-window.setInterval(() => { if(!padFrame) return; el('pad-status').textContent = padFrame.connected ? `${padFrame.id} / ${padFrame.mapping || 'กำหนดปุ่มเอง'}` : 'ยังไม่พบจอย • จับคู่ Bluetooth แล้วกดปุ่มหนึ่งครั้ง'; el('pad-data').textContent = padFrame.rawAxes.length ? padFrame.rawAxes.map((v,i)=>`แกน ${i}: ${v === null ? 'ไม่พร้อมใช้งาน' : v.toFixed(3)}`).join(' | ') + '\nปุ่ม: ' + padFrame.buttons.flatMap((v,i)=>v?[i]:[]).join(', ') : 'ไม่พร้อมใช้งาน'; el('tilt-message').textContent = pad.tiltMessage; },100);
-try { const saved = JSON.parse(localStorage.getItem('gyro-loadout-v4') || 'null'); if(saved) { shipStyle = Math.max(0,Math.min(2,Number(saved.ship)||0)); el<HTMLSelectElement>('weapon').value = saved.weapon === 'spread' ? 'spread' : 'straight'; source = ['manual','sensor','pad','tilt'].includes(saved.source) ? saved.source : 'manual'; el<HTMLSelectElement>('input-source').value = source; pad.mode = source === 'tilt' ? 'tilt' : 'stick'; if(saved.pad) { for(const key of ['deadzone','sensitivity','axisX','axisY'] as const) if(Number.isFinite(saved.pad[key])) pad.settings[key]=saved.pad[key]; for(const key of ['invertX','invertY'] as const) pad.settings[key]=saved.pad[key] === true; for(const key of ['dodgeLeft','dodgeRight','emp','pause'] as PadCommand[]) pad.rebind(key,saved.pad.buttons?.[key]); } for(const [id,value] of [['sensitivity',saved.sensitivity],['gesture-sensitivity',saved.gesture]]) if(Number.isFinite(Number(value))) { el<HTMLInputElement>(id).value = value; el(id).dispatchEvent(new Event('input')); } } } catch {}
-for(const [id,key] of [['pad-x','axisX'],['pad-y','axisY'],['pad-deadzone','deadzone'],['pad-sensitivity','sensitivity']] as const) el<HTMLInputElement>(id).value=String(pad.settings[key]);
-for(const [id,key] of [['pad-invert-x','invertX'],['pad-invert-y','invertY']] as const) el<HTMLInputElement>(id).checked=pad.settings[key];
-chooseShip(shipStyle); renderBindings();
-for(const id of ['sensitivity','gesture-sensitivity']) el(id).addEventListener('input',save);
-
-// Screen navigation keeps diagnostics and the game engine alive without overlays hiding menus.
-el('preflight-loadout').appendChild(document.querySelector('.loadout')!);
-el('home-hangar').onclick=()=>{store.discard();drawOptions();paint('build-preview',true);show('hangar');};
-el('hangar-back').onclick=()=>{store.discard();show('home');};
-el('build-reset').onclick=()=>{for(const slot of ['hull','wing','engine'] as ShipSlot[]) store.select(slot,0);store.selectColor(0);store.selectWeapon('straight');drawOptions();paint('build-preview',true);};
-el('build-save').onclick=()=>{store.save();el<HTMLSelectElement>('weapon').value=store.saved.weapon;save();paintAll();el('build-message').textContent='บันทึกยานแล้ว';};
-el('build-fly').onclick=()=>{store.save();el<HTMLSelectElement>('weapon').value=store.saved.weapon;save();paintAll();show('preflight');};
-el('home-launch').onclick=()=>{paintAll();show('preflight');};
-el('preflight-back').onclick=()=>show('home');
-el('preflight-start').onclick=()=>el('start-button').click();
-el('builder-weapon').addEventListener('change',()=>{store.selectWeapon(el<HTMLSelectElement>('builder-weapon').value as 'straight'|'spread');paint('build-preview',true);});
-el('weapon').addEventListener('change',()=>{const weapon=el<HTMLSelectElement>('weapon').value as 'straight'|'spread';store.selectWeapon(weapon);store.save();el<HTMLSelectElement>('builder-weapon').value=weapon;});
-el<HTMLSelectElement>('weapon').value=store.saved.weapon;
-el<HTMLSelectElement>('builder-weapon').value=store.saved.weapon;
-el('home-settings').onclick=()=>{settingsReturn='home';show('settings');document.body.classList.add('console-open');};
-el('preflight-settings').onclick=()=>{settingsReturn='preflight';show('settings');document.body.classList.add('console-open');};
-el('combat-pause').onclick=()=>pause();
-el('pause-settings').onclick=()=>{settingsReturn='flight';show('settings');document.body.classList.add('console-open');};
-el('settings-back').onclick=()=>{if(lab)leaveLab();show(settingsReturn);document.body.classList.remove('console-open');};
-el('pause-hangar').onclick=()=>confirmAction('กลับโรงประกอบยาน?', 'คะแนนในรอบนี้จะหายไป',()=>{scene.pause();store.discard();drawOptions();paint('build-preview',true);show('hangar');});
-el('pause-restart').onclick=()=>confirmAction('เริ่มรอบใหม่?', 'คะแนนในรอบนี้จะหายไป',()=>show('preflight'));
-el('result-retry').onclick=()=>show('preflight');el('result-hangar').onclick=()=>{store.discard();drawOptions();paint('build-preview',true);show('hangar');};
-el('input-source').addEventListener('change',()=>{ const copy:Record<string,string>={manual:'ลากนิ้วหรือใช้ลูกศรเพื่อเคลื่อนที่',sensor:'เปิดเซนเซอร์ อนุญาต แล้วถือมือถือท่าถนัดเพื่อตั้งศูนย์',pad:'จับคู่ Bluetooth แล้วกดปุ่มจอยเพื่อเชื่อมต่อ',tilt:'ทดสอบและยืนยันสัญญาณเอียงจอยในหน้าตั้งค่าก่อน'};el('preflight-help').textContent=copy[source];});
-drawOptions();paintAll();show('home');
-
-let pendingConfirm: (()=>void)|null=null;
-function confirmAction(title:string,copy:string,action:()=>void){el('confirm-title').textContent=title;el('confirm-copy').textContent=copy;pendingConfirm=action;el<HTMLDialogElement>('confirm-dialog').showModal();el<HTMLButtonElement>('confirm-cancel').focus();}
-el('confirm-cancel').onclick=()=>{pendingConfirm=null;el<HTMLDialogElement>('confirm-dialog').close();};
-el('confirm-accept').onclick=()=>{const action=pendingConfirm;pendingConfirm=null;el<HTMLDialogElement>('confirm-dialog').close();action?.();};
-let menuButtons:boolean[]=[];
-window.setInterval(()=>{if(!padFrame)return;const pressed=padFrame.buttons;const edge=(i:number)=>!!pressed[i]&&!menuButtons[i];if(view!=='flight'&&!bindCommand&&!el<HTMLDialogElement>('help-dialog').open){const openDialog=document.querySelector<HTMLDialogElement>('dialog[open]');const host=openDialog || document.querySelector<HTMLElement>(`.shell[data-view="${view}"]`);if(host){const controls=Array.from(host.querySelectorAll<HTMLElement>('button:not(:disabled),select:not(:disabled),summary')).filter(x=>x.offsetWidth>0&&x.offsetHeight>0&&!x.closest('.center-card'));const current=controls.indexOf(document.activeElement as HTMLElement);if(edge(12)||edge(14)){controls[(current<=0?controls.length:current)-1]?.focus();}if(edge(13)||edge(15)){controls[(current+1)%controls.length]?.focus();}if(edge(0)&&(document.activeElement instanceof HTMLButtonElement||document.activeElement instanceof HTMLElement&&document.activeElement.tagName==='SUMMARY'))(document.activeElement as HTMLElement).click();if(edge(1)){if(openDialog)openDialog.close();else if(view==='hangar')el('hangar-back').click();else if(view==='preflight')el('preflight-back').click();else if(view==='settings')el('settings-back').click();else if(view==='result')show('home');}}}menuButtons=[...pressed];},100);
-
+requestAnimationFrame(animate);
+renderHangar();
+renderStages();
+setView("home");
