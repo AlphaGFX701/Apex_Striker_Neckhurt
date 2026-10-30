@@ -1,3 +1,4 @@
+import { GamepadAdapter, type PadFrame, type PadCommand } from './gamepad';
 import QRCode from 'qrcode';
 import { createGame } from './game';
 import { SensorController, type Telemetry } from './sensor';
@@ -26,9 +27,10 @@ app.innerHTML = `
       <div id="game" class="game" aria-label="สนามเกม ใช้ลูกศรหรือ WASD เคลื่อนที่ Q E หลบ Space ปล่อย EMP"></div>
       <div id="flight-tip" class="flight-tip">เอียงบิน · หมุนเร็วเพื่อหลบ · เขย่าเมื่อ EMP เต็ม</div>
       <div id="center-card" class="center-card">
-        <span class="eyebrow">MOTION COMBAT / 90 SECONDS</span><div class="ship-emblem">✧</div>
-        <h1>พร้อมออกรบ?</h1>
+        <span class="eyebrow">MOTION COMBAT / 90 SECONDS</span><div class="ship-emblem"><img id="hangar-ship" src="/assets/player-0.png" alt="ยานเกราะโลหะ"></div>
+        <h1>เลือกยานออกรบ</h1>
         <p>เอียงเพื่อบิน หมุนเร็วเพื่อกลิ้งหลบ<br>เขย่าเมื่อพลังเต็มเพื่อปล่อย EMP</p>
+        <div class="loadout"><div class="ship-options" role="group" aria-label="เลือกยาน"><button data-ship="0" aria-pressed="true">FALCON</button><button data-ship="1" aria-pressed="false">RAVEN</button><button data-ship="2" aria-pressed="false">ATLAS</button></div><label>อาวุธ <select id="weapon"><option value="straight">กระสุนตรง / PRECISION</option><option value="spread">กระจาย 3 นัด / SPREAD</option></select></label><label>ควบคุม <select id="input-source"><option value="manual">สัมผัส / คีย์บอร์ด</option><option value="sensor">เอียงมือถือ</option><option value="pad">จอย / อนาล็อก</option><option value="tilt">เอียงจอยที่ผ่านการทดสอบ</option></select></label></div>
         <div id="round-summary" class="round-summary hidden"></div>
         <button id="start-button" class="primary">เริ่มภารกิจ <span>↗</span></button>
         <span class="minor">เปิดเซนเซอร์ + ตั้งศูนย์ก่อนเล่น<br>ลากนิ้ว / ลูกศร และปุ่มสกิล ก็เล่นได้</span>
@@ -42,7 +44,7 @@ app.innerHTML = `
     </div>
     <p id="action-message" class="action-message" role="status" aria-live="polite">ใช้ปุ่มสกิล หรือเปิดเซนเซอร์เพื่อเล่นด้วยท่าทาง</p>
   </section>
-  <section class="controls" aria-label="ตั้งค่าการควบคุมและห้องทดสอบ">
+  <button id="console-toggle" class="secondary console-toggle">⚙ ตั้งค่า / เซนเซอร์ / จอย</button><section class="controls" aria-label="ตั้งค่าการควบคุมและห้องทดสอบ">
     <div class="section-heading"><span class="eyebrow">FLIGHT CONSOLE</span><span id="mode-pill">TOUCH / KEY</span></div>
     <div class="sensor-line"><span class="sensor-led"></span><span id="sensor-message"></span></div>
     <div class="button-row">
@@ -51,6 +53,7 @@ app.innerHTML = `
       <button id="pause-button" class="secondary compact" disabled aria-label="พักเกม">Ⅱ</button>
     </div>
     <button id="lab-button" class="lab-button" aria-pressed="false">⌁ ห้องฝึกท่าทาง / ไม่เริ่มด่าน</button>
+    <details id="pad-panel" class="settings"><summary>เชื่อมต่อ FANTECH / ทดสอบจอย</summary><div class="settings-body"><p>จับคู่จอยในการตั้งค่า Bluetooth แล้วกดปุ่มบนจอยหนึ่งครั้ง</p><p id="pad-status" role="status">ยังไม่พบจอย</p><pre id="pad-data">ไม่พร้อมใช้งาน</pre><label>แกน X <input id="pad-x" type="number" min="0" max="15" value="0"></label><label>แกน Y <input id="pad-y" type="number" min="0" max="15" value="1"></label><label>Dead zone <input id="pad-deadzone" type="range" min="0" max="0.5" step="0.01" value="0.15"></label><label>ความไวจอย <input id="pad-sensitivity" type="range" min="0.25" max="3" step="0.05" value="1"></label><label><input type="checkbox" id="pad-invert-x"> กลับแกน X</label><label><input type="checkbox" id="pad-invert-y"> กลับแกน Y</label><div id="pad-bindings"></div><button id="tilt-begin" class="secondary">เริ่มทดสอบเอียงจอย 5 วินาที</button><p id="tilt-message" role="status">ไม่ได้อ่านไจโรจอยโดยตรง • ทดสอบสัญญาณอนาล็อกที่เกิดจากการเอียง</p><label><input type="checkbox" id="tilt-confirm"> ยืนยันว่าปล่อยอนาล็อกและเอียงจอยเท่านั้น</label><button id="pad-center" class="secondary">ตั้งศูนย์จอย</button></div></details>
     <details class="settings">
       <summary>ปรับการควบคุม <span class="chevron">⌄</span></summary>
       <div class="settings-body">
@@ -104,18 +107,31 @@ app.innerHTML = `
   <span class="eyebrow">PILOT GUIDE</span><h2>เอียงบิน กลิ้งหลบ เขย่า EMP</h2>
   <ol><li>เปิดบนมือถือผ่าน HTTPS กด <b>เปิดเซนเซอร์</b> และอนุญาต Motion</li><li>ถือเครื่องแนวตั้งสองมือในท่าถนัด แล้วกด <b>ตั้งศูนย์</b></li><li>ลองใน <b>ห้องฝึกท่าทาง</b> ก่อนเริ่มภารกิจ</li><li>เอียงช้าเพื่อบิน หมุนข้อมือเร็วซ้าย/ขวาเพื่อหลบ</li><li>เขย่าสั้น ๆ ไปกลับหลายจังหวะเมื่อ EMP เต็ม</li></ol>
   <p>ยิงอัตโนมัติ • หลบอมตะ 0.6 วินาที ฟื้น 3 วินาที • EMP เติมตามเวลาและเมื่อยิงศัตรู • บอสเข้าที่วินาที 60 กำจัดก่อนหมดเวลา</p>
-  <p>คอม: ลูกศร/WASD เคลื่อนที่, Q/E หลบ, Space ใช้ EMP<br>มือถือ: ลากนิ้วและใช้ปุ่มสกิลสำรองได้<br>iPhone ใช้ภาพและเสียง การสั่นเปิดได้เฉพาะเครื่องที่รองรับ</p>
+  <p><a href='/assets/CREDITS.md' target='_blank' rel='noopener'>เครดิตภาพ Skorpio / CC-BY-SA 3.0</a> · <a href='/assets/adapted-art-CC-BY-SA-3.0.zip'>ดาวน์โหลดงานภาพดัดแปลง</a></p><p>คอม: ลูกศร/WASD เคลื่อนที่, Q/E หลบ, Space ใช้ EMP<br>มือถือ: ลากนิ้วและใช้ปุ่มสกิลสำรองได้<br>iPhone ใช้ภาพและเสียง การสั่นเปิดได้เฉพาะเครื่องที่รองรับ</p>
   <p>เซนเซอร์ทำงานแยกหน้าที่: มุมเอียงบังคับยาน ความเร็วหมุนใช้หลบ ความเร่งเชิงเส้นใช้ตรวจเขย่า หากเป็นค่าประมาณจะแจ้งในห้องทดสอบ</p>
   <div class="qr-wrap"><canvas id="qr" aria-label="QR เปิดเกมบนมือถือ"></canvas><small>สแกนเปิดเว็บเกม<br>public • ไม่ต้องเข้าสู่ระบบ</small></div>
 </dialog>`;
 
 function el<T extends HTMLElement = HTMLElement>(id: string): T { return document.getElementById(id) as T; }
 const sensor = new SensorController(), feedback = new Feedback();
+const pad = new GamepadAdapter();
+let padFrame: PadFrame | null = null, shipStyle = 0, bindCommand: PadCommand | null = null;
+let source = 'manual';
+const save = () => { try { localStorage.setItem('gyro-loadout-v4', JSON.stringify({ ship: shipStyle, weapon: el<HTMLSelectElement>('weapon').value, source, pad: pad.settings, sensitivity: el<HTMLInputElement>('sensitivity').value, gesture: el<HTMLInputElement>('gesture-sensitivity').value })); } catch {} };
+
 const centerCard = el('center-card'), pauseBanner = el('pause-banner');
 let lab = false, lastHud = '', roundEnded = false, lastLives = 3, beforeHelp = false;
 let lastSensorState: Telemetry['state'] = 'idle';
 const { scene } = createGame(el('game'), {
-  axes: dt => sensor.getAxes(dt), actions: () => sensor.consumeActions(),
+  manual: () => source === 'manual',
+  tick() {
+    padFrame = pad.poll();
+    if (padFrame.disconnected && (source === 'pad' || source === 'tilt') && scene.isRunning) pause('จอยหลุด • เชื่อมต่อใหม่แล้วกดเล่นต่อ');
+    if (bindCommand && !scene.isRunning) { const index = padFrame.buttons.findIndex(Boolean); if (index >= 0) { pad.rebind(bindCommand,index); bindCommand = null; save(); renderBindings(); } }
+    if ((source === 'pad' || source === 'tilt') && padFrame.pause && scene.hasStarted) { if (scene.isRunning) pause(); else resume(); }
+  },
+  axes: dt => source === 'sensor' ? sensor.getAxes(dt) : source === 'pad' || source === 'tilt' ? {...(padFrame?.axes ?? {x:0,y:0})} : {x:0,y:0},
+  actions: () => source === 'sensor' ? sensor.consumeActions() : source === 'pad' || source === 'tilt' ? [...(padFrame?.actions ?? [])] : [],
   onAction(action, accepted, reason) {
     el('action-message').textContent = `${accepted ? '✓' : '·'} ${reason}`;
     if (accepted) feedback.play(action === 'emp' ? 'emp' : 'dodge');
@@ -123,7 +139,7 @@ const { scene } = createGame(el('game'), {
   onHud: updateHud,
 });
 function updateHud(s: GameSnapshot) {
-  sensor.setGestureActive((scene.isRunning || lab) && !document.hidden);
+  sensor.setGestureActive(((source === 'sensor' && scene.isRunning) || lab) && !document.hidden);
   const key = `${s.score}/${s.lives}/${Math.ceil(s.time)}/${Math.floor(s.energy)}/${s.dodgeCooldown.toFixed(1)}/${s.gameOver}`;
   if (s.lives < lastLives) feedback.play('hit'); lastLives = s.lives;
   if (key === lastHud) return; lastHud = key;
@@ -139,7 +155,7 @@ function updateHud(s: GameSnapshot) {
   el('stage').textContent = s.time >= 60 ? 'BOSS / กำจัดก่อนหมดเวลา' : s.time >= 15 ? 'WAVE 02 / หลบกระสุน · สะสม EMP' : 'WAVE 01 / เอียงช้า ๆ เพื่อบิน';
   el('flight-tip').textContent = s.time < 8 ? 'เอียงช้า ๆ / ลากนิ้วเพื่อเคลื่อนที่' : s.time < 15 ? 'หมุนข้อมือเร็ว → กลิ้งหลบ' : s.energy >= 100 ? 'EMP พร้อม! เขย่าสั้น ๆ ไปกลับหลายจังหวะ' : 'หลบกระสุนสีส้ม • ยิงอัตโนมัติ';
   if (s.gameOver && !roundEnded) {
-    roundEnded = true; sensor.resetTransient(); feedback.play('end');
+    roundEnded = true; document.body.classList.remove('in-combat'); sensor.resetTransient(); feedback.play('end');
     centerCard.classList.remove('hidden'); centerCard.classList.add('result-card'); pauseBanner.classList.add('hidden');
     const titles = { won: 'ภารกิจสำเร็จ!', lost: 'ยานเสียหาย!', timeout: 'หมดเวลาภารกิจ', practice: 'จบการฝึกแล้ว' };
     centerCard.querySelector('h1')!.textContent = titles[s.result!];
@@ -152,7 +168,7 @@ function updateHud(s: GameSnapshot) {
 }
 function refreshHud() { lastHud = ''; updateHud(scene.model.state); }
 function pause(message = 'พักเกมแล้ว') {
-  scene.pause(); sensor.setGestureActive(false); sensor.resetTransient();
+  scene.pause(); pad.reset(); sensor.setGestureActive(false); sensor.resetTransient();
   el('pause-message').textContent = message; pauseBanner.classList.remove('hidden'); refreshHud();
 }
 function resume() {
@@ -168,6 +184,11 @@ function leaveLab() {
 }
 el('start-button').addEventListener('click', () => {
   feedback.unlock(); leaveLab(); sensor.resetTransient(); roundEnded = false; lastLives = 3; lastHud = '';
+  if ((source === 'pad' || source === 'tilt') && !padFrame?.connected) { el('action-message').textContent = 'ยังไม่พบจอย • เชื่อมต่อและกดปุ่มบนจอย หรือเลือกวิธีควบคุมอื่น'; return; }
+  if (source === 'tilt' && !pad.tiltReady) { el('action-message').textContent = 'ทดสอบและยืนยันการเอียงจอยในเมนูตั้งค่าก่อน'; return; }
+  if (source === 'sensor' && (!sensor.telemetry.calibrated || sensor.telemetry.state !== 'active')) { el('action-message').textContent = 'เปิดเซนเซอร์และตั้งศูนย์ในเมนูตั้งค่าก่อนเริ่ม หรือเลือกสัมผัส/คีย์บอร์ด'; return; }
+  scene.model.weapon = el<HTMLSelectElement>('weapon').value as 'straight' | 'spread'; scene.shipStyle = shipStyle; pad.reset(); save();
+  document.body.classList.add('in-combat'); document.body.classList.remove('console-open');
   scene.start(); sensor.setGestureActive(true); centerCard.classList.add('hidden'); pauseBanner.classList.add('hidden');
   el<HTMLButtonElement>('pause-button').disabled = false; el('pause-button').textContent = 'Ⅱ'; el<HTMLInputElement>('practice').disabled = true;
   el('action-message').textContent = 'เริ่มภารกิจแล้ว • หลบกระสุนและไปให้ถึงบอส';
@@ -217,7 +238,7 @@ window.addEventListener('blur', () => { if (scene.isRunning) pause('พักเ
 const labels: Record<Telemetry['state'], string> = { idle: 'ยังไม่เปิด', waiting: 'รอข้อมูล', active: 'พร้อม', denied: 'ปฏิเสธสิทธิ์', unavailable: 'ไม่พร้อมใช้งาน', stale: 'ข้อมูลหยุด', recalibrate: 'ต้องตั้งศูนย์' };
 sensor.subscribe(t => {
   if (t.state !== lastSensorState && ['recalibrate', 'stale', 'denied', 'unavailable'].includes(t.state)) {
-    scene.clearInput(); if (scene.isRunning && lastSensorState === 'active') pause(t.message);
+    scene.clearInput(); if (source === 'sensor' && scene.isRunning && lastSensorState === 'active') pause(t.message);
   }
   lastSensorState = t.state;
 });
@@ -294,3 +315,24 @@ el('close-help').addEventListener('click', () => help.close());
 help.addEventListener('click', e => { if (e.target === help) help.close(); });
 help.addEventListener('close', () => { sensor.resetTransient(); if (beforeHelp) resume(); else sensor.setGestureActive(lab); beforeHelp = false; });
 QRCode.toCanvas(el<HTMLCanvasElement>('qr'), PUBLIC_URL, { width: 124, margin: 1, color: { dark: '#dff8ff', light: '#101831' } }).catch(() => {});
+
+function renderBindings() {
+  el('pad-bindings').innerHTML = (['dodgeLeft','dodgeRight','emp','pause'] as PadCommand[]).map(command => `<button class="secondary" data-bind="${command}">${command === 'pause' ? 'พักเกม' : names[command]}: ปุ่ม ${pad.settings.buttons[command]} / เปลี่ยน</button>`).join('');
+  el('pad-bindings').querySelectorAll<HTMLButtonElement>('button').forEach(b => b.onclick = () => { bindCommand = b.dataset.bind as PadCommand; b.textContent = 'กดปุ่มจอยที่ต้องการ…'; });
+}
+function chooseShip(index: number) { shipStyle = index; el<HTMLImageElement>('hangar-ship').src = `/assets/player-${index}.png`; document.querySelectorAll<HTMLButtonElement>('[data-ship]').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.ship) === index))); save(); }
+document.querySelectorAll<HTMLButtonElement>('[data-ship]').forEach(b => b.onclick = () => chooseShip(Number(b.dataset.ship)));
+el('weapon').addEventListener('change',save);
+el('input-source').addEventListener('change', () => { source = el<HTMLSelectElement>('input-source').value; pad.mode = source === 'tilt' ? 'tilt' : 'stick'; scene.clearInput(); sensor.resetTransient(); save(); });
+el('console-toggle').onclick = () => { if(scene.isRunning) pause('พักระหว่างตั้งค่า'); document.body.classList.toggle('console-open'); };
+for (const [id,key] of [['pad-x','axisX'],['pad-y','axisY'],['pad-deadzone','deadzone'],['pad-sensitivity','sensitivity']] as const) el(id).addEventListener('input', () => { pad.settings[key] = Number(el<HTMLInputElement>(id).value); pad.reset(); save(); });
+for (const [id,key] of [['pad-invert-x','invertX'],['pad-invert-y','invertY']] as const) el(id).addEventListener('change', () => { pad.settings[key] = el<HTMLInputElement>(id).checked; save(); });
+el('tilt-begin').onclick = () => { el<HTMLInputElement>('tilt-confirm').checked = false; if(pad.beginTiltTrial()) { el<HTMLButtonElement>('tilt-begin').disabled = true; window.setTimeout(() => { pad.finishTiltTrial(); el<HTMLButtonElement>('tilt-begin').disabled = false; },5000); } };
+el('tilt-confirm').addEventListener('change', () => { if (el<HTMLInputElement>('tilt-confirm').checked && !pad.confirmTiltTrial()) el<HTMLInputElement>('tilt-confirm').checked = false; });
+el('pad-center').onclick = () => { pad.calibrate(); scene.clearInput(); };
+window.setInterval(() => { if(!padFrame) return; el('pad-status').textContent = padFrame.connected ? `${padFrame.id} / ${padFrame.mapping || 'กำหนดปุ่มเอง'}` : 'ยังไม่พบจอย • จับคู่ Bluetooth แล้วกดปุ่มหนึ่งครั้ง'; el('pad-data').textContent = padFrame.rawAxes.length ? padFrame.rawAxes.map((v,i)=>`แกน ${i}: ${v === null ? 'ไม่พร้อมใช้งาน' : v.toFixed(3)}`).join(' | ') + '\nปุ่ม: ' + padFrame.buttons.flatMap((v,i)=>v?[i]:[]).join(', ') : 'ไม่พร้อมใช้งาน'; el('tilt-message').textContent = pad.tiltMessage; },100);
+try { const saved = JSON.parse(localStorage.getItem('gyro-loadout-v4') || 'null'); if(saved) { shipStyle = Math.max(0,Math.min(2,Number(saved.ship)||0)); el<HTMLSelectElement>('weapon').value = saved.weapon === 'spread' ? 'spread' : 'straight'; source = ['manual','sensor','pad','tilt'].includes(saved.source) ? saved.source : 'manual'; el<HTMLSelectElement>('input-source').value = source; pad.mode = source === 'tilt' ? 'tilt' : 'stick'; if(saved.pad) { for(const key of ['deadzone','sensitivity','axisX','axisY'] as const) if(Number.isFinite(saved.pad[key])) pad.settings[key]=saved.pad[key]; for(const key of ['invertX','invertY'] as const) pad.settings[key]=saved.pad[key] === true; for(const key of ['dodgeLeft','dodgeRight','emp','pause'] as PadCommand[]) pad.rebind(key,saved.pad.buttons?.[key]); } for(const [id,value] of [['sensitivity',saved.sensitivity],['gesture-sensitivity',saved.gesture]]) if(Number.isFinite(Number(value))) { el<HTMLInputElement>(id).value = value; el(id).dispatchEvent(new Event('input')); } } } catch {}
+for(const [id,key] of [['pad-x','axisX'],['pad-y','axisY'],['pad-deadzone','deadzone'],['pad-sensitivity','sensitivity']] as const) el<HTMLInputElement>(id).value=String(pad.settings[key]);
+for(const [id,key] of [['pad-invert-x','invertX'],['pad-invert-y','invertY']] as const) el<HTMLInputElement>(id).checked=pad.settings[key];
+chooseShip(shipStyle); renderBindings();
+for(const id of ['sensitivity','gesture-sensitivity']) el(id).addEventListener('input',save);

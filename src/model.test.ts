@@ -94,3 +94,17 @@ describe('space game', () => {
     expect(Math.max(...positions) - Math.min(...positions)).toBeLessThan(5);
   });
 });
+
+it('spread fires three half-damage shots at twelve degrees', () => {
+  const model = new GameModel(() => 0); model.weapon = 'spread';
+  for(let i=0;i<6;i++) model.update(.05,{x:0,y:0});
+  expect(model.state.bullets).toHaveLength(3);
+  expect(model.state.bullets.map(b=>b.damage)).toEqual([.5,.5,.5]);
+  expect(model.state.bullets[0].vx).toBeCloseTo(-Math.sin(Math.PI/15)*530);
+  expect(model.state.bullets[2].vx).toBeCloseTo(Math.sin(Math.PI/15)*530);
+});
+it('straight shot cadence and weapon choice survive restart', () => {
+  const model = new GameModel(); for(let i=0;i<4;i++) model.update(.05,{x:0,y:0});
+  expect(model.state.bullets).toHaveLength(1); expect(model.state.bullets[0].damage).toBe(1);
+  model.weapon='spread'; model.reset(); expect(model.weapon).toBe('spread'); expect(model.state.bullets).toHaveLength(0);
+});

@@ -29,3 +29,6 @@ Vitest: ตรวจการตั้งศูนย์ ทิศแกน ค�
 ## ก่อนส่งอาจารย์
 
 ยืนยันว่าเว็บแอปเป็นรูปแบบงานที่รับได้ และเปรียบเทียบกับงานเซนเซอร์ที่เคยทำในชั้นเรียนเพื่อยืนยันว่าไม่ซ้ำ ข้อมูลสองข้อนี้ยังไม่ได้รับจากอาจารย์/ผู้ใช้
+
+## 2026-10-30 fleet/controller revision
+Automated: 34 tests pass (existing sensor/combat plus gamepad drift, edge presses, reconnect, mapping, tilt confirmation and both weapon patterns). TypeScript/Vite build checked separately. Real iPhone14/FANTECH and Android physical trials are NOT performed by the agent; user device testing remains required. An observed analog change alone never proves gyroscope origin; the user must confirm they did not touch sticks.

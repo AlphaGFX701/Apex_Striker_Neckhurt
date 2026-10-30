@@ -3,7 +3,7 @@ import type { Action } from './motion';
 export const WORLD = { width: 390, height: 720, margin: 23 };
 export interface Body { x: number; y: number; radius: number }
 export interface Rock extends Body { speed: number; spin: number; phase: number; target: boolean }
-export interface Bullet extends Body { speed: number }
+export interface Bullet extends Body { speed: number; vx?: number; damage?: number }
 export interface Enemy extends Body { health: number; shot: number; phase: number }
 export interface EnemyBullet extends Body { vx: number; vy: number }
 export interface Boss extends Body { health: number; maxHealth: number; shot: number }
@@ -20,6 +20,7 @@ export function clampShip(x: number, y: number) { return { x: clamp(x, WORLD.mar
 export class GameModel {
   state: GameSnapshot;
   practice = false;
+  weapon: "straight" | "spread" = "straight";
   private spawnClock = 0;
   private enemyClock = 0;
   private shotClock = 0;
@@ -83,7 +84,13 @@ export class GameModel {
     if (next.y === 100 || next.y === WORLD.height - 35) this.velocity.y = 0;
     Object.assign(s.ship, next);
     this.shotClock += step;
-    if (this.shotClock >= 0.18) { this.shotClock -= 0.18; s.bullets.push({ x: s.ship.x, y: s.ship.y - 25, radius: 4, speed: 530 }); }
+    const interval = this.weapon === 'spread' ? 0.27 : 0.18;
+    if (this.shotClock >= interval) { this.shotClock -= interval;
+      for (const degrees of this.weapon === 'spread' ? [-12, 0, 12] : [0]) {
+        const angle = degrees * Math.PI / 180;
+        s.bullets.push({ x: s.ship.x, y: s.ship.y - 25, radius: 4, speed: Math.cos(angle) * 530, vx: Math.sin(angle) * 530, damage: this.weapon === 'spread' ? 0.5 : 1 });
+      }
+    }
     this.spawnClock += step; this.enemyClock += step;
     if (s.time < 60 && this.spawnClock >= (s.time < 15 ? 1.6 : 2.1)) {
       this.spawnClock = 0; const radius = 14 + this.random() * 14;
@@ -93,7 +100,7 @@ export class GameModel {
       this.enemyClock = 0; s.enemies.push({ x: 50 + this.random() * 290, y: -30, radius: 18, health: 2, shot: 1.5, phase: this.random() * 6 });
     }
     if (s.time >= 60 && !s.boss) { s.boss = { x: 195, y: 140, radius: 48, health: 70, maxHealth: 70, shot: 1.5 }; s.rocks = []; s.enemies = []; s.enemyBullets = []; }
-    for (const bullet of s.bullets) bullet.y -= bullet.speed * step;
+    for (const bullet of s.bullets) { bullet.y -= bullet.speed * step; bullet.x += (bullet.vx ?? 0) * step; }
     for (const rock of s.rocks) { rock.y += rock.speed * step; rock.phase += rock.spin * step; }
     for (const enemy of s.enemies) {
       enemy.y += 55 * step; enemy.x = clamp(enemy.x + Math.sin(s.time * 1.5 + enemy.phase) * 22 * step, 25, 365); enemy.shot -= step;
@@ -116,8 +123,8 @@ export class GameModel {
       }
       if (spent.has(bullet)) continue;
       const enemy = s.enemies.find(e => e.health > 0 && collides(bullet, e));
-      if (enemy) { spent.add(bullet); enemy.health--; if (!enemy.health) { s.score += 40; s.energy = Math.min(100, s.energy + 5); } }
-      else if (s.boss && collides(bullet, s.boss)) { spent.add(bullet); s.boss.health--; s.score += 2; }
+      if (enemy) { spent.add(bullet); enemy.health -= bullet.damage ?? 1; if (enemy.health <= 0) { s.score += 40; s.energy = Math.min(100, s.energy + 5); } }
+      else if (s.boss && collides(bullet, s.boss)) { spent.add(bullet); s.boss.health -= bullet.damage ?? 1; s.score += 2; }
     }
     for (const rock of s.rocks) if (!rocks.has(rock) && collides(s.ship, rock)) { rocks.add(rock); this.damage(); }
     for (const enemy of s.enemies) if (enemy.health > 0 && collides(s.ship, enemy)) { enemy.health = 0; this.damage(); }
