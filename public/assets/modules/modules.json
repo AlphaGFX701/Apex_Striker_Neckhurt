@@ -1,0 +1,105 @@
+{
+  "canvas": {
+    "width": 320,
+    "height": 320
+  },
+  "origin": {
+    "x": 0.5,
+    "y": 0.5
+  },
+  "nose": "up",
+  "collision": "unchanged game-model radius",
+  "source": "Skorpio / Space Ship & Mech Construction Kit 2 / CC-BY-SA 3.0",
+  "modules": {
+    "hull-0": {
+      "sourceLayer": "Layer 72",
+      "sourceBox": [
+        418,
+        85,
+        480,
+        171
+      ],
+      "file": "hull-0.png"
+    },
+    "hull-1": {
+      "sourceLayer": "Layer 48",
+      "sourceBox": [
+        492,
+        261,
+        574,
+        305
+      ],
+      "file": "hull-1.png"
+    },
+    "hull-2": {
+      "sourceLayer": "Layer 30",
+      "sourceBox": [
+        507,
+        205,
+        563,
+        256
+      ],
+      "file": "hull-2.png"
+    },
+    "wings-0": {
+      "sourceLayer": "Layer 239",
+      "sourceBox": [
+        65,
+        196,
+        88,
+        260
+      ],
+      "file": "wings-0.png"
+    },
+    "wings-1": {
+      "sourceLayer": "Layer 238",
+      "sourceBox": [
+        90,
+        201,
+        113,
+        260
+      ],
+      "file": "wings-1.png"
+    },
+    "wings-2": {
+      "sourceLayer": "Layer 230",
+      "sourceBox": [
+        112,
+        254,
+        135,
+        385
+      ],
+      "file": "wings-2.png"
+    },
+    "engine-0": {
+      "sourceLayer": "Layer 186",
+      "sourceBox": [
+        505,
+        391,
+        530,
+        438
+      ],
+      "file": "engine-0.png"
+    },
+    "engine-1": {
+      "sourceLayer": "Layer 194",
+      "sourceBox": [
+        468,
+        396,
+        503,
+        443
+      ],
+      "file": "engine-1.png"
+    },
+    "engine-2": {
+      "sourceLayer": "Layer 217",
+      "sourceBox": [
+        138,
+        388,
+        200,
+        425
+      ],
+      "file": "engine-2.png"
+    }
+  }
+}

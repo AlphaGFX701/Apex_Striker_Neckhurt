@@ -64,3 +64,8 @@ Choose Falcon, Raven or Atlas and Precision or Spread in the hangar. All hulls u
 Pair FANTECH in OS Bluetooth settings, select gamepad input, then press a physical button so the browser exposes it. Open Settings > FANTECH to inspect real axes/buttons and rebind skills. Defaults: left stick/Dpad movement, LB/RB dodge, bottom button EMP, Start pause. Disconnect pauses play. For tilt-as-stick: select axes, release sticks, run a five-second trial, explicitly confirm that movement came only from tilting, then center. No raw gamepad gyroscope is claimed. iPhone/FANTECH physical compatibility remains unverified.
 
 Art credits and original/adapted downloads: ASSET-CREDITS.md and public/assets/CREDITS.md. Rebuild atlas with scripts/build-assets.py (Pillow). Run npm install, npm test, npm run dev, npm run build. Public URL and QR remain unchanged.
+
+## Cinematic hangar
+Start at the title screen; use ประกอบยาน to choose a hull, wings, engine, accent and weapon. Save the draft before flying; changes are stored locally where available. Preflight selects touch, phone motion, gamepad or verified tilt-as-stick. Gamepad raw gyroscope remains unavailable to the standard browser API. The phone sensor permission must be requested by tapping the screen. Pause to open settings, restart or return to the hangar.
+
+Run `npm install`, `npm run dev`, `npm test`, `npm run build`. The modular artist layers can be regenerated with `scripts/build-modular-assets.py` using Python, Pillow and psd-tools. Original art and adapted artwork licenses are in ASSET-CREDITS.md.

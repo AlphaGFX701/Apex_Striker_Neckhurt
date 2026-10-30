@@ -1,3 +1,4 @@
+import { ShipBuildStore, loadShipParts, composeShip, type ShipPartImages, type ShipSlot } from './ship-build';
 import { GamepadAdapter, type PadFrame, type PadCommand } from './gamepad';
 import QRCode from 'qrcode';
 import { createGame } from './game';
@@ -11,14 +12,21 @@ const PUBLIC_URL = 'https://gyro-space-lab-th.mjadsakul.chatgpt.site/';
 const names: Record<Action, string> = { dodgeLeft: 'หลบซ้าย', dodgeRight: 'หลบขวา', emp: 'เขย่า EMP' };
 const app = document.querySelector<HTMLDivElement>('#app')!;
 app.innerHTML = `
-<main class="shell">
+<main class="shell" data-view="home">
   <header class="topbar">
     <div class="brand"><span class="brand-mark">✧</span><span><strong>GYRO SPACE</strong><small>COMBAT / เอียงบิน · กลิ้งหลบ · เขย่า EMP</small></span></div>
     <button id="help-button" class="icon-button" aria-label="วิธีเล่นและ QR">?</button>
   </header>
+  <section id="home-screen" class="screen home-screen">
+    <div class="home-copy"><span class="mission-tag">MOTION ARCADE · ภารกิจ 90 วินาที</span><h1>GYRO<br><em>SPACE</em><br>COMBAT</h1><p>เตรียมยานให้พร้อม แล้วฝ่ากองกำลังศัตรู<br>เอียงบิน · กลิ้งหลบ · ปลดปล่อย EMP</p><div class="home-actions"><button id="home-launch" class="primary">เริ่มภารกิจ <span>↗</span></button><button id="home-hangar" class="secondary">ประกอบยาน <span>→</span></button><button id="home-settings" class="text-button">⚙ ตั้งค่าและทดสอบ</button></div></div>
+    <div class="home-visual"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><canvas id="home-ship" width="512" height="512" aria-label="ยานที่บันทึกไว้"></canvas><div class="home-caption"><span>FLEET // 01</span><strong>YOUR SHIP</strong><small>พร้อมรับคำสั่ง</small></div></div><div class="home-footer">SPACE COMBAT LAB <span>ระบบควบคุม · MOTION / GAMEPAD</span></div>
+  </section>
+  <section id="hangar-screen" class="screen hangar-screen"><header class="screen-head"><button id="hangar-back" class="back-button">← กลับ</button><div><span class="mission-tag">SHIPYARD / โรงประกอบยาน</span><h1>สร้างยานของคุณ</h1></div><span class="head-note">ทุกชิ้นส่วนเปิดใช้แล้ว</span></header><div class="hangar-layout"><div class="hangar-stage"><div class="stage-grid"></div><div class="hangar-light"></div><canvas id="build-preview" width="512" height="512" aria-label="ตัวอย่างยานที่กำลังประกอบ"></canvas><span class="stage-label">LIVE PREVIEW <b>01 / 01</b></span></div><div class="hangar-controls"><div class="hangar-intro"><span class="mission-tag">CONFIGURATION</span><h2>ปรับแต่งยาน</h2><p>ลำตัว ปีก และเครื่องยนต์เปลี่ยนรูปลักษณ์ ความเร็วและชีวิตเท่ากันทุกลำ</p></div><div id="build-options"></div><fieldset class="build-group"><legend>สีพลังงาน</legend><div class="option-row colors"><button data-color="0" aria-label="ฟ้าน้ำแข็ง">ICE</button><button data-color="1" aria-label="ขาวเงิน">SILVER</button><button data-color="2" aria-label="ทองอำพัน">AMBER</button></div></fieldset><label class="weapon-choice">อาวุธ<select id="builder-weapon"><option value="straight">PRECISION · กระสุนตรง</option><option value="spread">SPREAD · กระจายสามนัด</option></select></label><div class="build-actions"><button id="build-save" class="primary">บันทึกยาน <span>✓</span></button><button id="build-reset" class="secondary">คืนค่าเริ่มต้น</button><button id="build-fly" class="secondary">เตรียมบิน →</button></div><p id="build-message" class="micro-copy" role="status">เลือกชิ้นส่วนเพื่อดูยานของคุณ</p></div></div></section>
+  <section id="preflight-screen" class="screen preflight-screen"><header class="screen-head"><button id="preflight-back" class="back-button">← กลับ</button><div><span class="mission-tag">PREFLIGHT / ก่อนออกเดินทาง</span><h1>เตรียมภารกิจ</h1></div></header><div class="preflight-layout"><div class="preflight-ship"><canvas id="preflight-preview" width="512" height="512" aria-label="ยานพร้อมบิน"></canvas><div><span class="mission-tag">YOUR LOADOUT</span><h2>ยานพร้อมปฏิบัติการ</h2><p>90 วินาที · ชีวิต 3 หน่วย · ยิงอัตโนมัติ</p></div></div><div class="preflight-options"><span class="mission-tag">CONTROL SYSTEM</span><h2>เลือกวิธีควบคุม</h2><p>เลือกอุปกรณ์ที่ถนัด แล้วตรวจความพร้อมก่อนออกบิน</p><div id="preflight-loadout"></div><div id="preflight-help" class="preflight-help">ลากนิ้วหรือใช้ลูกศรเพื่อเคลื่อนที่</div><button id="preflight-settings" class="secondary">ตั้งค่าเซนเซอร์ / จอย</button><button id="preflight-start" class="primary">เริ่มภารกิจ <span>↗</span></button><p id="preflight-error" class="micro-copy" role="status"></p></div></div></section>
+  <section id="result-screen" class="screen result-screen"><span class="mission-tag">MISSION REPORT</span><h1 id="result-title">จบภารกิจ</h1><p id="result-description">รายงานการบินของคุณ</p><canvas id="result-ship" width="512" height="512" aria-label="ยานที่ใช้ในภารกิจ"></canvas><div id="result-stats" class="result-stats"></div><div class="result-actions"><button id="result-retry" class="primary">เล่นอีกครั้ง ↗</button><button id="result-hangar" class="secondary">กลับโรงประกอบยาน</button></div></section>
   <section class="flight" aria-label="เกมยานอวกาศ">
     <div class="play-shell">
-      <div class="hud">
+      <div class="hud"><button id="combat-pause" class="combat-pause" aria-label="พักเกม">Ⅱ</button>
         <div><span class="hud-label">SCORE</span><strong id="score">0000</strong></div>
         <div class="hud-center"><span id="timer">90s</span><span id="status-dot" class="status-dot"></span></div>
         <div class="hud-right"><span class="hud-label">SHIELD</span><strong id="lives">♥ ♥ ♥</strong></div>
@@ -35,7 +43,7 @@ app.innerHTML = `
         <button id="start-button" class="primary">เริ่มภารกิจ <span>↗</span></button>
         <span class="minor">เปิดเซนเซอร์ + ตั้งศูนย์ก่อนเล่น<br>ลากนิ้ว / ลูกศร และปุ่มสกิล ก็เล่นได้</span>
       </div>
-      <div id="pause-banner" class="pause-banner hidden"><span id="pause-message">พักเกมแล้ว</span><button id="resume-button" class="secondary">▶ เล่นต่อ</button></div>
+      <div id="pause-banner" class="pause-banner hidden"><span id="pause-message">พักเกมแล้ว</span><button id="resume-button" class="primary">▶ เล่นต่อ</button><button id="pause-settings" class="secondary">ตั้งค่า</button><button id="pause-restart" class="secondary">เริ่มรอบใหม่</button><button id="pause-hangar" class="secondary">กลับโรงประกอบยาน</button></div>
     </div>
     <div class="skill-bar" aria-label="สกิลสำรอง">
       <button id="dodge-left" class="skill"><span>↶ หลบซ้าย</span><small class="dodge-status">พร้อม / Q</small></button>
@@ -45,7 +53,7 @@ app.innerHTML = `
     <p id="action-message" class="action-message" role="status" aria-live="polite">ใช้ปุ่มสกิล หรือเปิดเซนเซอร์เพื่อเล่นด้วยท่าทาง</p>
   </section>
   <button id="console-toggle" class="secondary console-toggle">⚙ ตั้งค่า / เซนเซอร์ / จอย</button><section class="controls" aria-label="ตั้งค่าการควบคุมและห้องทดสอบ">
-    <div class="section-heading"><span class="eyebrow">FLIGHT CONSOLE</span><span id="mode-pill">TOUCH / KEY</span></div>
+    <div class="settings-header"><button id="settings-back" class="back-button">← กลับ</button><h1>ตั้งค่าและห้องทดสอบ</h1><p>ควบคุมการบินและตรวจสัญญาณอุปกรณ์</p></div><div class="section-heading"><span class="eyebrow">FLIGHT CONSOLE</span><span id="mode-pill">TOUCH / KEY</span></div>
     <div class="sensor-line"><span class="sensor-led"></span><span id="sensor-message"></span></div>
     <div class="button-row">
       <button id="enable-button" class="secondary">◎ เปิดเซนเซอร์</button>
@@ -102,6 +110,7 @@ app.innerHTML = `
   </section>
   <footer><span>GYRO SPACE COMBAT</span><span>ข้อมูลเซนเซอร์ประมวลผลบนเครื่อง</span></footer>
 </main>
+<dialog id="confirm-dialog" class="help-dialog confirm-dialog" aria-labelledby="confirm-title"><h2 id="confirm-title"></h2><p id="confirm-copy"></p><div class="confirm-actions"><button id="confirm-cancel" class="secondary">ยกเลิก</button><button id="confirm-accept" class="primary">ยืนยัน</button></div></dialog>
 <dialog id="help-dialog" class="help-dialog">
   <button id="close-help" class="close-help" aria-label="ปิดวิธีเล่น">×</button>
   <span class="eyebrow">PILOT GUIDE</span><h2>เอียงบิน กลิ้งหลบ เขย่า EMP</h2>
@@ -119,6 +128,15 @@ let padFrame: PadFrame | null = null, shipStyle = 0, bindCommand: PadCommand | n
 let source = 'manual';
 const save = () => { try { localStorage.setItem('gyro-loadout-v4', JSON.stringify({ ship: shipStyle, weapon: el<HTMLSelectElement>('weapon').value, source, pad: pad.settings, sensitivity: el<HTMLInputElement>('sensitivity').value, gesture: el<HTMLInputElement>('gesture-sensitivity').value })); } catch {} };
 
+type View = 'home'|'hangar'|'preflight'|'flight'|'result'|'settings';
+const store = new ShipBuildStore();
+let parts: ShipPartImages | null = null, settingsReturn: View = 'home';
+let view: View = 'home';
+function show(next: View) { view=next; document.querySelector<HTMLElement>('.shell')!.dataset.view=next; document.body.classList.toggle('flight-view',next==='flight'); window.scrollTo(0,0); }
+function paint(id: string, draft = false) { if (!parts) return; const canvas=el<HTMLCanvasElement>(id); const image=composeShip(draft ? store.draft : store.saved, parts, 512); const ctx=canvas.getContext('2d')!; ctx.clearRect(0,0,512,512);ctx.drawImage(image,0,0); }
+function paintAll() { paint('home-ship');paint('build-preview',true);paint('preflight-preview');paint('result-ship'); }
+function drawOptions() { const labels={hull:['FALCON','RAVEN','ATLAS'],wing:['STRIKE','VECTOR','TITAN'],engine:['ION','PULSE','NOVA']}; const titles={hull:'ลำตัว',wing:'ปีก',engine:'เครื่องยนต์'}; el('build-options').innerHTML=(['hull','wing','engine'] as ShipSlot[]).map(slot => `<fieldset class="build-group"><legend>${titles[slot]}</legend><div class="option-row">${labels[slot].map((label,i)=>`<button data-slot="${slot}" data-index="${i}" aria-pressed="${store.draft[slot]===i}"><img src="/assets/modules/raw/${slot === "wing" ? "wings" : slot}-${i}.png" alt=""><span>${label}</span></button>`).join('')}</div></fieldset>`).join(''); document.querySelectorAll<HTMLButtonElement>('[data-color]').forEach(b=>{b.setAttribute('aria-pressed',String(store.draft.color===Number(b.dataset.color)));b.onclick=()=>{store.selectColor(Number(b.dataset.color));drawOptions();paint('build-preview',true);};}); el<HTMLSelectElement>('builder-weapon').value=store.draft.weapon; el('build-options').querySelectorAll<HTMLButtonElement>('[data-slot]').forEach(b=>b.onclick=()=>{store.select(b.dataset.slot as ShipSlot,Number(b.dataset.index));drawOptions();paint('build-preview',true);}); }
+loadShipParts().then(x=>{parts=x;paintAll();}).catch(()=>{el('build-message').textContent='โหลดภาพยานไม่สำเร็จ กรุณารีเฟรชหน้า';});
 const centerCard = el('center-card'), pauseBanner = el('pause-banner');
 let lab = false, lastHud = '', roundEnded = false, lastLives = 3, beforeHelp = false;
 let lastSensorState: Telemetry['state'] = 'idle';
@@ -156,12 +174,13 @@ function updateHud(s: GameSnapshot) {
   el('flight-tip').textContent = s.time < 8 ? 'เอียงช้า ๆ / ลากนิ้วเพื่อเคลื่อนที่' : s.time < 15 ? 'หมุนข้อมือเร็ว → กลิ้งหลบ' : s.energy >= 100 ? 'EMP พร้อม! เขย่าสั้น ๆ ไปกลับหลายจังหวะ' : 'หลบกระสุนสีส้ม • ยิงอัตโนมัติ';
   if (s.gameOver && !roundEnded) {
     roundEnded = true; document.body.classList.remove('in-combat'); sensor.resetTransient(); feedback.play('end');
-    centerCard.classList.remove('hidden'); centerCard.classList.add('result-card'); pauseBanner.classList.add('hidden');
+    show('result'); paint('result-ship'); centerCard.classList.remove('hidden'); centerCard.classList.add('result-card'); pauseBanner.classList.add('hidden');
     const titles = { won: 'ภารกิจสำเร็จ!', lost: 'ยานเสียหาย!', timeout: 'หมดเวลาภารกิจ', practice: 'จบการฝึกแล้ว' };
-    centerCard.querySelector('h1')!.textContent = titles[s.result!];
+    el('result-title').textContent = titles[s.result!]; centerCard.querySelector('h1')!.textContent = titles[s.result!];
     centerCard.querySelector('p')!.textContent = s.result === 'won' ? 'กำจัดบอสได้แล้ว นักบิน!' : 'ปรับความไวหรือเปิดโหมดฝึก แล้วลองอีกครั้ง';
     el('round-summary').classList.remove('hidden');
     el('round-summary').innerHTML = `<div><small>คะแนน</small><b>${s.score}</b></div><div><small>เวลา</small><b>${s.time.toFixed(1)}s</b></div><div><small>กลิ้งหลบ</small><b>${s.dodges}</b></div><div><small>EMP</small><b>${s.emps}</b></div>`;
+    el('result-stats').innerHTML = el('round-summary').innerHTML;
     el('start-button').innerHTML = 'เริ่มใหม่ <span>↗</span>'; el<HTMLButtonElement>('pause-button').disabled = true;
     el<HTMLInputElement>('practice').disabled = false;
   }
@@ -174,8 +193,11 @@ function pause(message = 'พักเกมแล้ว') {
 function resume() {
   if (lab) leaveLab();
   if (!scene.hasStarted || document.hidden) return;
+  if ((source === 'pad' || source === 'tilt') && !padFrame?.connected) { el('pause-message').textContent = 'ยังไม่พบจอย • เชื่อมต่อก่อนเล่นต่อ'; return; }
+  if (source === 'tilt' && !pad.tiltReady) { el('pause-message').textContent = 'ทดสอบการเอียงจอยอีกครั้งก่อนเล่นต่อ'; return; }
+  if (source === 'sensor' && (sensor.telemetry.state !== 'active' || !sensor.telemetry.calibrated)) { el('pause-message').textContent = 'ตั้งศูนย์เซนเซอร์อีกครั้งก่อนเล่นต่อ'; return; }
   sensor.resetTransient(); scene.resume(); sensor.setGestureActive(true);
-  pauseBanner.classList.add('hidden'); el('pause-button').textContent = 'Ⅱ'; refreshHud();
+  show('flight'); document.body.classList.remove('console-open'); pauseBanner.classList.add('hidden'); el('pause-button').textContent = 'Ⅱ'; refreshHud();
 }
 function leaveLab() {
   lab = false; sensor.setGestureActive(false); sensor.resetTransient();
@@ -184,10 +206,11 @@ function leaveLab() {
 }
 el('start-button').addEventListener('click', () => {
   feedback.unlock(); leaveLab(); sensor.resetTransient(); roundEnded = false; lastLives = 3; lastHud = '';
-  if ((source === 'pad' || source === 'tilt') && !padFrame?.connected) { el('action-message').textContent = 'ยังไม่พบจอย • เชื่อมต่อและกดปุ่มบนจอย หรือเลือกวิธีควบคุมอื่น'; return; }
-  if (source === 'tilt' && !pad.tiltReady) { el('action-message').textContent = 'ทดสอบและยืนยันการเอียงจอยในเมนูตั้งค่าก่อน'; return; }
-  if (source === 'sensor' && (!sensor.telemetry.calibrated || sensor.telemetry.state !== 'active')) { el('action-message').textContent = 'เปิดเซนเซอร์และตั้งศูนย์ในเมนูตั้งค่าก่อนเริ่ม หรือเลือกสัมผัส/คีย์บอร์ด'; return; }
-  scene.model.weapon = el<HTMLSelectElement>('weapon').value as 'straight' | 'spread'; scene.shipStyle = shipStyle; pad.reset(); save();
+  if (!parts) { el('preflight-error').textContent = 'กำลังโหลดภาพยาน หรือโหลดไม่สำเร็จ • ลองรีเฟรช'; return; }
+  if ((source === 'pad' || source === 'tilt') && !padFrame?.connected) { el('preflight-error').textContent = el('action-message').textContent = 'ยังไม่พบจอย • เชื่อมต่อและกดปุ่มบนจอย หรือเลือกวิธีควบคุมอื่น'; return; }
+  if (source === 'tilt' && !pad.tiltReady) { el('preflight-error').textContent = el('action-message').textContent = 'ทดสอบและยืนยันการเอียงจอยในเมนูตั้งค่าก่อน'; return; }
+  if (source === 'sensor' && (!sensor.telemetry.calibrated || sensor.telemetry.state !== 'active')) { el('preflight-error').textContent = el('action-message').textContent = 'เปิดเซนเซอร์และตั้งศูนย์ในเมนูตั้งค่าก่อนเริ่ม หรือเลือกสัมผัส/คีย์บอร์ด'; return; }
+  scene.model.weapon = el<HTMLSelectElement>('weapon').value as 'straight' | 'spread'; scene.shipStyle = shipStyle; if (parts) scene.setShipCanvas(composeShip(store.saved, parts)); pad.reset(); save(); show('flight');
   document.body.classList.add('in-combat'); document.body.classList.remove('console-open');
   scene.start(); sensor.setGestureActive(true); centerCard.classList.add('hidden'); pauseBanner.classList.add('hidden');
   el<HTMLButtonElement>('pause-button').disabled = false; el('pause-button').textContent = 'Ⅱ'; el<HTMLInputElement>('practice').disabled = true;
@@ -324,7 +347,7 @@ function chooseShip(index: number) { shipStyle = index; el<HTMLImageElement>('ha
 document.querySelectorAll<HTMLButtonElement>('[data-ship]').forEach(b => b.onclick = () => chooseShip(Number(b.dataset.ship)));
 el('weapon').addEventListener('change',save);
 el('input-source').addEventListener('change', () => { source = el<HTMLSelectElement>('input-source').value; pad.mode = source === 'tilt' ? 'tilt' : 'stick'; scene.clearInput(); sensor.resetTransient(); save(); });
-el('console-toggle').onclick = () => { if(scene.isRunning) pause('พักระหว่างตั้งค่า'); document.body.classList.toggle('console-open'); };
+el('console-toggle').onclick = () => { if(scene.isRunning) pause('พักระหว่างตั้งค่า'); settingsReturn=scene.hasStarted?'flight':view; show('settings'); document.body.classList.add('console-open'); };
 for (const [id,key] of [['pad-x','axisX'],['pad-y','axisY'],['pad-deadzone','deadzone'],['pad-sensitivity','sensitivity']] as const) el(id).addEventListener('input', () => { pad.settings[key] = Number(el<HTMLInputElement>(id).value); pad.reset(); save(); });
 for (const [id,key] of [['pad-invert-x','invertX'],['pad-invert-y','invertY']] as const) el(id).addEventListener('change', () => { pad.settings[key] = el<HTMLInputElement>(id).checked; save(); });
 el('tilt-begin').onclick = () => { el<HTMLInputElement>('tilt-confirm').checked = false; if(pad.beginTiltTrial()) { el<HTMLButtonElement>('tilt-begin').disabled = true; window.setTimeout(() => { pad.finishTiltTrial(); el<HTMLButtonElement>('tilt-begin').disabled = false; },5000); } };
@@ -336,3 +359,36 @@ for(const [id,key] of [['pad-x','axisX'],['pad-y','axisY'],['pad-deadzone','dead
 for(const [id,key] of [['pad-invert-x','invertX'],['pad-invert-y','invertY']] as const) el<HTMLInputElement>(id).checked=pad.settings[key];
 chooseShip(shipStyle); renderBindings();
 for(const id of ['sensitivity','gesture-sensitivity']) el(id).addEventListener('input',save);
+
+// Screen navigation keeps diagnostics and the game engine alive without overlays hiding menus.
+el('preflight-loadout').appendChild(document.querySelector('.loadout')!);
+el('home-hangar').onclick=()=>{store.discard();drawOptions();paint('build-preview',true);show('hangar');};
+el('hangar-back').onclick=()=>{store.discard();show('home');};
+el('build-reset').onclick=()=>{for(const slot of ['hull','wing','engine'] as ShipSlot[]) store.select(slot,0);store.selectColor(0);store.selectWeapon('straight');drawOptions();paint('build-preview',true);};
+el('build-save').onclick=()=>{store.save();el<HTMLSelectElement>('weapon').value=store.saved.weapon;save();paintAll();el('build-message').textContent='บันทึกยานแล้ว';};
+el('build-fly').onclick=()=>{store.save();el<HTMLSelectElement>('weapon').value=store.saved.weapon;save();paintAll();show('preflight');};
+el('home-launch').onclick=()=>{paintAll();show('preflight');};
+el('preflight-back').onclick=()=>show('home');
+el('preflight-start').onclick=()=>el('start-button').click();
+el('builder-weapon').addEventListener('change',()=>{store.selectWeapon(el<HTMLSelectElement>('builder-weapon').value as 'straight'|'spread');paint('build-preview',true);});
+el('weapon').addEventListener('change',()=>{const weapon=el<HTMLSelectElement>('weapon').value as 'straight'|'spread';store.selectWeapon(weapon);store.save();el<HTMLSelectElement>('builder-weapon').value=weapon;});
+el<HTMLSelectElement>('weapon').value=store.saved.weapon;
+el<HTMLSelectElement>('builder-weapon').value=store.saved.weapon;
+el('home-settings').onclick=()=>{settingsReturn='home';show('settings');document.body.classList.add('console-open');};
+el('preflight-settings').onclick=()=>{settingsReturn='preflight';show('settings');document.body.classList.add('console-open');};
+el('combat-pause').onclick=()=>pause();
+el('pause-settings').onclick=()=>{settingsReturn='flight';show('settings');document.body.classList.add('console-open');};
+el('settings-back').onclick=()=>{if(lab)leaveLab();show(settingsReturn);document.body.classList.remove('console-open');};
+el('pause-hangar').onclick=()=>confirmAction('กลับโรงประกอบยาน?', 'คะแนนในรอบนี้จะหายไป',()=>{scene.pause();store.discard();drawOptions();paint('build-preview',true);show('hangar');});
+el('pause-restart').onclick=()=>confirmAction('เริ่มรอบใหม่?', 'คะแนนในรอบนี้จะหายไป',()=>show('preflight'));
+el('result-retry').onclick=()=>show('preflight');el('result-hangar').onclick=()=>{store.discard();drawOptions();paint('build-preview',true);show('hangar');};
+el('input-source').addEventListener('change',()=>{ const copy:Record<string,string>={manual:'ลากนิ้วหรือใช้ลูกศรเพื่อเคลื่อนที่',sensor:'เปิดเซนเซอร์ อนุญาต แล้วถือมือถือท่าถนัดเพื่อตั้งศูนย์',pad:'จับคู่ Bluetooth แล้วกดปุ่มจอยเพื่อเชื่อมต่อ',tilt:'ทดสอบและยืนยันสัญญาณเอียงจอยในหน้าตั้งค่าก่อน'};el('preflight-help').textContent=copy[source];});
+drawOptions();paintAll();show('home');
+
+let pendingConfirm: (()=>void)|null=null;
+function confirmAction(title:string,copy:string,action:()=>void){el('confirm-title').textContent=title;el('confirm-copy').textContent=copy;pendingConfirm=action;el<HTMLDialogElement>('confirm-dialog').showModal();el<HTMLButtonElement>('confirm-cancel').focus();}
+el('confirm-cancel').onclick=()=>{pendingConfirm=null;el<HTMLDialogElement>('confirm-dialog').close();};
+el('confirm-accept').onclick=()=>{const action=pendingConfirm;pendingConfirm=null;el<HTMLDialogElement>('confirm-dialog').close();action?.();};
+let menuButtons:boolean[]=[];
+window.setInterval(()=>{if(!padFrame)return;const pressed=padFrame.buttons;const edge=(i:number)=>!!pressed[i]&&!menuButtons[i];if(view!=='flight'&&!bindCommand&&!el<HTMLDialogElement>('help-dialog').open){const openDialog=document.querySelector<HTMLDialogElement>('dialog[open]');const host=openDialog || document.querySelector<HTMLElement>(`.shell[data-view="${view}"]`);if(host){const controls=Array.from(host.querySelectorAll<HTMLElement>('button:not(:disabled),select:not(:disabled),summary')).filter(x=>x.offsetWidth>0&&x.offsetHeight>0&&!x.closest('.center-card'));const current=controls.indexOf(document.activeElement as HTMLElement);if(edge(12)||edge(14)){controls[(current<=0?controls.length:current)-1]?.focus();}if(edge(13)||edge(15)){controls[(current+1)%controls.length]?.focus();}if(edge(0)&&(document.activeElement instanceof HTMLButtonElement||document.activeElement instanceof HTMLElement&&document.activeElement.tagName==='SUMMARY'))(document.activeElement as HTMLElement).click();if(edge(1)){if(openDialog)openDialog.close();else if(view==='hangar')el('hangar-back').click();else if(view==='preflight')el('preflight-back').click();else if(view==='settings')el('settings-back').click();else if(view==='result')show('home');}}}menuButtons=[...pressed];},100);
+

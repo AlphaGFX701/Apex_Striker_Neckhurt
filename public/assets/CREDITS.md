@@ -13,3 +13,27 @@ The adapted ship artwork remains available under CC-BY-SA 3.0. Download `/assets
 Thrusters, projectiles, asteroid, explosion frames, shield, and EMP are deterministic, manually authored procedural graphics in `scripts/build-assets.py`, provided under CC0 1.0: https://creativecommons.org/publicdomain/zero/1.0/. No image generation model was used for any asset in this delivery.
 
 Build: run `scripts/build-assets.py` with Python 3 and Pillow installed. Atlas format: Phaser JSON hash, 1024 × 1024, untrimmed centered frames. Player/enemy frames 160 × 160, boss 320 × 320, asteroid/explosion 128 × 128, thruster 64 × 64, projectile 32 × 64, shield/EMP 256 × 256. Collision radii belong to the game model, not the image bounds.
+
+## Modular ship builder (cinematic UI update)
+
+The fixed-slot ship-builder layers are derived directly from transparent artist-authored PSD layers in **SpaceshipConstructionKit2.psd**. Original ZIP retained at `/assets/originals/SpaceshipConstructionKit2.zip`.
+
+Original: https://opengameart.org/sites/default/files/SpaceshipConstructionKit2.zip
+Artist/source page: Skorpio, https://opengameart.org/content/space-ship-mech-construction-kit-2
+License: CC-BY-SA 3.0, https://creativecommons.org/licenses/by-sa/3.0/
+
+Changes: select individual hull/wing/engine layers, crop transparency, mirror left wings into pairs, recolor existing accents blue, resize uniformly and position into common 320×320 slot layers. 27 layered example compositions are included. Hull layers: Layer 72, Layer 48, Layer 30. Wing layers: Layer 239, Layer 238, Layer 230. Engine layers: Layer 186, Layer 194, Layer 217.
+
+Download adaptations and reproducible script: `/assets/modular-art-CC-BY-SA-3.0.zip`. Run `scripts/build-modular-assets.py` with Python 3, Pillow and psd-tools. All derived modular ship images remain CC-BY-SA 3.0. Credit Skorpio and identify modifications when redistributing adaptations.
+
+## Cinematic space background
+
+**Space Backgrounds / Background-1.png** by Rawdanitsu (2014), CC0 1.0.
+Artist/source page: https://opengameart.org/content/space-backgrounds-3
+Original: https://opengameart.org/sites/default/files/Background-1.png
+License: https://creativecommons.org/publicdomain/zero/1.0/
+
+Original retained at `/assets/originals/Rawdanitsu-Background-1.png`. Derivatives `/assets/space-background.webp` and `/assets/space-combat-background.webp` convert to WebP and darken the combat version for legibility. Source art predates generative image tools; no AI image generation used.
+
+Shared wing-mount bridge: tiled crop (56,58,72,74) from Skorpio Human-Fighter.png, same CC-BY-SA 3.0 source credited above. Engine placement overlaps hull rear to prevent disconnected modules. Module layers share 320×320 transparent canvas; hull is frontmost.
+

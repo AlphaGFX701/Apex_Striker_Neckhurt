@@ -12,9 +12,16 @@ export interface GameControl {
 export class SpaceScene extends Phaser.Scene {
   readonly model = new GameModel();
   shipStyle = 0;
+  private customShip = false;
+  setShipCanvas(canvas: HTMLCanvasElement) {
+    if (!this.textures) return;
+    if (this.textures.exists('player-custom')) this.textures.remove('player-custom');
+    this.textures.addCanvas('player-custom', canvas);
+    this.customShip = true;
+  }
   private sprites: Phaser.GameObjects.Image[] = [];
   private spriteIndex = 0;
-  preload() { this.load.atlas('fleet', '/assets/atlas.png', '/assets/atlas.json'); }
+  preload() { this.load.atlas('fleet', '/assets/atlas.png', '/assets/atlas.json'); this.load.image('combat-space', '/assets/space-combat-background.webp'); }
   private sprite(frame: string, x: number, y: number, width: number, rotation = 0, alpha = 1, scaleX = 1) {
     let image = this.sprites[this.spriteIndex++];
     if (!image) { image = this.add.image(x, y, 'fleet', frame).setDepth(1); this.sprites.push(image); }
@@ -29,6 +36,7 @@ export class SpaceScene extends Phaser.Scene {
   private started = false;
   constructor(private control: GameControl) { super('Space'); }
   create() {
+    this.add.image(195, 360, 'combat-space').setDisplaySize(390, 720).setDepth(-1);
     this.art = this.add.graphics();
     for (let i = 0; i < 85; i++) this.stars.push({ x: Math.random() * 390, y: Math.random() * 720, size: Math.random() * 1.6 + 0.4, speed: 18 + Math.random() * 45 });
     this.keys = this.input.keyboard!.addKeys('LEFT,RIGHT,UP,DOWN,W,A,S,D,Q,E,SPACE') as Record<string, Phaser.Input.Keyboard.Key>;
@@ -73,10 +81,7 @@ export class SpaceScene extends Phaser.Scene {
   }
   private draw(dt: number) {
     const g = this.art, s = this.model.state; g.clear(); this.spriteIndex = 0;
-    g.fillGradientStyle(0x080d22, 0x080d22, 0x172343, 0x172343, 1); g.fillRect(0, 0, 390, 720);
-    g.fillStyle(0x2a4676, 0.09); g.fillEllipse(50, 220, 300, 500); g.fillStyle(0x73356b, 0.06); g.fillEllipse(370, 470, 300, 500);
-    g.fillStyle(0x182a39, .5); g.fillCircle(330, 180, 83);
-    g.lineStyle(2, 0x56cfff, .12); g.strokeCircle(330, 180, 87);
+    g.fillStyle(0x050914, 0.58); g.fillRect(0, 0, 390, 720);
     for (const star of this.stars) {
       if (this.running) star.y = (star.y + star.speed * dt) % 720;
       g.fillStyle(0xc2dcff, 0.25 + star.size / 3); g.fillCircle(star.x, star.y, star.size);
@@ -102,7 +107,12 @@ export class SpaceScene extends Phaser.Scene {
       const squash = roll ? .25 + Math.abs(Math.cos(s.dodgeTime * 10)) * .75 : 1;
       this.sprite('thruster', ship.x - 7, ship.y + 30, 12, 0, .8 + Math.sin(s.time*35)*.15);
       this.sprite('thruster', ship.x + 7, ship.y + 30, 12, 0, .8 + Math.cos(s.time*35)*.15);
-      this.sprite(`player-${this.shipStyle}`, ship.x, ship.y, 65, 0, 1, squash);
+      if (this.customShip) {
+        let image = this.sprites[this.spriteIndex++];
+        if (!image) { image = this.add.image(ship.x, ship.y, 'player-custom').setDepth(1); this.sprites.push(image); }
+        image.setTexture('player-custom').setPosition(ship.x, ship.y).setRotation(0).setAlpha(1).setVisible(true);
+        image.setScale(86 / image.width * squash, 86 / image.width);
+      } else this.sprite(`player-${this.shipStyle}`, ship.x, ship.y, 65, 0, 1, squash);
     }
     if (s.invincible > 0) this.sprite('shield', ship.x, ship.y, 68, 0, .4);
     if (s.hitEffect > 0) this.sprite(`explosion-${Math.min(7, Math.floor((.3-s.hitEffect)/.3*8))}`,ship.x,ship.y,90);
