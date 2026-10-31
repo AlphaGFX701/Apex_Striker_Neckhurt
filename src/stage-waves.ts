@@ -211,8 +211,9 @@ export function formationSpecs(
   name: Formation,
   stage: number,
   center: number,
+  countOverride?: number,
 ): SpawnSpec[] {
-  const count = name === "wall" || name === "escort" ? 7 : 5 + stage;
+  const count = countOverride ?? (name === "wall" || name === "escort" ? 7 : 5 + stage);
   return Array.from({ length: count }, (_, i) => {
     const n = i - (count - 1) / 2,
       left = i % 2 === 0;

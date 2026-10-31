@@ -1,3 +1,4 @@
+import { getStageBalance, standardImpact, GAME_BALANCE_CONFIG, type WaveBalance, type EnemyBalanceGroup } from "./neon";
 import { DIFFICULTY, beamDistance, ORB_SUPPLY_TIMES, superMultiplier, endingDuration, nextEscapeLane, type EnemyArchetype, type BossPattern, type HazardState, type SuperModeState, type EndingSequence } from "./neon";
 import {
   StageWaveManager,
@@ -58,6 +59,7 @@ export interface Bullet extends Body {
   age?: number;
 }
 export interface Enemy extends Body {
+  balance?: WaveBalance; balanceGroup?: EnemyBalanceGroup; visibleTime?: number; hasFired?: boolean;
   muzzle?: number; archetype?: EnemyArchetype; shieldHP?: number; lock?: { x: number; y: number };
   path?: FlightPath;
   health: number;
@@ -519,7 +521,7 @@ export class GameModel {
     if (e.health === -Infinity) return;
     e.health = -Infinity;
     this.event("enemy-destroyed");
-    this.awardDestruction(e.kind === 2 ? 90 : 40);
+    this.awardDestruction(e.kind === 2 ? (e.balance?.eliteScore ?? 90) : (e.balance?.standardScore ?? 40));
     this.explode(
       e.x,
       e.y,
@@ -639,6 +641,8 @@ export class GameModel {
   private spawnFormation(bossSupport = false) {
     const s = this.state,
       stage = this.config.stage;
+    const balance=getStageBalance(stage,s.time,this.config.mode,bossSupport);
+    if(balance && !balance.spawnEnabled) return;
     let specs: SpawnSpec[];
     if (stage === 0 && this.config.mode === "stage" && !bossSupport) {
       const squad = this.director.nextSquad(s.time, this.random);
@@ -651,19 +655,20 @@ export class GameModel {
           : s.segment === 1
             ? FORMATIONS.filter((f) => f !== "wall")
             : FORMATIONS;
+      if(balance) pool=FORMATIONS.filter(f=>balance.formations.includes(f));
       if (bossSupport) pool = ["vee", "pincer", "escort", "zigzag"];
       const choices = pool.filter((f) => f !== this.lastFormation);
       const f =
         choices[Math.floor(this.random() * choices.length) % choices.length];
       this.lastFormation = f;
       s.formation = f;
-      specs = formationSpecs(f, stage, 85 + this.random() * 220);
+      specs = formationSpecs(f, stage, 85 + this.random() * 220, balance?.waveSize);
     }
     for (const e of bossSupport ? specs.slice(0, 2) : specs) {
-      if (s.enemies.length >= (bossSupport ? DIFFICULTY[stage].supportCap : DIFFICULTY[stage].enemyCap)) break;
+      if (s.enemies.length >= (bossSupport ? DIFFICULTY[stage].supportCap : balance?.enemyCap ?? DIFFICULTY[stage].enemyCap)) break;
       if (
         e.kind === 2 &&
-        s.enemies.filter((other) => other.kind === 2).length >= 2
+        s.enemies.filter((other) => other.kind === 2).length >= (balance?.armorCap ?? 2)
       )
         continue;
       if (bossSupport) {
@@ -679,17 +684,24 @@ export class GameModel {
         e.x=e.x<195?-36:426;e.y=140+(s.enemies.length%3)*45;
         this.notice('CROSSFIRE INBOUND',1.2);
       }
+      let archetype:EnemyArchetype=e.kind===2?'shield-wall':s.segment>0 && this.random()<0.18?'kamikaze':e.motion==='crossfire'?'crossfire':e.kind===1?'rear-gunner':'fighter';
+      if(balance) {
+        if(e.motion==='crossfire') archetype='crossfire';
+        if(!balance.archetypes.includes(archetype)) archetype='fighter';
+      }
       s.enemies.push({
         ...e,
         radius: e.kind === 2 ? 22 : 16,
         health:
-          (e.kind === 2 ? DIFFICULTY[stage].armorHP : DIFFICULTY[stage].enemyHP) *
+          (e.kind === 2 ? DIFFICULTY[stage].armorHP : balance?.enemyHP ?? DIFFICULTY[stage].enemyHP) *
           Math.min(1.6, 1 + (s.wave - 1) * 0.025),
-        shot: e.motion === "crossfire" ? 1.2 : 0.6,
+        shot: balance ? 0 : e.motion === "crossfire" ? 1.2 : 0.6,
+        balance:balance??undefined, balanceGroup:bossSupport?"boss-support":e.kind===2?"elite":"standard",
+        visibleTime:0, hasFired:false,
         originX: e.x,
         age: 0,
         faction: stage,
-        archetype: e.kind === 2 ? "shield-wall" : s.segment > 0 && this.random() < 0.18 ? "kamikaze" : e.motion === "crossfire" ? "crossfire" : e.kind === 1 ? "rear-gunner" : "fighter",
+        archetype,
         shieldHP: e.kind === 2 ? DIFFICULTY[stage].armorHP * 0.35 : 0,
       });
     }
@@ -1023,7 +1035,10 @@ export class GameModel {
             Math.max(0, (s.boss.age ?? 0) - 180) / 60,
         )
       : Math.max(2.4, 4.2 - stage * 0.3 - s.segment * 0.35);
-    if (this.enemyClock >= (s.time < 3 ? 1.5 : support / Math.sqrt(DIFFICULTY[stage].cadence))) {
+    const waveBalance=getStageBalance(stage,s.time,this.config.mode,!!s.boss);
+    if(waveBalance && !waveBalance.spawnEnabled) this.enemyClock=0;
+    const spawnInterval=waveBalance?.spawnInterval ?? (s.time<3?1.5:support/Math.sqrt(DIFFICULTY[stage].cadence));
+    if ((!waveBalance || waveBalance.spawnEnabled) && this.enemyClock >= spawnInterval) {
       this.enemyClock = 0;
       this.spawnFormation(!!s.boss);
     }
@@ -1039,21 +1054,22 @@ export class GameModel {
         e.lock ??= { x: s.ship.x, y: s.ship.y };
         if (a > 2) {
           const dx = e.lock.x-e.x, dy=e.lock.y-e.y, d=Math.hypot(dx,dy)||1;
-          e.x += dx/d*270*step; e.y += dy/d*270*step;
+          const speed=e.balance?GAME_BALANCE_CONFIG.movement.kamikaze:270;
+          e.x += dx/d*speed*step; e.y += dy/d*speed*step;
           if(d<14) e.lock={x:e.x,y:900};
         }
       } else if (a > 5.5) {
         // After attacking, fly through the bottom of the playfield instead
         // of abruptly shooting sideways off screen.
-        e.y += 150 * step;
+        e.y += (e.balance?GAME_BALANCE_CONFIG.movement.retreat:150) * (e.balance?.movementScale??1) * step;
       } else if(e.archetype==='crossfire') {
-        e.x=origin+(origin<195?1:-1)*Math.min(a*60,115);e.y+=15*step;
+        e.x=origin+(origin<195?1:-1)*Math.min(a*(e.balance?GAME_BALANCE_CONFIG.movement.crossfireX:60)*(e.balance?.movementScale??1),115);e.y+=(e.balance?GAME_BALANCE_CONFIG.movement.crossfireY:15)*(e.balance?.movementScale??1)*step;
       } else if (e.path) {
         Object.assign(e, flightPathPosition(e.path, a / 5.5));
       } else {
         if (e.motion === "turrets" && e.y > 95 && a < 6) e.y += 0;
         else
-          e.y += (e.motion === "bombers" ? 135 : e.kind === 1 ? 82 : 60) * step;
+          e.y += (e.motion === "bombers" ? (e.balance?GAME_BALANCE_CONFIG.movement.bomber:135) : e.kind === 1 ? (e.balance?GAME_BALANCE_CONFIG.movement.gunner:82) : (e.balance?GAME_BALANCE_CONFIG.movement.fighter:60)) * (e.balance?.movementScale??1) * step;
         if (e.motion === "zigzag")
           e.x = clamp(origin + Math.sin(a * 2.4 + e.phase) * 90, 26, 364);
         else if (e.motion === "semicircle" || e.motion === "pincer")
@@ -1069,8 +1085,11 @@ export class GameModel {
         else if (e.motion === "wall" || e.motion === "escort")
           e.x = clamp(origin + Math.sin(a * 0.8) * 18, 26, 364);
       }
+      const visible=e.y>35 && e.y<460 && e.x>18 && e.x<372;
+      if(e.balance && !e.hasFired) e.visibleTime=visible?(e.visibleTime??0)+step:0;
       e.shot -= step;
       if (
+        (!e.balance || e.hasFired || (e.visibleTime??0)>=e.balance.firstVisibleDelay) &&
         e.archetype !== "kamikaze" &&
         e.shot <= 0 &&
         e.y > 35 &&
@@ -1080,20 +1099,21 @@ export class GameModel {
         !s.beams.length &&
         !(s.boss && (s.boss.restUntil ?? 0) > s.time)
       ) {
-        e.shot = (e.kind === 2 ? 2.7 : 2.2) / DIFFICULTY[stage].cadence;
+        e.shot = (e.kind === 2 ? 2.7 : 2.2) / (e.balance?.cadence ?? DIFFICULTY[stage].cadence);
+        e.hasFired=true;
         e.muzzle=0.1;
         if(e.archetype === "crossfire") {
-          this.fan(e.x,e.y,3,132,Math.atan2(s.ship.x-e.x,Math.max(70,s.ship.y-e.y)),0.12);
+          this.fan(e.x,e.y,3,132*(e.balance?.projectileScale??1),Math.atan2(s.ship.x-e.x,Math.max(70,s.ship.y-e.y)),0.12);
         } else if (e.archetype === "rear-gunner") {
           const angle = Math.atan2(s.ship.x-e.x,s.ship.y-e.y);
-          this.pushPatternShot({x:e.x,y:e.y+14,radius:5,vx:Math.sin(angle)*120,vy:Math.cos(angle)*120,homing:true,age:0});
-        } else if (e.kind === 2) this.ring(e.x, e.y + 18, 103, e.phase * 0.08);
+          this.pushPatternShot({x:e.x,y:e.y+14,radius:5,vx:Math.sin(angle)*120*(e.balance?.projectileScale??1),vy:Math.cos(angle)*120*(e.balance?.projectileScale??1),homing:true,age:0});
+        } else if (e.kind === 2) this.ring(e.x, e.y + 18, 103*(e.balance?.projectileScale??1), e.phase * 0.08);
         else
           this.fan(
             e.x,
             e.y + 14,
             s.segment === 0 ? 1 : 3,
-            132,
+            132*(e.balance?.projectileScale??1),
             Math.atan2((s.ship.x - e.x) * 0.35, Math.max(100, s.ship.y - e.y)),
             0.2,
           );
@@ -1225,7 +1245,7 @@ export class GameModel {
         if(well) {well.hp-=0.97*superMultiplier(s.superMode)*[1,1.6,2.3][level-1];if(well.hp<=0)this.explode(well.x,well.y,undefined,110);}
         for (const t of targets) {
           const damage =
-            0.97 * superMultiplier(s.superMode) *
+            0.97 * standardImpact((t as Enemy).balanceGroup,!!(t as Enemy).balance,"laser") * superMultiplier(s.superMode) *
             [1, 1.6, 2.3][level - 1] *
             damageMultiplier(
               "laser",
@@ -1604,7 +1624,7 @@ export class GameModel {
         if((e.shieldHP??0)>0) {e.shieldHP=Math.max(0,e.shieldHP!-(b.damage??1)*(b.type==="plasma"?1.25:1));continue;}
         e.health -=
           (b.damage ?? 1) *
-          damageMultiplier(b.type ?? "pulse", e.kind === 2, e.kind === 0);
+          damageMultiplier(b.type ?? "pulse", e.kind === 2, e.kind === 0) * standardImpact(e.balanceGroup,!!e.balance,b.type??"pulse");
         if (e.health <= 0) this.kill(e);
       } else if (s.miniBoss && collides(b, s.miniBoss)) {
         spent.add(b);

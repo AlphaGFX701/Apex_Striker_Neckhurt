@@ -25,6 +25,6 @@ Battle uses Phone Motion, controller, touch or keyboard. Enable sensors and cali
 
 ## Verification and art
 
-See NEON-PLAN.md, NEON-TESTING.md and ASSET-CREDITS.md. Simulation and browser screenshots are distinct from physical-device results. The long real-time Endless soak is intentionally omitted at the user's request.
+See STAGE-BALANCE-TESTING.md for the latest sector2/3 pacing parameters and before/after results. NEON-PLAN.md, NEON-TESTING.md and ASSET-CREDITS.md document the retained Neon systems and artwork. Simulation and browser screenshots are distinct from physical-device results. The long real-time Endless soak is intentionally omitted at the user's request.
 
 Rebuild selected neon art with scripts/build-neon-assets.py using Python3 + Pillow and the user-provided archives in Desktop/Space_combat. Only selected runtime derivatives ship. Source ZIP/PSD archives are not included. No new generative imagery is used; older NULLSIGNAL UI provenance remains disclosed in the credits.

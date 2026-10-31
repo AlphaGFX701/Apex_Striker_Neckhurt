@@ -57,3 +57,7 @@ AudioDirector owns music and nonverbal SFX only. There is no speech or announcer
 ## Change authority
 
 NEON-PLAN.md supersedes earlier balance and boss rules. PIXEL-COMBAT-PLAN.md is the historical source for three fixed pixel ships, run-only progression, first-sector choreography and the armor-gated commander. EVOLUTION-PLAN.md remains authoritative for retained gyro, EMP, wingman, feedback and lifecycle behavior. The theme and DOM controls keep the existing canonical CSS token ownership.
+
+## Sector2/3 pacing revision
+
+STAGE-BALANCE-PLAN.md supersedes pre-boss standard-enemy HP/cadence/caps in the earlier Neon baseline. GAME_BALANCE_CONFIG in neon.ts owns intro/mid/late5-second ramps: HP5.85/6.3/6.75 and7.8/8.4/9. Standard-only Pulse/Plasma/Laser impact1.1/1.2/1.05 is separate from Evolution and Super. No new-spawn configuration changes existing entity HP. Elite/homing permissions begin45s; first fire waits0.5 visible simulation seconds; wave generation pauses88.5–92 for miniboss arrival. Stage1, commanders, minibosses, boss supports and Endless retain baseline behavior. Existing score/drop formulas and saves remain intact. See STAGE-BALANCE-TESTING.md for pinned before/after results.
