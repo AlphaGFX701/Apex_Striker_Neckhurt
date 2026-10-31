@@ -1,3 +1,9 @@
+# Evolution Arcade — current audio behavior
+
+All spoken announcements, device speech, preview controls and announcement queues were removed in this release. No supplied NPC dialogue is played or cut into item names. Music and nonverbal SFX remain; EMP activation has a nonverbal cue, readiness is visual. Independent Music/SFX toggles and volume controls are available in Pause and Settings. Historical provenance below explains the supplied source files; prior fallback descriptions do not describe the current runtime.
+
+---
+
 # Audio provenance — Mobile Onslaught
 
 ## Music

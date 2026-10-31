@@ -1,0 +1,79 @@
+{
+  "pngCount": 36,
+  "totalPngBytes": 957155,
+  "frameKeys": [
+    "evo-pulse",
+    "evo-plasma",
+    "evo-red",
+    "evo-missile",
+    "evo-beam-core",
+    "evo-beam-cap",
+    "wingman-1",
+    "wingman-2",
+    "wingman-3",
+    "wingman-thruster-0",
+    "wingman-thruster-1",
+    "wingman-thruster-2",
+    "wingman-thruster-3",
+    "evo-spark-0",
+    "evo-spark-1",
+    "evo-spark-2",
+    "evo-spark-3",
+    "evo-meteor-0",
+    "evo-meteor-1",
+    "evo-meteor-2",
+    "evo-meteor-3",
+    "ui-window",
+    "ui-pause",
+    "ui-settings",
+    "ui-panel",
+    "ui-pause-button",
+    "ui-settings-button",
+    "ui-replay-button",
+    "ui-button",
+    "ui-button-active",
+    "ui-progress",
+    "ui-corner",
+    "ui-live",
+    "ui-standby",
+    "ship-upgrade-2",
+    "ship-upgrade-3"
+  ],
+  "meteorContour": "opaque black outside and warm-white inside, following sprite alpha, no circle",
+  "fontsEmbedded": [
+    "Chakra Petch",
+    "JetBrains Mono"
+  ],
+  "originalArchivesPublished": false,
+  "wingmanPalette": "All three friendly fighter tiers use cool cyan/silver; four engine frames use cyan/white. Original silhouettes, dimensions and alpha retained.",
+  "shipBuildCheck": {
+    "combinations": 81,
+    "allMajorSilhouettesConnected": true,
+    "sourceCanvas": 640,
+    "normalizedOverlayCanvas": 512,
+    "contactSheet": "evolution-assets-81-builds.png"
+  },
+  "meteorAssetContrastAgainstRuntimeOpacity": [
+    {
+      "theme": 0,
+      "backgroundMaxLuminance": 0.08241591454529161,
+      "warmWhiteContourContrastRatio": 7.052599404178835
+    },
+    {
+      "theme": 1,
+      "backgroundMaxLuminance": 0.07448061260436455,
+      "warmWhiteContourContrastRatio": 7.502183516673789
+    },
+    {
+      "theme": 2,
+      "backgroundMaxLuminance": 0.08073317641561216,
+      "warmWhiteContourContrastRatio": 7.143377263756253
+    },
+    {
+      "theme": 3,
+      "backgroundMaxLuminance": 0.05941056833899824,
+      "warmWhiteContourContrastRatio": 8.535522794584084
+    }
+  ],
+  "contrastFixtureNote": "Offline asset composite at actual0.37 background opacity; not a browser render or human perception test. White/black dual contour remains at every reduced-effects setting."
+}

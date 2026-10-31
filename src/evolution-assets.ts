@@ -1,0 +1,26 @@
+/** Selected artist-derived Evolution Arcade textures. See runtime credits.json. */
+export const EVOLUTION_IMAGES = [
+  "evo-pulse",
+  "evo-plasma",
+  "evo-red",
+  "evo-missile",
+  "evo-beam-core",
+  "evo-beam-cap",
+  "wingman-1",
+  "wingman-2",
+  "wingman-3",
+  "wingman-thruster-0",
+  "wingman-thruster-1",
+  "wingman-thruster-2",
+  "wingman-thruster-3",
+  "evo-spark-0",
+  "evo-spark-1",
+  "evo-spark-2",
+  "evo-spark-3",
+  "evo-meteor-0",
+  "evo-meteor-1",
+  "evo-meteor-2",
+  "evo-meteor-3",
+  "ship-upgrade-2",
+  "ship-upgrade-3"
+] as const;

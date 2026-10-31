@@ -52,34 +52,33 @@ describe("mobile onslaught contract", () => {
     };
     m.state.beams = [{ x: 195, age: 1.3 }];
     expect(m.action("emp").accepted).toBe(true);
-    expect(m.state.enemyBullets).toHaveLength(1);
-    expect(m.state.enemies[0].health).toBe(5);
-    expect(m.state.enemies[0].stun).toBe(0.8);
+    expect(m.state.enemyBullets).toHaveLength(0);
+    expect(m.state.enemies).toHaveLength(0);
     expect(m.state.boss.health).toBe(900);
     expect(m.state.energy).toBe(0);
-    expect(m.state.pickups).toHaveLength(0);
-    expect(m.state.beams).toHaveLength(1);
+    expect(m.state.stats.enemiesDestroyed).toBeGreaterThan(0);
+    expect(m.state.beams).toHaveLength(0);
   });
-  it("stacks drones left first; shields precede one drone interception and a 1.5s grace", () => {
+  it("upgrades the escort pair; shields precede hull damage and a1.5s grace", () => {
     const m = new GameModel();
     collect(m, "drone");
     expect(m.state.drones.map((d) => d.side)).toEqual([-1, 1]);
     collect(m, "drone");
-    expect(m.state.drones.map((d) => d.side)).toEqual([-1, 1, -1]);
+    expect(m.state.drones.map((d) => d.side)).toEqual([-1, 1]);
     for (let i = 0; i < 5; i++) collect(m, "drone");
-    expect(m.state.drones).toHaveLength(6);
+    expect(m.state.drones).toHaveLength(2);
     collect(m, "shield");
     shot(m);
     expect(m.state.shield).toBe(false);
-    expect(m.state.drones).toHaveLength(6);
+    expect(m.state.drones).toHaveLength(2);
     m.state.invincible = 0;
     shot(m);
-    expect(m.state.drones).toHaveLength(5);
-    expect(m.state.lives).toBe(3);
+    expect(m.state.drones).toHaveLength(2);
+    expect(m.state.lives).toBe(2);
     expect(m.state.invincible).toBe(1.5);
-    expect(m.state.interceptions).toHaveLength(1);
+    expect(m.state.interceptions).toHaveLength(0);
     shot(m);
-    expect(m.state.drones).toHaveLength(5);
+    expect(m.state.drones).toHaveLength(2);
   });
   it("drones do not block collisions or large lasers; hull damage grants 1.5s", () => {
     const m = new GameModel();
@@ -136,7 +135,7 @@ describe("mobile onslaught contract", () => {
     tick(m, 0.02);
     expect(m.state.boss).not.toBeNull();
     const hp = m.state.boss!.maxHealth;
-    expect(hp).toBeGreaterThanOrEqual(900);
+    expect(hp).toBeGreaterThanOrEqual(650);
     m.state.time = 181;
     tick(m);
     expect(m.state.gameOver).toBe(false);
@@ -190,7 +189,7 @@ describe("mobile onslaught contract", () => {
     expect(t.health).toBeLessThan(before);
     expect(b.health).toBe(b.maxHealth);
   });
-  it("stationary phase-three targets lock once, survive EMP and leave a warp exit", () => {
+  it("stationary phase-three targets lock once, allow an EMP cancel and leave a warp exit", () => {
     const m = new GameModel();
     m.practice = true;
     m.state.time = 119.99;
@@ -201,7 +200,7 @@ describe("mobile onslaught contract", () => {
     const x = m.state.beams[0].x;
     m.state.energy = 100;
     m.action("emp");
-    expect(m.state.beams[0].x).toBe(x);
+    expect(m.state.beams).toHaveLength(0);
     tick(m, 0.3);
     expect(m.action("dodgeLeft").accepted).toBe(true);
     expect(Math.abs(m.state.ship.x - x)).toBeGreaterThan(28);

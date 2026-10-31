@@ -1,0 +1,20 @@
+{
+  "baseline": "5622be4270fedddb6f2ed9d6c59a5451b948701b",
+  "axes": {
+    "Standards": "cleared after corrections",
+    "Spec": "cleared after corrections and browser audio-sync verification"
+  },
+  "resolved": [
+    "formation retreat overwritten by motion",
+    "boss escorts overlapping on one side",
+    "EMP immediately recreating orbital lock",
+    "Practice combo reset without hull loss",
+    "Pause dialog over delayed Results",
+    "Pause/Settings audio controls out of sync",
+    "byte count labelled as MB",
+    "linear filtering of pixel art",
+    "Pause volume controls missing",
+    "Phaser arrow capture interfering with native sliders"
+  ],
+  "checks": "100 unit tests passed; TypeScript passed; responsive browser matrix and outcome fixtures verified; physical-device tests not claimed"
+}

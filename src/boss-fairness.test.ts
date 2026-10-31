@@ -38,8 +38,8 @@ describe("readable boss escape corridors", () => {
           const gap = m.state.boss!.safeLaneX!;
           for (const b of m.state.enemyBullets)
             if (b.y >= 430 && b.y <= 675)
-              expect(Math.abs(b.x - gap)).toBeGreaterThan(52 + b.radius);
-          expect(m.state.enemies.length).toBeLessThanOrEqual(14);
+              expect(Math.abs(b.x - gap)).toBeGreaterThan(45 + b.radius);
+          expect(m.state.enemies.length).toBeLessThanOrEqual(2);
         }
       }
     },

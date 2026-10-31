@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { StageWaveManager, waveAt } from "./stage-waves";
 import { GameModel } from "./model";
 import { defaultRun } from "./equipment";
-import { AnnouncementQueue, PICKUP_PHRASES } from "./audio-director";
 
 function advance(m: GameModel, seconds: number) {
   for (let i = 0; i < Math.ceil(seconds / 0.01); i++)
@@ -32,7 +31,7 @@ describe("stage events", () => {
     expect(m.state.miniBoss).toBeNull();
     expect(m.state.boss).not.toBeNull();
     expect(m.state.warning).toBe("WARNING · CAPITAL SHIP");
-    expect(m.state.pickups.filter((p) => p.kind)).toHaveLength(0);
+    expect(m.state.pickups.every(p=>p.kind==="weapon")).toBe(true);
   });
   it("rewards mini-boss death once without ending the run", () => {
     const m = new GameModel();
@@ -99,20 +98,5 @@ describe("stage events", () => {
     expect(m.state.powers.overdrive).toBe(25);
     advance(m, 0.01);
     expect(m.drainEvents().filter((e) => e.type === "pickup")).toHaveLength(0);
-  });
-});
-describe("announcement queue", () => {
-  it("deduplicates, bounds, prioritizes and clears speech", () => {
-    const q = new AnnouncementQueue();
-    q.enqueue("Shield online");
-    q.enqueue("Shield online");
-    q.enqueue("Drone deployed");
-    q.enqueue("Weapon enhanced");
-    expect(q.pending).toHaveLength(2);
-    q.enqueue("EMP ready", true);
-    expect(q.pending).toEqual(["EMP ready", "Shield online"]);
-    q.clear();
-    expect(q.pending).toEqual([]);
-    expect(PICKUP_PHRASES.energy).toBe("EMP charging");
   });
 });

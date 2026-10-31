@@ -1,0 +1,56 @@
+{
+  "sources": [
+    {
+      "name": "Space Game GUI",
+      "archive": "Space_Game_GUI_PNG.zip",
+      "author": "CraftPix",
+      "license": "CraftPix game-use license; no source-asset redistribution",
+      "url": "https://craftpix.net/file-licenses/",
+      "use": "selected blank windows, buttons and button derivatives"
+    },
+    {
+      "name": "Space Shooter Asset Pack",
+      "author": "Gustavo Vituri",
+      "url": "https://gvituri.itch.io/space-shooter",
+      "license": "Personal/commercial game use and modification allowed; do not redistribute pack",
+      "use": "selected projectile, beam, fighter and booster frames; fighter/booster hues remapped to cyan/silver for friendly identification while retaining authored silhouettes and alpha",
+      "ai": "Author states no generative AI used"
+    },
+    {
+      "name": "Lunar Lander Assets",
+      "archive": "Lunar Lander Assets 24-11-20.zip",
+      "use": "asteroid artwork with baked light texture/dual silhouette contours; original project provenance retained"
+    },
+    {
+      "name": "Space Ship & Mech Construction Kit2",
+      "author": "Skorpio",
+      "url": "https://opengameart.org/content/space-ship-mech-construction-kit-2",
+      "license": "CC-BY-SA3.0",
+      "use": "existing normalized module art cropped into side gun/engine/wing equipment; structural spars are deterministic original pixel geometry"
+    },
+    {
+      "name": "NULLSIGNAL UI FREE v1.1",
+      "author": "Nkyo-P",
+      "url": "https://nkyo-p.itch.io/nullsignal-dark-tech-sci-fi-ui-hud-kit",
+      "license": "Finished-game use and modifications allowed; no standalone asset redistribution/resale/AI-training",
+      "ai": "Author discloses AI-assisted vector code and human arrangement; no claim of AI-free provenance",
+      "use": "progress/status/bracket components only; no generated background"
+    },
+    {
+      "name": "Chakra Petch",
+      "author": "Cadson Demak",
+      "license": "SIL OFL1.1",
+      "use": "self-hosted font; license included"
+    },
+    {
+      "name": "JetBrains Mono",
+      "author": "JetBrains",
+      "license": "SIL OFL1.1",
+      "use": "self-hosted numeric font; license included"
+    }
+  ],
+  "notes": [
+    "Only selected runtime derivatives are published, never the source ZIP/PSD packs.",
+    "Ethnocentric is referenced by the GUI README but no font software is included or embedded."
+  ]
+}

@@ -1,6 +1,6 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { readFileSync, statSync } from "node:fs";
-import { AudioDirector, MUSIC_TRACKS, VOICE_CLIPS } from "./audio-director";
+import { AudioDirector, MUSIC_TRACKS } from "./audio-director";
 import { Feedback } from "./feedback";
 
 afterEach(() => {
@@ -95,86 +95,37 @@ it("crossfades the requested stage/boss music in 400ms and never restarts at pha
   expect(tracks[1].plays).toBe(1);
   expect(tracks[1].currentTime).toBe(37);
 });
-it("deduplicates speech, ducks music, prioritizes ready and clears stale voices on pause", () => {
-  const { audio, tracks, spoken, speech, advance } = setup();
+it("never speaks pickups or EMP and keeps music mute independent of effects", () => {
+  const { audio, spoken, tracks, advance } = setup();
+  const play = vi.spyOn(audio, "play");
+  audio.pickup("weapon");
+  audio.pickup("shield");
+  audio.ready();
+  audio.play("emp");
+  advance(1000);
+  expect(spoken).toHaveLength(0);
+  expect(play.mock.calls.map((c) => c[0])).toEqual(["pickup", "pickup", "emp"]);
   audio.music("battle");
   advance(400);
-  const normal = tracks[0].volume;
-  audio.pickup("shield");
-  audio.pickup("shield");
-  audio.ready();
-  advance(350);
-  expect(spoken.map((s) => s.text)).toEqual(["EMP ready"]);
-  expect(tracks[0].volume).toBeLessThan(normal * 0.6);
-  spoken[0].onend();
-  expect(spoken[1].text).toBe("Shield online");
-  tracks[0].currentTime = 49;
+  tracks[0].currentTime = 25;
   audio.pauseAudio();
-  expect(speech.cancel).toHaveBeenCalled();
-  expect(tracks[0].paused).toBe(true);
-  advance(5000);
-  expect(spoken).toHaveLength(2);
-  audio.music("battle");
   expect(tracks[0].paused).toBe(true);
   audio.resumeAudio();
-  expect(tracks[0].paused).toBe(false);
-  expect(tracks[0].currentTime).toBe(49);
-});
-it("keeps voice independent of SFX mute, honors voice mute, and never says energy for score", () => {
-  const { audio, spoken, advance } = setup();
+  expect(tracks[0].currentTime).toBe(25);
+  audio.musicEnabled = false;
+  advance(400);
+  expect(tracks[0].volume).toBe(0);
   audio.enabled = false;
-  audio.ready();
-  advance(350);
-  expect(spoken).toHaveLength(1);
-  audio.clearAnnouncements();
-  audio.voiceEnabled = false;
-  audio.ready();
-  advance(500);
-  expect(spoken).toHaveLength(1);
-  audio.voiceEnabled = true;
-  audio.pickup("score");
-  advance(500);
-  expect(spoken).toHaveLength(1);
+  audio.musicEnabled = true;
+  advance(400);
+  expect(tracks[0].volume).toBeGreaterThan(0);
 });
-it("previews seven correctly named announcements and provides distinct defense sounds", () => {
-  const { audio, spoken, advance } = setup();
-  const play = vi.spyOn(audio, "play");
-  for (const clip of VOICE_CLIPS) {
-    audio.previewVoice(clip.key);
-    advance(1);
-    expect(spoken.at(-1).text).toBe(clip.text);
-  }
-  expect(VOICE_CLIPS).toHaveLength(7);
-  audio.shieldHit();
-  audio.droneIntercept();
-  audio.hullHit();
-  audio.play("emp");
-  audio.explosion();
-  expect(play.mock.calls.map((c) => c[0])).toEqual([
-    "shield-hit",
-    "drone-intercept",
-    "hit",
-    "emp",
-    "explosion",
-  ]);
-});
-it("ships the requested music and discloses mismatched supplied recordings rather than false cuts", () => {
+it("ships both requested music recordings", () => {
   for (const filename of ["terminal-dash.mp3", "orbital-bombardment.mp3"])
     expect(
       statSync(new URL(`../public/assets/audio/${filename}`, import.meta.url))
         .size,
     ).toBeGreaterThan(1000000);
-  const manifest = JSON.parse(
-    readFileSync(
-      new URL("../public/assets/audio/voice-manifest.json", import.meta.url),
-      "utf8",
-    ),
-  );
-  expect(manifest.status).toBe("source-content-mismatch");
-  expect(manifest.phrases.map((p: any) => p.text)).toEqual(
-    VOICE_CLIPS.map((c) => c.text),
-  );
-  expect(manifest.phrases.every((p: any) => p.recordedUrl === null)).toBe(true);
 });
 it("bounds explosion polyphony, reuses noise and enforces the 100ms explosion interval", () => {
   const oscillators: any[] = [];

@@ -29,6 +29,10 @@ export function installQaCapture(
   host.append(capture, stats);
   document.body.append(host);
   const frames: number[] = [];
+  const samples: Record<string, number>[] = [];
+  let runStart = 0,
+    lastTime = 0;
+  let trackedState=scene.model.state;
   let previous = performance.now();
   const measure = (now: number) => {
     frames.push(now - previous);
@@ -40,6 +44,31 @@ export function installQaCapture(
   window.setInterval(() => {
     const s = scene.model.state,
       sorted = [...frames].sort((a, b) => a - b);
+    if (s!==trackedState || s.time < lastTime || !runStart) {
+      runStart = performance.now();
+      samples.length = 0;
+      trackedState=s;
+    }
+    lastTime = s.time;
+    const heapBytes = (
+      performance as Performance & { memory?: { usedJSHeapSize: number } }
+    ).memory?.usedJSHeapSize;
+    if (scene.isRunning && samples.length < 3600)
+      samples.push({
+        wallSeconds: (performance.now() - runStart) / 1000,
+        time: s.time,
+        wave: s.wave,
+        enemies: s.enemies.length,
+        playerBullets: s.bullets.length,
+        enemyBullets: s.enemyBullets.length,
+        pickups: s.pickups.length,
+        effects: s.explosions.length,
+        renderObjects:scene.children.list.length,
+        textures:scene.textures.getTextureKeys().length,
+        p95: sorted[Math.floor(sorted.length * 0.95)] ?? 0,
+        heapMB: heapBytes === undefined ? -1 : heapBytes / 1048576,
+      });
+    host.dataset.samples = JSON.stringify(samples);
     stats.textContent = `QA SIM · ${Math.floor(s.time)}s · ${s.enemies.length}E/${s.enemyBullets.length}B`;
     host.dataset.metrics = JSON.stringify({
       time: s.time,

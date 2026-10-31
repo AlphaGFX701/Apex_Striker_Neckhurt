@@ -73,3 +73,19 @@ Rebuild runtime assets with scripts/build-environment-assets.py using Pillow and
 - Supplied renamed announcement WAVs are identical unrelated NPC dialogue. They are not shipped as falsely labelled item voices. Correct English device speech remains the fallback pending matching recordings. See AUDIO-PROVENANCE.md.
 
 Detailed asset provenance: /assets/onslaught/credits.json and /assets/audio/music-manifest.json. Earlier sections describe historical releases; current combat environments use Feony space-only variants, not the former planet background.
+# Evolution Arcade runtime artwork
+
+Selected GUI derivatives: CraftPix Space Game GUI, from the user-supplied `Space_Game_GUI_PNG.zip`, under the [CraftPix file license](https://craftpix.net/file-licenses/). Only game-integrated runtime derivatives are included, never the source ZIP/PSD pack. Blank button material is derived from the author's window texture, with labels supplied by accessible HTML.
+
+Projectile, beam, fighter and booster frames: **Gustavo Vituri**, [Space Shooter Asset Pack](https://gvituri.itch.io/space-shooter). Personal/commercial game use and modification permitted; standalone pack redistribution prohibited. Author states no generative AI was used. The game includes selected frames, not an asset-library download. Friendly fighter tiers and engine frames are recolored cyan/silver/white, preserving authored silhouettes and alpha, to distinguish them from warm-colored hostile units.
+
+Meteor derivatives retain the project's Lunar Lander artist provenance. Runtime contours are baked around the original alpha silhouette in black and warm white; pale rock shading and amber cracks improve visibility. These are deterministic image edits, not generated imagery.
+
+Progress/status/bracket elements: **Nkyo-P — NULLSIGNAL**, user-supplied FREE v1.1, [official pack](https://nkyo-p.itch.io/nullsignal-dark-tech-sci-fi-ui-hud-kit). Finished-game use/editing allowed, no standalone redistribution/resale/AI-training. The author discloses AI-assisted vector code and human arrangement; no claim of AI-free provenance is made. No generated background from this pack is used.
+
+Chakra Petch by Cadson Demak and JetBrains Mono by JetBrains are bundled under SIL OFL1.1. License texts are in `/assets/evolution/fonts/`. Ethnocentric is only referenced in the GUI archive README and is not embedded.
+
+Runtime manifest/provenance: `/assets/evolution/manifest.json` and `/assets/evolution/credits.json`. Rebuild: `scripts/build-evolution-assets.py`.
+
+Evolution side-wing/gun/engine overlays: additional adaptations of **Skorpio — Space Ship & Mech Construction Kit2**, [source](https://opengameart.org/content/space-ship-mech-construction-kit-2), **CC-BY-SA3.0**. `ship-upgrade-2.png` and `ship-upgrade-3.png` retain that license; see `/assets/evolution/LICENSE-SHIP-UPGRADES.txt`. The original module derivatives and modification script remain available with the game source.
+

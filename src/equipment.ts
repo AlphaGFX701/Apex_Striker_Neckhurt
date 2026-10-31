@@ -65,7 +65,7 @@ export const STAGES = [
     weakness: "plasma" as DamageType,
     description: "Break the blockade through an ancient debris field.",
     color: "#60d8ff",
-    hp: 900,
+    hp: 650,
   },
   {
     name: "Orbital Convoy",
@@ -73,7 +73,7 @@ export const STAGES = [
     weakness: "laser" as DamageType,
     description: "Intercept the convoy. Watch for reactor beam warnings.",
     color: "#b5a2ff",
-    hp: 1200,
+    hp: 800,
   },
   {
     name: "Citadel Assault",
@@ -81,7 +81,7 @@ export const STAGES = [
     weakness: "missile" as DamageType,
     description: "Breach the citadel and defeat its command fleet.",
     color: "#f0bc74",
-    hp: 1500,
+    hp: 1000,
   },
 ];
 export interface RunConfig {
@@ -128,7 +128,7 @@ export function damageMultiplier(
 export function weaponVolley(type: EquipmentId, level: number) {
   const l = Math.max(1, Math.min(3, level));
   const count = type === "plasma" ? l * 2 + 1 : l;
-  const total = (type === "plasma" ? 1.5 : 1) * (1 + (l - 1) * 0.2);
+  const total = (type === "plasma" ? 1.5 : 1) * [1, 1.6, 2.3][l - 1];
   return Array.from({ length: count }, (_, i) => ({
     angle:
       type === "plasma"

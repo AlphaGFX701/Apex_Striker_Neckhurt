@@ -1,11 +1,15 @@
 import { ParallaxEnvironment } from "./parallax";
 import { BOSS_ART, ONSLAUGHT_IMAGES } from "./onslaught-assets";
+import { EVOLUTION_IMAGES } from "./evolution-assets";
 import Phaser from "phaser";
 import { GameModel, WORLD, dronePosition, type GameSnapshot } from "./model";
 import type { Axes } from "./sensor";
 import type { Action } from "./motion";
 const LIMIT_EFFECTS = 48;
 export interface GameControl {
+  onLoadProgress?: (progress: number) => void;
+  onReady?: () => void;
+  onLoadError?: () => void;
   reducedEffects?: () => boolean;
   manual?: () => boolean;
   onRelease?: () => void;
@@ -20,17 +24,25 @@ export class SpaceScene extends Phaser.Scene {
   readonly model = new GameModel();
   shipStyle = 0;
   private customShip = false;
-  setShipCanvas(canvas: HTMLCanvasElement) {
+  setShipCanvas(canvas: HTMLCanvasElement, level: 1 | 2 | 3 = 1) {
     if (!this.textures) return;
-    if (this.textures.exists("player-custom"))
-      this.textures.remove("player-custom");
-    this.textures.addCanvas("player-custom", canvas);
+    const key = `player-custom-${level}`;
+    if (this.textures.exists(key)) this.textures.remove(key);
+    this.textures.addCanvas(key, canvas);
     this.customShip = true;
   }
   private sprites: Phaser.GameObjects.Image[] = [];
   private spriteIndex = 0;
   private wasHit = false;
+  private endAge = 0;
+  private lastBossBurst = -10;
   preload() {
+    this.load.on("loaderror", () => this.control.onLoadError?.());
+    this.load.on("progress", (value: number) =>
+      this.control.onLoadProgress?.(value),
+    );
+    for (const key of EVOLUTION_IMAGES)
+      this.load.image(key, `/assets/evolution/${key}.png`);
     this.load.atlas(
       "environment",
       "/assets/environment/environment.png",
@@ -86,6 +98,7 @@ export class SpaceScene extends Phaser.Scene {
       .clearTint()
       .setDepth(/-hit$|^shield-|^spark-|^drone-burst-/.test(frame) ? 2 : 1);
     image.setScale((width / image.width) * scaleX, width / image.width);
+    return image;
   }
   private environment!: ParallaxEnvironment;
   private lastMiniBurst = 0;
@@ -100,6 +113,10 @@ export class SpaceScene extends Phaser.Scene {
     super("Space");
   }
   create() {
+    for (const key of EVOLUTION_IMAGES)
+      if (/^(evo-(pulse|plasma|red|missile|beam|spark)|wingman)/.test(key))
+        this.textures.get(key).setFilter(Phaser.Textures.FilterMode.NEAREST);
+    this.control.onReady?.();
     this.environment = new ParallaxEnvironment(this);
     this.art = this.add.graphics().setDepth(3);
     for (let i = 0; i < 85; i++)
@@ -111,6 +128,7 @@ export class SpaceScene extends Phaser.Scene {
       });
     this.keys = this.input.keyboard!.addKeys(
       "LEFT,RIGHT,UP,DOWN,W,A,S,D,Q,E,SPACE",
+      false,
     ) as Record<string, Phaser.Input.Keyboard.Key>;
     this.input.on("pointerdown", (p: Phaser.Input.Pointer) => this.setDrag(p));
     this.input.on("pointermove", (p: Phaser.Input.Pointer) => {
@@ -144,6 +162,8 @@ export class SpaceScene extends Phaser.Scene {
   };
   start() {
     this.model.reset();
+    this.endAge = 0;
+    this.lastBossBurst = -10;
     this.clearInput();
     this.started = true;
     this.running = true;
@@ -246,6 +266,7 @@ export class SpaceScene extends Phaser.Scene {
       s = this.model.state,
       stage = this.model.config.stage,
       reduced = !!this.control.reducedEffects?.();
+    if (s.gameOver) this.endAge += _dt;
     this.environment.update(s, reduced, stage);
     g.clear();
     for (const image of this.sprites) image.setVisible(false);
@@ -258,11 +279,17 @@ export class SpaceScene extends Phaser.Scene {
     }
     for (const b of s.bullets) {
       this.sprite(
-        b.interceptor ? "red-shot" : "laser-1",
+        b.interceptor
+          ? "evo-red"
+          : b.missile
+            ? "evo-missile"
+            : b.type === "plasma"
+              ? "evo-plasma"
+              : "evo-pulse",
         b.x,
         b.y,
-        b.interceptor ? 14 : b.missile ? 23 : 19,
-        b.interceptor ? Math.atan2(b.vx ?? 0, b.speed) : -Math.PI / 2,
+        b.missile ? 14 : 9,
+        Math.atan2(b.vx ?? 0, b.speed),
         0.9,
       );
       g.fillStyle(
@@ -280,17 +307,13 @@ export class SpaceScene extends Phaser.Scene {
       g.fillRoundedRect(b.x - 1.5, b.y - 8, 3, b.missile ? 17 : 12, 1);
     }
     for (const r of s.rocks) {
-      g.lineStyle(2, 0xffc88c, 0.55);
-      g.strokeCircle(r.x, r.y, r.radius + 3);
       this.sprite(
-        `meteor-${Math.floor(r.radius) % 4}`,
+        `evo-meteor-${Math.floor(r.radius) % 4}`,
         r.x,
         r.y,
         r.radius * 3.1,
         r.phase,
       );
-      g.fillStyle(0xffda9d, 0.85);
-      g.fillCircle(r.x - r.radius * 0.4, r.y - r.radius * 0.4, 2);
     }
     for (const e of s.enemies) {
       const key = `enemy-${e.faction ?? stage}-${e.kind ?? 0}`,
@@ -399,13 +422,17 @@ export class SpaceScene extends Phaser.Scene {
           0.92 + Math.sin(s.time * 5 + p.x) * 0.08,
         );
       }
-    let particles = 0;
+    let particles = 0,
+      debrisCount = 0;
     for (const e of s.explosions) {
       if (reduced && e.spark) continue;
       if (particles++ > LIMIT_EFFECTS) break;
-      const progress = e.age / (e.spark ? 0.24 : 0.65);
+      const age = e.age + this.endAge;
+      if (age < 0) continue;
+      const progress = age / (e.spark ? 0.24 : 0.65);
+      if (progress >= 1) continue;
       const frame = e.spark
-        ? `spark-${Math.min(5, Math.floor(progress * 6))}`
+        ? `evo-spark-${Math.min(3, Math.floor(progress * 4))}`
         : e.art?.startsWith("enemy-")
           ? `${e.art}-destroy-${Math.min(7, Math.floor(progress * 8))}`
           : e.art
@@ -419,6 +446,16 @@ export class SpaceScene extends Phaser.Scene {
         0,
         1 - progress * 0.5,
       );
+      if (!reduced && !e.spark)
+        for (let j = 0; j < 4 && debrisCount < 80; j++, debrisCount++) {
+          const a = j * 2.4 + e.x * 0.1;
+          g.fillStyle(j % 2 ? 0xffb75f : 0xffead2, 1 - progress);
+          g.fillCircle(
+            e.x + Math.cos(a) * age * 110,
+            e.y + Math.sin(a) * age * 110 + age * age * 60,
+            2 * (1 - progress) + 0.5,
+          );
+        }
     }
     if (s.storm) {
       const h = s.storm;
@@ -462,8 +499,17 @@ export class SpaceScene extends Phaser.Scene {
     }
     const ship = s.ship,
       warp = s.dodgeTime > 0,
-      shipKey = this.customShip ? "player-custom" : `player-${this.shipStyle}`,
-      shipWidth = this.customShip ? 95 : 65;
+      shipKey = this.customShip
+        ? `player-custom-${s.evolution.level}`
+        : `player-${this.shipStyle}`,
+      shipWidth = this.customShip ? 95 : 65,
+      lean = reduced
+        ? 0
+        : (Phaser.Math.Clamp(s.velocity.x / 310, -1, 1) * Math.PI) / 15;
+    const anchor = (dx: number, dy: number) => ({
+      x: ship.x + dx * Math.cos(lean) - dy * Math.sin(lean),
+      y: ship.y + dx * Math.sin(lean) + dy * Math.cos(lean),
+    });
     if (warp) {
       const alpha = s.dodgeTime / 0.6;
       this.sprite(
@@ -490,19 +536,32 @@ export class SpaceScene extends Phaser.Scene {
       for (const side of [-1, 1])
         this.sprite(
           "thruster",
-          ship.x + side * 9,
-          ship.y + 39,
-          21,
-          0,
+          anchor(side * 9, 39).x,
+          anchor(side * 9, 39).y,
+          21 + Math.abs(s.velocity.y) / 80,
+          lean,
           0.8 + Math.sin(s.time * 35) * 0.15,
           0.5,
         );
-      this.sprite(shipKey, ship.x, ship.y, shipWidth);
+      this.sprite(shipKey, ship.x, ship.y, shipWidth, lean);
+    }
+    if (s.evolution.transformRemaining > 0) {
+      const p = 1 - s.evolution.transformRemaining / 0.45;
+      g.lineStyle(2, 0x86f4ff, (1 - p) * 0.8);
+      g.strokeEllipse(ship.x, ship.y, 70 + p * 70, 95 + p * 55);
     }
     if (s.laser > 0) {
       const width = 7 + s.powers.weapon * 4,
         red = s.powers.overdrive > 0,
         beamColor = red ? 0xff3657 : 0x60d8ff;
+      this.sprite(
+        red ? "evo-red" : "evo-beam-core",
+        ship.x,
+        (ship.y - 25) / 2,
+        width,
+        0,
+        0.75,
+      ).setDisplaySize(width, ship.y - 25);
       g.lineStyle(width + 8, beamColor, 0.18);
       g.lineBetween(ship.x, ship.y - 25, ship.x, 0);
       g.lineStyle(width, beamColor, 0.55);
@@ -522,7 +581,19 @@ export class SpaceScene extends Phaser.Scene {
     }
     for (const drone of s.drones) {
       const p = dronePosition(ship, drone);
-      this.sprite("drone", p.x, p.y, 23);
+      this.sprite(
+        `wingman-${s.wingmen.level || 1}`,
+        p.x,
+        p.y,
+        27 + s.wingmen.level * 3,
+        lean * 0.3,
+      );
+      this.sprite(
+        `wingman-thruster-${Math.floor(s.time * 16) % 4}`,
+        p.x,
+        p.y + 20,
+        13,
+      );
       g.fillStyle(0x81eaff, 0.8);
       g.fillEllipse(p.x, p.y + 13, 4, 9);
     }
@@ -544,6 +615,7 @@ export class SpaceScene extends Phaser.Scene {
     }
     if (s.shield)
       this.sprite(`shield-${Math.floor(s.time * 12) % 8}`, ship.x, ship.y, 90);
+
     if (s.hitEffect > 0 && s.damageKind === "shield")
       this.sprite(
         `shield-${Math.floor(s.time * 20) % 8}`,
@@ -574,8 +646,19 @@ export class SpaceScene extends Phaser.Scene {
         this.cameras.main.flash(80, 150, 200, 255);
       }
     }
+
     if (s.hitEffect > 0 && s.damageKind === "hull" && !this.wasHit && !reduced)
       this.cameras.main.shake(100, 0.004);
+    if (
+      s.explosions.some((e) => e.size === 210 && e.age < 0.06) &&
+      s.time - this.lastBossBurst > 1
+    ) {
+      this.lastBossBurst = s.time;
+      if (!reduced) {
+        this.cameras.main.shake(250, 0.008);
+        this.cameras.main.flash(80, 175, 220, 255);
+      }
+    }
     this.wasHit = s.hitEffect > 0;
   }
 }

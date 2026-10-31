@@ -1,0 +1,47 @@
+[
+  {
+    "stage": 1,
+    "weapon": "pulse",
+    "startedAt": "2026-10-31T11:15:05.844Z",
+    "kind": "full-browser-run-simulated-pilot-practice",
+    "result": "Score\n34,051\nSurvival Time\n142.4s\nEnemies Destroyed\n107\nBest Multiplier\n×5\nEMP uses\n2\nShots intercepted\n198\nPower-ups\n52",
+    "completedAt": "2026-10-31T11:17:59.751Z",
+    "metrics": {
+      "time": 142.4061100000003,
+      "frameP95": 7.100000000005821,
+      "frames": 1800,
+      "enemies": 2,
+      "enemyBullets": 0
+    }
+  },
+  {
+    "stage": 2,
+    "weapon": "plasma",
+    "startedAt": "2026-10-31T11:18:00.896Z",
+    "kind": "full-browser-run-simulated-pilot-practice",
+    "result": "Score\n50,449\nSurvival Time\n152.7s\nEnemies Destroyed\n165\nBest Multiplier\n×5\nEMP uses\n2\nShots intercepted\n342\nPower-ups\n70",
+    "completedAt": "2026-10-31T11:20:59.405Z",
+    "metrics": {
+      "time": 152.69705999999812,
+      "frameP95": 7.100000000034925,
+      "frames": 1800,
+      "enemies": 0,
+      "enemyBullets": 0
+    }
+  },
+  {
+    "stage": 3,
+    "weapon": "laser",
+    "startedAt": "2026-10-31T11:21:00.357Z",
+    "kind": "full-browser-run-simulated-pilot-practice",
+    "result": "Score\n37,849\nSurvival Time\n155.0s\nEnemies Destroyed\n132\nBest Multiplier\n×5\nEMP uses\n2\nShots intercepted\n262\nPower-ups\n43",
+    "completedAt": "2026-10-31T11:24:37.138Z",
+    "metrics": {
+      "time": 155.00878000000176,
+      "frameP95": 7.099999999976717,
+      "frames": 1800,
+      "enemies": 2,
+      "enemyBullets": 0
+    }
+  }
+]

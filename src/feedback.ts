@@ -32,7 +32,6 @@ export class Feedback {
   private lastEffect = new Map<EffectKind, number>();
   enabled = true;
   sfxVolume = 0.75;
-  voiceEnabled = true;
   haptics = false;
   ready() {
     this.play("ready");

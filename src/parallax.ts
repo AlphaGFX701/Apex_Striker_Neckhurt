@@ -21,8 +21,8 @@ export class ParallaxEnvironment {
       scene.add
         .image((i * 97 + 20) % 390, 0, "environment", `debris-${i % 6}`)
         .setDepth(-3)
-        .setAlpha(0.18)
-        .setDisplaySize(26 + (i % 3) * 12, 26 + (i % 3) * 12),
+        .setAlpha(0.08)
+        .setDisplaySize(14 + (i % 3) * 6, 14 + (i % 3) * 6),
     );
     this.mist = scene.add.graphics().setDepth(-2);
   }

@@ -10,7 +10,7 @@ describe("tactical loadout", () => {
         const shots = weaponVolley(type, level);
         expect(shots.length).toBe(type === "pulse" ? level : level * 2 + 1);
         expect(shots.reduce((s, b) => s + b.damage, 0)).toBeCloseTo(
-          (type === "pulse" ? 1 : 1.5) * (1 + (level - 1) * 0.2),
+          (type === "pulse" ? 1 : 1.5) * [1, 1.6, 2.3][level - 1],
         );
       }
   });
@@ -158,7 +158,7 @@ describe("tactical simulation", () => {
       }
       expect(m.state.gameOver).toBe(true);
       expect(m.state.result).toBe("practice");
-      expect(m.state.time).toBeGreaterThan(180);
+      expect(m.state.time).toBeGreaterThan(120);
     }
   });
   it("simulates twenty minutes of Endless with bounded objects and valid choices", () => {
@@ -214,12 +214,35 @@ describe("tactical simulation", () => {
   });
 });
 describe("save recovery", () => {
-  it("keepsOnslaught scores separate and leavesolderarcade records untouched",()=>{
-    const old=JSON.stringify({version:6,records:[{mode:"stage",stage:0,score:900,time:80,date:"2026-10-18"}]});
-    const data=new Map([["gyro-arcade-progress-v1",old]]),storage={getItem:(k:string)=>data.get(k)||null,setItem:(k:string,v:string)=>{data.set(k,v)}};
-    const p=new ProgressStore(storage,true,"gyro-onslaught-progress-v1");expect(p.state.records).toHaveLength(0);
-    p.settle("new-rules",{practice:false,mode:"stage",stage:0,won:true,credits:999,score:100,time:210});
-    expect(p.state.records).toHaveLength(1);expect(p.state.credits).toBe(0);expect(p.state.cleared).toContain(0);expect(data.get("gyro-arcade-progress-v1")).toBe(old);
+  it("keepsOnslaught scores separate and leavesolderarcade records untouched", () => {
+    const old = JSON.stringify({
+      version: 6,
+      records: [
+        { mode: "stage", stage: 0, score: 900, time: 80, date: "2026-10-18" },
+      ],
+    });
+    const data = new Map([["gyro-arcade-progress-v1", old]]),
+      storage = {
+        getItem: (k: string) => data.get(k) || null,
+        setItem: (k: string, v: string) => {
+          data.set(k, v);
+        },
+      };
+    const p = new ProgressStore(storage, true, "gyro-onslaught-progress-v1");
+    expect(p.state.records).toHaveLength(0);
+    p.settle("new-rules", {
+      practice: false,
+      mode: "stage",
+      stage: 0,
+      won: true,
+      credits: 999,
+      score: 100,
+      time: 210,
+    });
+    expect(p.state.records).toHaveLength(1);
+    expect(p.state.credits).toBe(0);
+    expect(p.state.cleared).toContain(0);
+    expect(data.get("gyro-arcade-progress-v1")).toBe(old);
   });
   it("does not award a completed round again after reloading the browser save", () => {
     const data = new Map<string, string>();

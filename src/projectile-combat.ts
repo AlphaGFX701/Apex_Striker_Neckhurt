@@ -50,11 +50,17 @@ export class ProjectileGrid<T extends MovingCircle> {
 export function threatensPassage(
   b: { x: number; y: number; vx: number; vy: number; radius: number },
   center: number,
+  width = 104,
 ) {
   let enter = 0,
     exit = 8;
   for (const [position, speed, min, max] of [
-    [b.x, b.vx, center - 52 - b.radius - 6, center + 52 + b.radius + 6],
+    [
+      b.x,
+      b.vx,
+      center - width / 2 - b.radius - 6,
+      center + width / 2 + b.radius + 6,
+    ],
     [b.y, b.vy, 430 - b.radius, 675 + b.radius],
   ]) {
     if (Math.abs(speed) < 0.0001) {

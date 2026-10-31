@@ -1,32 +1,35 @@
-# Gyro Space Combat — interaction contract
+# Evolution Arcade — observable UI contract
 
-## Product evidence
+## Screens and navigation
 
-The user-approved requirements are in ONSLAUGHT-PLAN.md. The subsequent soundtrack override selects Terminal_Dash for assaults and ORBITAL BOMBARDMENT for capital ships. Audio source verification is recorded in AUDIO-PROVENANCE.md; the supplied NPC recording must never be labelled as item announcements.
+English is the sole interface locale. Device names are displayed exactly as the browser reports them. Title leads to Play, Hangar or Settings. Main navigation contains Hangar / Battle / Records, hidden in battle. Controller Lab is a secondary flight-system tool, not a required onboarding step. Back returns to the originating screen, including Settings opened from Pause.
 
-## Canonical UI Map
+Appearance edits are a draft until saved. Leaving a dirty draft requires confirmation. Main weapons and stages are free and immediately available. No shop, purchase, unlock or permanent upgrade flow is shown.
 
-| Capability     | Canonical owner                                       | Source of truth          | Allowed variants                                     | Verification                         |
-| -------------- | ----------------------------------------------------- | ------------------------ | ---------------------------------------------------- | ------------------------------------ |
-| Select/Listbox | Native labelled select in screens.ts / Controller Lab | This contract            | Platform-owned mobile popup                          | Browser keyboard and narrow viewport |
-| Scrollbar      | Global style.css                                      | DESIGN.md runtime tokens | Document menus; fixed battle with no document scroll | Layout measurements                  |
-| Toast          | main.ts toast() with #toast live region               | This contract            | Transient status; errors also remain in owning panel | Browser permission/launch failure    |
-| Overlay        | Native dialog                                         | This contract            | Pause, leave run, discard appearance, help           | Focus, cancel, resume                |
+## Flight lifecycle
 
-Native select popup geometry and OS interaction are intentional. No authored replacement is required. There are no searchable tables, purchases, accounts or server mutations.
+Phone motion is the default on a fresh mobile profile. Enable sensors, calibrate, test movement, then Launch. Permission denial, absent sensor data and insecure transport show actionable status and permit fallback input. Missing measurements say Unavailable, never zero.
 
-## Navigation and drafts
+App loss, stale sensor input, controller disconnect and orientation change pause flight and clear input. Orientation changes require calibration before Resume. Touch Smart Pause follows only the movement pointer. Releasing skill fingers does not pause gyro/controller play. Resume has no countdown and grants 0.6 seconds of protection.
 
-Home leads to Missions or Hangar. Missions chooses stage and weapon before Preflight. Appearance is a draft until Save; leaving a dirty Hangar confirms discard. Equipment is a free weapon choice, with no permanent strength or economy controls. Settings and Controller Lab return to the screen that opened them. Returning to a paused battle does not automatically resume it.
+Native inputs and sliders keep normal keyboard behavior. Only the active source controls flight. Menus do not send gameplay actions. During the end-of-round presentation, Pause cannot open over Results. Restart and Withdraw cannot be overwritten by a delayed transition.
 
-## Battle lifecycle
+## Evolution and feedback
 
-The model owns combat, collision and reward rules. DOM menus cannot dispatch game actions. Pause, app loss, stale sensors, controller loss and orientation changes clear transient input. Phone orientation changes require calibration before Resume. Only releasing the movement touch pointer invokes Smart Pause; skill finger releases do not. Resume grants 0.6 seconds of protection and never counts down. Boss combat has no timeout. A run settles once; Practice never writes records. Onslaught records use their own key while older records remain stored.
+Two / five collected orbs produce Level 2 / 3. Evolution adds parts to the selected modular ship with unchanged speed and hitbox. Main firepower is 100 / 160 / 230%; damage does not lower the level. Every Weapon Orb refreshes Red Overdrive to 25 seconds. Two wingmen upgrade instead of stacking or acting as armor. All run powers reset on a new flight.
 
-## Feedback and access
+Hull has three segments; shield, wingman level, evolution and Red Overdrive have separate indicators. Color supplements semantic shapes, text and numbers. Meteors are bright, outlined hazards; small dim debris is decorative. Reduced Effects preserves warning and damage information while limiting flashes and motion.
 
-English is the sole app locale. Device names are shown exactly as reported. Color supplements semantic shapes and text. Hull has three segments; shield and escorts have distinct indicators. Cooldown states match on both Warp buttons. EMP uses a percentage gauge. Controls have at least 44×44px targets, visible focus, pressed and disabled states. Dialogs have visible accessible titles and Cancel is initially focused for destructive confirmations. Keyboard movement and controller navigation are alternatives to dragging.
+EMP clears ordinary threats across the arena, not commanders or hardpoints. Passive charge is 75 seconds, cells add 5%, and kills never refund energy. Warp shares one recharge state between left/right buttons. Cooldowns use bars/state labels rather than countdown freezes.
 
-## Failure recovery
+## Results, sound and records
 
-Permission denial, missing sensor data and insecure transport show an actionable status and allow another input source. Failed local saves remain playable with an explicit session-only status. Missing audio is optional; wrong speech is never substituted as a named recording. Diagnostic observations are labelled Live Controller or simulated input and do not imply physical device compatibility.
+Game Over / Victory / Practice Complete / Withdrawn have distinct headings and appropriate cues. Results include score, survival time, destroyed enemies, best multiplier and intercepted shots. Try Again is always available; Next Stage is offered only after a stage victory before the final sector.
+
+Music and SFX have independent toggles and volume sliders in both Pause and Settings. Returning from Settings updates Pause controls. There are no spoken announcements, voice settings or device speech. Missing optional audio never blocks play.
+
+A round settles once. Practice never writes records. Evolution scores use gyro-evolution-progress-v1, preserving older archives and appearance/input preferences. Failed local saves remain playable with an explicit session-only status.
+
+## Layout and access
+
+Battle fits a 9:16 field without scrolling and respects safe areas. Menus may scroll. Controls have at least 44x44px touch targets, visible focus and pressed/selected/disabled states. Numeric readouts use tabular digits. Landscape preserves the portrait field. Real device observations and simulated test input are labelled separately.

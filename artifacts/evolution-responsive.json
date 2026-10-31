@@ -1,0 +1,154 @@
+[
+  {
+    "buttons": [
+      {
+        "height": 44,
+        "id": "pause",
+        "width": 44
+      },
+      {
+        "height": 64,
+        "id": "dodge-left",
+        "width": 85.203125
+      },
+      {
+        "height": 64,
+        "id": "emp",
+        "width": 85.203125
+      },
+      {
+        "height": 64,
+        "id": "dodge-right",
+        "width": 85.21875
+      }
+    ],
+    "field": {
+      "bottom": 494,
+      "height": 490,
+      "left": 22.1875,
+      "right": 297.8125,
+      "top": 4,
+      "width": 275.625,
+      "x": 22.1875,
+      "y": 4
+    },
+    "height": 568,
+    "overflowX": false,
+    "overflowY": false,
+    "width": 320
+  },
+  {
+    "buttons": [
+      {
+        "height": 44,
+        "id": "pause",
+        "width": 44
+      },
+      {
+        "height": 64,
+        "id": "dodge-left",
+        "width": 123.328125
+      },
+      {
+        "height": 64,
+        "id": "emp",
+        "width": 123.328125
+      },
+      {
+        "height": 64,
+        "id": "dodge-right",
+        "width": 123.34375
+      }
+    ],
+    "field": {
+      "bottom": 733.65625,
+      "height": 693.328125,
+      "left": 0,
+      "right": 390,
+      "top": 40.328125,
+      "width": 390,
+      "x": 0,
+      "y": 40.328125
+    },
+    "height": 844,
+    "overflowX": false,
+    "overflowY": false,
+    "width": 390
+  },
+  {
+    "buttons": [
+      {
+        "height": 44,
+        "id": "pause",
+        "width": 44
+      },
+      {
+        "height": 64,
+        "id": "dodge-left",
+        "width": 136.65625
+      },
+      {
+        "height": 64,
+        "id": "emp",
+        "width": 136.671875
+      },
+      {
+        "height": 64,
+        "id": "dodge-right",
+        "width": 136.671875
+      }
+    ],
+    "field": {
+      "bottom": 813.21875,
+      "height": 764.4375,
+      "left": 0,
+      "right": 430,
+      "top": 48.78125,
+      "width": 430,
+      "x": 0,
+      "y": 48.78125
+    },
+    "height": 932,
+    "overflowX": false,
+    "overflowY": false,
+    "width": 430
+  },
+  {
+    "buttons": [
+      {
+        "height": 44,
+        "id": "pause",
+        "width": 44
+      },
+      {
+        "height": 64,
+        "id": "dodge-left",
+        "width": 51.828125
+      },
+      {
+        "height": 64,
+        "id": "emp",
+        "width": 51.828125
+      },
+      {
+        "height": 64,
+        "id": "dodge-right",
+        "width": 51.828125
+      }
+    ],
+    "field": {
+      "bottom": 316,
+      "height": 312,
+      "left": 334.25,
+      "right": 509.75,
+      "top": 4,
+      "width": 175.5,
+      "x": 334.25,
+      "y": 4
+    },
+    "height": 390,
+    "overflowX": false,
+    "overflowY": false,
+    "width": 844
+  }
+]

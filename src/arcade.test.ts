@@ -17,6 +17,7 @@ describe("arcade pickups", () => {
     collect(m, "weapon");
     collect(m, "weapon");
     collect(m, "weapon");
+    collect(m,"weapon");collect(m,"weapon");collect(m,"weapon");
     expect(m.state.powers.weapon).toBe(2);
     expect(m.state.energy).toBeLessThan(1);
     expect(m.state.score).toBeGreaterThan(0);

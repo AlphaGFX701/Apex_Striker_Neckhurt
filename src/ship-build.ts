@@ -135,7 +135,8 @@ export class ShipBuildStore {
 export type ShipPartImages = Record<
   `${ShipSlot}-${PartIndex}`,
   CanvasImageSource
->;
+> &
+  Partial<Record<`upgrade-${2 | 3}`, CanvasImageSource>>;
 export async function loadShipParts(): Promise<ShipPartImages> {
   const entries = await Promise.all(
     (["hull", "wing", "engine"] as const).flatMap((slot) =>
@@ -153,7 +154,19 @@ export async function loadShipParts(): Promise<ShipPartImages> {
       }),
     ),
   );
-  return Object.fromEntries(entries) as ShipPartImages;
+  const upgrades = await Promise.all(
+    ([2, 3] as const).map(async (level) => {
+      const img = new Image();
+      img.src = `/assets/evolution/ship-upgrade-${level}.png`;
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error("Ship evolution art unavailable"));
+        if (img.complete && img.naturalWidth) resolve();
+      });
+      return [`upgrade-${level}`, img] as const;
+    }),
+  );
+  return Object.fromEntries([...entries, ...upgrades]) as ShipPartImages;
 }
 
 /** Part PNGs share a square transparent canvas and a common origin; x/y mark the ship center. */
@@ -164,6 +177,7 @@ export function drawShipBuild(
   x: number,
   y: number,
   size: number,
+  level: 1 | 2 | 3 = 1,
 ) {
   ctx.save();
   try {
@@ -209,6 +223,14 @@ export function drawShipBuild(
     }
     ctx.drawImage(images[`wing-${build.wing}`], left, top, size, size);
     ctx.drawImage(images[`hull-${build.hull}`], left, top, size, size);
+    if (level > 1 && images[`upgrade-${level as 2 | 3}`])
+      ctx.drawImage(
+        images[`upgrade-${level as 2 | 3}`]!,
+        left,
+        top,
+        size,
+        size,
+      );
   } finally {
     ctx.restore();
   }
@@ -217,6 +239,7 @@ export function composeShip(
   build: ShipBuild,
   images: ShipPartImages,
   size = 256,
+  level: 1 | 2 | 3 = 1,
 ): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = Math.max(1, Math.round(size));
@@ -229,6 +252,7 @@ export function composeShip(
     canvas.width / 2,
     canvas.height / 2,
     canvas.width,
+    level,
   );
   return canvas;
 }

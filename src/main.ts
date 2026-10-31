@@ -9,13 +9,9 @@ import {
 import { GamepadAdapter, type PadFrame, type PadCommand } from "./gamepad";
 import { ControllerLab } from "./controller-lab";
 import { SensorController } from "./sensor";
-import {
-  AudioDirector,
-  VOICE_CLIPS,
-  VOICE_SOURCE_STATUS,
-} from "./audio-director";
+import { AudioDirector } from "./audio-director";
 import { createGame } from "./game";
-import { GameModel, type GameSnapshot } from "./model";
+import { GameModel, comboMultiplier, type GameSnapshot } from "./model";
 import { ProgressStore } from "./progress";
 import {
   EQUIPMENT,
@@ -38,7 +34,7 @@ const icon = (id: string) => `<img src="/assets/tactical/${id}.svg" alt="">`;
 const progress = new ProgressStore(
     undefined,
     true,
-    "gyro-onslaught-progress-v1",
+    "gyro-evolution-progress-v1",
   ),
   build = new ShipBuildStore(),
   sensor = new SensorController(),
@@ -147,7 +143,36 @@ sensor.setGestureSensitivity(
   Number(el<HTMLInputElement>("gesture-sensitivity").value),
 );
 const controller = new ControllerLab(el("controller"), pad, savePreferences);
+let sceneAssetsReady = false,
+  loaderProgress = 0,
+  assetFailure = false;
+function refreshLoading() {
+  el<HTMLProgressElement>("load-progress").value =
+    loaderProgress * 0.9 + (parts?.["hull-0"] ? 0.1 : 0);
+  if (assetFailure) return;
+  el("load-status").textContent =
+    `Loading flight assets · ${Math.round((loaderProgress * 0.9 + (parts?.["hull-0"] ? 0.1 : 0)) * 100)}%`;
+  el("boot-loading").hidden = sceneAssetsReady && !!parts && !assetFailure;
+}
+function loadingFailed(message: string) {
+  assetFailure = true;
+  el("load-status").textContent = message;
+  el("load-retry").hidden = false;
+}
+el("load-retry").onclick = () => location.reload();
 const { scene } = createGame(el("game"), {
+  onLoadProgress: (p) => {
+    loaderProgress = p;
+    refreshLoading();
+  },
+  onReady: () => {
+    sceneAssetsReady = true;
+    refreshLoading();
+  },
+  onLoadError: () =>
+    loadingFailed(
+      "Some flight assets could not load. Check your connection and retry.",
+    ),
   reducedEffects: () =>
     el<HTMLInputElement>("low-effects").checked ||
     matchMedia("(prefers-reduced-motion: reduce)").matches,
@@ -217,28 +242,14 @@ function clearInput() {
   pad.reset();
   sensor.resetTransient();
 }
-el<HTMLInputElement>("voice").onchange = () => {
-  feedback.voiceEnabled = el<HTMLInputElement>("voice").checked;
-  if (!feedback.voiceEnabled) feedback.clearAnnouncements();
-};
 el("test-sound").onclick = () => {
   feedback.unlock();
-  feedback.ready();
+  feedback.play("emp");
 };
-el("voice-source-status").textContent = VOICE_SOURCE_STATUS;
-el("voice-previews").replaceChildren(
-  ...VOICE_CLIPS.map((clip) => {
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "secondary";
-    button.textContent = clip.text;
-    button.onclick = () => {
-      feedback.unlock();
-      feedback.previewVoice(clip.key);
-    };
-    return button;
-  }),
-);
+el<HTMLInputElement>("music").onchange = () => {
+  feedback.musicEnabled = el<HTMLInputElement>("music").checked;
+  saveAudioPreferences();
+};
 function balance() {
   el("balance").textContent = "";
   el("save-status").textContent = progress.persistent
@@ -254,7 +265,7 @@ function setView(next: string) {
     feedback.music("menu");
   }
   document.body.dataset.view = next;
-  document.title = `${({ home: "Mobile Onslaught", stages: "Missions", hangar: "Hangar", battle: "In flight", preflight: "Preflight", settings: "Settings", controller: "Controller Lab", results: "Flight report", records: "Records" } as Record<string, string>)[next] || "Flight"} · Gyro Space Combat`;
+  document.title = `${({ home: "Evolution Arcade", stages: "Missions", hangar: "Hangar", battle: "In flight", preflight: "Preflight", settings: "Settings", controller: "Controller Lab", results: "Flight report", records: "Records" } as Record<string, string>)[next] || "Flight"} · Gyro Space Combat`;
   document.querySelectorAll<HTMLElement>(".screen").forEach((s) => {
     s.hidden = s.id !== next;
   });
@@ -336,7 +347,7 @@ document.querySelectorAll<HTMLElement>("[data-go]").forEach(
           const back = returnRoutes.pop() || "home";
           settingsReturn = returnRoutes.at(-1) || "home";
           setView(back);
-          if (back === "battle") dialog("pause-dialog").showModal();
+          if (back === "battle") pause();
         }
         return;
       }
@@ -344,20 +355,20 @@ document.querySelectorAll<HTMLElement>("[data-go]").forEach(
     }),
 );
 el("title-hangar").onclick = () => navigate("hangar");
-function paint(id: string, draft = false) {
+function paint(id: string, draft = false, level: 1 | 2 | 3 = 1) {
   if (!parts) return;
   const c = el<HTMLCanvasElement>(id),
     ctx = c.getContext("2d")!;
   ctx.clearRect(0, 0, c.width, c.height);
   ctx.drawImage(
-    composeShip(draft ? build.draft : build.saved, parts, c.width),
+    composeShip(draft ? build.draft : build.saved, parts, c.width, level),
     0,
     0,
   );
 }
 function paintAll() {
   for (const id of ["title-ship", "preflight-ship", "result-ship"]) paint(id);
-  paint("ship-preview", true);
+  paint("ship-preview", true, previewLevel);
   el("title-ship-name").textContent = ["FALCON", "RAVEN", "ATLAS"][
     build.saved.hull
   ];
@@ -366,10 +377,14 @@ function paintAll() {
 loadShipParts()
   .then((images) => {
     parts = images;
+    refreshLoading();
     paintAll();
     previewDirty = true;
   })
-  .catch((e) => toast(e.message));
+  .catch((e) => {
+    toast(e.message);
+    loadingFailed(e.message);
+  });
 function renderHangar() {
   const labels: Record<ShipSlot, string> = {
     hull: "Hull",
@@ -565,7 +580,7 @@ function renderPreflight() {
   el("mission-name").textContent =
     mode === "endless" ? "Endless Frontier" : STAGES[selectedStage].name;
   el("mission-detail").textContent =
-    `${practice() ? "PRACTICE · " : ""}${mode === "stage" ? "2 min assault · Endurance boss · " : ""}3 lives · Auto-fire`;
+    `${practice() ? "PRACTICE · " : ""}${mode === "stage" ? "2 min assault · 3-phase boss · " : ""}3 lives · Auto-fire`;
   el("mission-loadout").innerHTML = Object.values(c.equipment)
     .filter(Boolean)
     .map((id) => {
@@ -642,7 +657,8 @@ el("launch").onclick = () => {
   feedback.clearAnnouncements();
   scene.model.configure(config());
   scene.setPractice(practice());
-  scene.setShipCanvas(composeShip(build.saved, parts, 512));
+  for (const level of [1, 2, 3] as const)
+    scene.setShipCanvas(composeShip(build.saved, parts, 512, level), level);
   runId = crypto.randomUUID();
   settled = false;
   lastLives = 3;
@@ -656,14 +672,15 @@ el("launch").onclick = () => {
     const fixture = new URLSearchParams(location.search).get("fixture");
     if (fixture) {
       const m = scene.model;
+      m.state.evolution = { orbs: 5, level: 3, transformRemaining: 0 };
       m.state.powers.weapon = 2;
+      m.state.powers.overdrive = 25;
       m.state.shield = true;
+      m.state.wingmen.level = 3;
       m.state.drones = [
         { id: 1, side: -1, rank: 0 },
         { id: 2, side: 1, rank: 0 },
-        { id: 3, side: -1, rank: 1 },
       ];
-      m.state.powers.drone = 3;
       if (fixture === "icons") {
         m.state.boss = null;
         m.state.miniBoss = null;
@@ -683,13 +700,15 @@ el("launch").onclick = () => {
         updateHud(m.state);
       }
       const seconds =
-          fixture === "icons" ? 0 : fixture === "warm"
-          ? 16
-          : fixture === "elite"
-            ? 55
-            : fixture === "mini"
-              ? 94
-              : 128;
+        fixture === "icons"
+          ? 0
+          : fixture === "warm"
+            ? 16
+            : fixture === "elite"
+              ? 55
+              : fixture === "mini"
+                ? 94
+                : 128;
       for (let i = 0; i < seconds * 20; i++) {
         m.update(0.05, { x: Math.sin(i * 0.018) * 0.3, y: 0 });
         m.drainEvents();
@@ -697,12 +716,47 @@ el("launch").onclick = () => {
       if (m.state.boss && fixture === "boss")
         m.state.boss.health = m.state.boss.maxHealth * 0.3;
       m.state.shield = true;
+      m.state.wingmen.level = 3;
       m.state.drones = [
         { id: 101, side: -1, rank: 0 },
         { id: 102, side: 1, rank: 0 },
-        { id: 103, side: -1, rank: 1 },
       ];
       m.state.powers.drone = 3;
+      if (fixture === "loss") {
+        m.practice = false;
+        m.state.energy = 0;
+        m.state.shield = false;
+        m.state.invincible = 0;
+        m.state.lives = 1;
+        m.state.enemyBullets = [{ ...m.state.ship, vx: 0, vy: 0 }];
+      }
+      if (fixture === "victory") {
+        m.practice = false;
+        if (m.state.boss) m.state.boss.health = 0;
+      }
+      if (fixture === "meteors") {
+        m.state.boss = null;
+        m.state.miniBoss = null;
+        m.state.enemyBullets = [];
+        m.state.beams = [];
+        m.state.bullets = [];
+        m.state.pickups = [];
+        m.state.ship.x = 195;
+        m.state.ship.y = 610;
+        m.clearInput();
+        m.state.enemies = [];
+        m.state.rocks = Array.from({ length: 4 }, (_, i) => ({
+          x: 65 + i * 85,
+          y: 270 + (i % 2) * 100,
+          radius: 20 + (i % 2) * 4,
+          speed: 0,
+          spin: 0,
+          phase: i * 0.5,
+          target: true,
+        }));
+        scene.pause();
+        updateHud(m.state);
+      }
     }
   }
   sensor.setGestureActive(source === "sensor");
@@ -710,11 +764,19 @@ el("launch").onclick = () => {
   el("practice-energy").hidden = !practice();
 };
 function pause(reason = "Take a breath. The frontier can wait.") {
-  if (view !== "battle") return;
+  if (view !== "battle" || scene.model.state.gameOver) return;
   scene.pause();
   feedback.pauseAudio();
   clearInput();
   sensor.setGestureActive(false);
+  el("pause-calibration-status").textContent = "";
+  el<HTMLInputElement>("pause-music").checked = feedback.musicEnabled;
+  el<HTMLInputElement>("pause-sfx").checked = feedback.enabled;
+  el<HTMLInputElement>("pause-music-volume").value = String(
+    feedback.musicVolume,
+  );
+  el<HTMLInputElement>("pause-sfx-volume").value = String(feedback.sfxVolume);
+  el("pause-calibrate").hidden = source !== "sensor";
   el("pause-reason").textContent = reason;
   if (!dialog("pause-dialog").open) dialog("pause-dialog").showModal();
 }
@@ -722,6 +784,14 @@ function resume() {
   feedback.unlock();
   const reason = ready();
   if (reason) {
+    el("pause-calibration-status").textContent = "";
+    el<HTMLInputElement>("pause-music").checked = feedback.musicEnabled;
+    el<HTMLInputElement>("pause-sfx").checked = feedback.enabled;
+    el<HTMLInputElement>("pause-music-volume").value = String(
+      feedback.musicVolume,
+    );
+    el<HTMLInputElement>("pause-sfx-volume").value = String(feedback.sfxVolume);
+    el("pause-calibrate").hidden = source !== "sensor";
     el("pause-reason").textContent = reason;
     return;
   }
@@ -737,6 +807,32 @@ el("pause").onclick = () => pause();
 el("resume").onclick = resume;
 dialog("pause-dialog").addEventListener("cancel", (e) => e.preventDefault());
 
+el("pause-calibrate").onclick = () => {
+  clearInput();
+  el("pause-calibration-status").textContent = sensor.calibrate()
+    ? "Center set. Resume when ready."
+    : sensor.telemetry.message;
+};
+for (const [id, setting] of [
+  ["pause-music", "music"],
+  ["pause-sfx", "sound"],
+] as const)
+  el<HTMLInputElement>(id).onchange = () => {
+    el<HTMLInputElement>(setting).checked = el<HTMLInputElement>(id).checked;
+    if (setting === "music")
+      feedback.musicEnabled = el<HTMLInputElement>(id).checked;
+    else feedback.enabled = el<HTMLInputElement>(id).checked;
+    saveAudioPreferences();
+  };
+for (const [id, setting, key] of [
+  ["pause-music-volume", "music-volume", "musicVolume"],
+  ["pause-sfx-volume", "sfx-volume", "sfxVolume"],
+] as const)
+  el<HTMLInputElement>(id).oninput = () => {
+    feedback[key] = Number(el<HTMLInputElement>(id).value);
+    el<HTMLInputElement>(setting).value = String(feedback[key]);
+    saveAudioPreferences();
+  };
 el("pause-settings").onclick = () => navigate("settings");
 el("restart").onclick = () => {
   dialog("pause-dialog").close();
@@ -768,7 +864,7 @@ dialog("confirm-dialog").addEventListener("close", () => {
     !scene.isRunning &&
     !document.querySelector("dialog[open]")
   )
-    dialog("pause-dialog").showModal();
+      pause();
 });
 for (const [id, action] of [
   ["dodge-left", "dodgeLeft"],
@@ -787,7 +883,9 @@ function updateHud(s: GameSnapshot) {
     : scene.model.config.mode === "endless"
       ? `WAVE ${s.wave}`
       : "ASSAULT";
-  el("combo").textContent = s.combo > 1 ? `${s.combo} CHAIN` : "";
+  el("combo").textContent = s.combo
+    ? `×${comboMultiplier(s.combo)} · ${s.combo} CHAIN`
+    : "";
   if (el("lives").dataset.hp !== String(s.lives)) {
     el("lives").dataset.hp = String(s.lives);
     el("lives").innerHTML = Array.from(
@@ -804,12 +902,12 @@ function updateHud(s: GameSnapshot) {
       `<img src="/assets/onslaught/pickup-shield.png" alt="">${s.shield ? "SHIELD ONLINE" : "NO SHIELD"}`;
   }
   el("drone-status").textContent = s.drones.length
-    ? `ESCORT ×${s.drones.length}`
+    ? `WINGMEN · LV.${s.wingmen.level}`
     : "";
   el("battle").dataset.damage = s.hitEffect > 0 ? s.damageKind : "";
-  el("run-credits").textContent = s.powers.weapon
-    ? `POWER ${s.powers.weapon + 1}${s.powers.overdrive > 0 ? ` · RED ${Math.ceil(s.powers.overdrive)}s` : ""}`
-    : "";
+  el("battle").dataset.lowHull = String(s.lives === 1 && !s.gameOver);
+  el("run-credits").textContent =
+    `LV.${s.evolution.level} · ${Math.min(5, s.evolution.orbs)}/5 ORBS${s.powers.overdrive > 0 ? ` · RED ${Math.ceil(s.powers.overdrive)}s` : ""}`;
   el("run-credits").classList.toggle("overdrive", s.powers.overdrive > 0);
   for (const event of scene.model.drainEvents()) {
     if (event.type === "pickup") feedback.pickup(event.data.effect);
@@ -891,6 +989,16 @@ function completeRound() {
       score: s.score,
       time: s.time,
     });
+  const outcome = s.result || "withdrawn";
+  const resultHeading = {
+    won: "VICTORY",
+    lost: "GAME OVER",
+    timeout: "GAME OVER",
+    practice: "PRACTICE COMPLETE",
+    withdrawn: "WITHDRAWN",
+  }[outcome];
+  el("results").querySelector("h1")!.textContent = resultHeading;
+  el("results").dataset.outcome = outcome;
   el("result-title").textContent = {
     won: "Sector secured.",
     lost: "Signal lost.",
@@ -907,8 +1015,9 @@ function completeRound() {
       : "Every flight teaches you something. Refit and try again.";
   el("result-stats").innerHTML = [
     ["Score", s.score.toLocaleString("en-US")],
-    ["Flight time", s.time.toFixed(1) + "s"],
-    ["Dodges", s.dodges],
+    ["Survival Time", s.time.toFixed(1) + "s"],
+    ["Enemies Destroyed", s.stats.enemiesDestroyed],
+    ["Best Multiplier", `×${s.stats.bestMultiplier}`],
     ["EMP uses", s.emps],
     ["Shots intercepted", s.intercepted],
     ["Power-ups", s.pickupCount],
@@ -919,9 +1028,18 @@ function completeRound() {
   el("result-perks").textContent = `Flight seed ${s.seed}`;
   el("next-stage").hidden =
     c.mode !== "stage" || c.stage >= 2 || s.result !== "won";
-  paint("result-ship");
-  setView("results");
-  feedback.victory();
+  paint("result-ship", false, s.evolution.level);
+  if (s.result === "won") feedback.victory();
+  else if (s.result === "lost") feedback.defeat();
+  const delay = s.outcome === "won" ? 700 : s.outcome === "lost" ? 450 : 0;
+  if (delay)
+    window.setTimeout(() => {
+      if (view === "battle" && settled) {
+        dialog("pause-dialog").close();
+        setView("results");
+      }
+    }, delay);
+  else setView("results");
 }
 el("retry").onclick = () => setView("preflight");
 el("next-stage").onclick = () => {
@@ -964,6 +1082,7 @@ for (const id of ["tilt-sensitivity", "gesture-sensitivity"])
 el<HTMLInputElement>("sound").onchange = () => {
   feedback.enabled = el<HTMLInputElement>("sound").checked;
   feedback.unlock();
+  saveAudioPreferences();
 };
 el<HTMLInputElement>("haptics").disabled = !("vibrate" in navigator);
 el<HTMLInputElement>("haptics").onchange = () => {
@@ -1178,7 +1297,7 @@ window.setInterval(() => {
             const back = returnRoutes.pop() || "home";
             settingsReturn = returnRoutes.at(-1) || "home";
             setView(back);
-            if (back === "battle") dialog("pause-dialog").showModal();
+            if (back === "battle") pause();
           }
         }
       }
@@ -1186,6 +1305,13 @@ window.setInterval(() => {
     padMenu = [...b];
   }
 }, 100);
+const previewTextures = new Map<string, HTMLImageElement>();
+for (const key of ["evo-pulse", "evo-plasma", "evo-red", "evo-missile"]) {
+  const im = new Image();
+  im.src = `/assets/evolution/${key}.png`;
+  previewTextures.set(key, im);
+}
+let previewLevel: 1 | 2 | 3 = 1;
 let previewDirty = true,
   preview = new GameModel(),
   previewArt: HTMLCanvasElement | undefined,
@@ -1197,11 +1323,45 @@ feedback.onAnnouncement = (text) => {
 for (const [id, key] of [
   ["music-volume", "musicVolume"],
   ["sfx-volume", "sfxVolume"],
-  ["voice-volume", "voiceVolume"],
 ] as const)
   el<HTMLInputElement>(id).oninput = () => {
     feedback[key] = Number(el<HTMLInputElement>(id).value);
+    saveAudioPreferences();
   };
+for (const button of Array.from(
+  el("preview-levels").querySelectorAll<HTMLButtonElement>("button"),
+))
+  button.onclick = () => {
+    previewLevel = Number(button.dataset.previewLevel) as 1 | 2 | 3;
+    previewDirty = true;
+    paint("ship-preview", true, previewLevel);
+    for (const b of Array.from(el("preview-levels").querySelectorAll("button")))
+      b.setAttribute("aria-pressed", String(b === button));
+  };
+function saveAudioPreferences() {
+  try {
+    localStorage.setItem(
+      "gyro-evolution-audio",
+      JSON.stringify({
+        music: feedback.musicEnabled,
+        sfx: feedback.enabled,
+        musicVolume: feedback.musicVolume,
+        sfxVolume: feedback.sfxVolume,
+      }),
+    );
+  } catch {}
+}
+try {
+  const a = JSON.parse(localStorage.getItem("gyro-evolution-audio") || "{}");
+  for (const k of ["musicVolume", "sfxVolume"] as const)
+    if (Number.isFinite(a[k])) feedback[k] = Math.max(0, Math.min(1, a[k]));
+  feedback.musicEnabled = a.music !== false;
+  feedback.enabled = a.sfx !== false;
+  el<HTMLInputElement>("music").checked = feedback.musicEnabled;
+  el<HTMLInputElement>("sound").checked = feedback.enabled;
+  el<HTMLInputElement>("music-volume").value = String(feedback.musicVolume);
+  el<HTMLInputElement>("sfx-volume").value = String(feedback.sfxVolume);
+} catch {}
 function animate(now: number) {
   feedback.update();
   if (performance.now() > Number(el("pickup-announcement").dataset.until || 0))
@@ -1231,14 +1391,20 @@ function animate(now: number) {
       preview = new GameModel();
       preview.configure(c);
       preview.practice = true;
-      previewArt = composeShip(build.draft, parts, 256);
+      preview.state.evolution = {
+        orbs: previewLevel === 3 ? 5 : previewLevel === 2 ? 2 : 0,
+        level: previewLevel,
+        transformRemaining: 0,
+      };
+      preview.state.powers.weapon = previewLevel - 1;
+      previewArt = composeShip(build.draft, parts, 256, previewLevel);
       el("firing-stat").textContent =
-        `${item.name} · base weapon · collect power-ups in battle`;
+        `${item.name} · LEVEL ${previewLevel} · ${[100, 160, 230][previewLevel - 1]}% main firepower`;
     }
     preview.update(dt, { x: 0, y: 0 });
     preview.state.rocks = [];
     preview.state.enemies = [];
-    if (preview.state.time > 5) preview.reset();
+    if (preview.state.time > 5) previewDirty = true;
     const ctx = el<HTMLCanvasElement>("firing-preview").getContext("2d")!;
     ctx.clearRect(0, 0, 480, 240);
     ctx.fillStyle = "#080f1c";
@@ -1258,16 +1424,31 @@ function animate(now: number) {
         : b.type === "plasma"
           ? "#c3a5ff"
           : "#8be7ff";
-      ctx.fillRect(b.x * sx - 2, (b.y - offset) * 0.65, 4, 14);
+      const key = b.interceptor
+        ? "evo-red"
+        : b.missile
+          ? "evo-missile"
+          : b.type === "plasma"
+            ? "evo-plasma"
+            : "evo-pulse";
+      const im = previewTextures.get(key);
+      ctx.imageSmoothingEnabled = false;
+      if (im?.complete && im.naturalWidth)
+        ctx.drawImage(im, b.x * sx - 5, (b.y - offset) * 0.65, 10, 16);
+      else ctx.fillRect(b.x * sx - 2, (b.y - offset) * 0.65, 4, 14);
     }
     if (preview.state.laser > 0) {
       ctx.fillStyle = "#a3f4ff";
-      ctx.fillRect(
-        preview.state.ship.x * sx - 3 - (preview.config.levels.laser || 1) * 2,
-        0,
-        6 + (preview.config.levels.laser || 1) * 4,
-        180,
-      );
+      const w = 7 + (previewLevel - 1) * 4;
+      ctx.fillRect(preview.state.ship.x * sx - w / 2, 0, w, 180);
+      for (let i = 1; i < previewLevel; i++)
+        for (const side of [-1, 1])
+          ctx.fillRect(
+            (preview.state.ship.x + side * i * 14) * sx - 1,
+            0,
+            2,
+            180,
+          );
     }
     if (previewArt)
       ctx.drawImage(previewArt, preview.state.ship.x * sx - 43, 154, 86, 86);

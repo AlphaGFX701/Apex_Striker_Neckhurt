@@ -1,0 +1,10 @@
+{
+  "before": "1:44",
+  "after": {
+    "clock": "1:44",
+    "music": false,
+    "sfx": false,
+    "volume": "0.3"
+  },
+  "kind": "browser-controls-not-a-human-listening-test"
+}

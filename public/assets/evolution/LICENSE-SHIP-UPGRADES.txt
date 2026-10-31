@@ -1,0 +1,3 @@
+Ship upgrade overlays2/3 are adaptations of Skorpio — Space Ship & Mech Construction Kit2. Source: https://opengameart.org/content/space-ship-mech-construction-kit-2
+Derived overlays are distributed under Creative Commons Attribution-ShareAlike3.0: https://creativecommons.org/licenses/by-sa/3.0/
+Changes: cropped/scaled/mirrored authored module pixels, paired side guns/engines/wings and connecting structural spars, prepared by scripts/build-evolution-assets.py. Original module derivatives and credits are retained in /assets/modules and /assets/modular-art-CC-BY-SA-3.0.zip.

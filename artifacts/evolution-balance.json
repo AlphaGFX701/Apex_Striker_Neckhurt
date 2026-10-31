@@ -1,0 +1,186 @@
+{
+  "kind": "deterministic-DPS-reference-not-human-playtest",
+  "trackingDutyCycle": 0.65,
+  "runs": [
+    {
+      "stage": 1,
+      "weapon": "pulse",
+      "loadout": "base",
+      "result": "practice",
+      "flightSeconds": 187.56,
+      "bossSeconds": 67.55,
+      "hp": 650,
+      "seed": 743
+    },
+    {
+      "stage": 1,
+      "weapon": "pulse",
+      "loadout": "level2-wing2",
+      "result": "practice",
+      "flightSeconds": 167.61,
+      "bossSeconds": 47.6,
+      "hp": 650,
+      "seed": 743
+    },
+    {
+      "stage": 1,
+      "weapon": "plasma",
+      "loadout": "base",
+      "result": "practice",
+      "flightSeconds": 196.71,
+      "bossSeconds": 76.7,
+      "hp": 650,
+      "seed": 743
+    },
+    {
+      "stage": 1,
+      "weapon": "plasma",
+      "loadout": "level2-wing2",
+      "result": "practice",
+      "flightSeconds": 165.06,
+      "bossSeconds": 45.05,
+      "hp": 650,
+      "seed": 743
+    },
+    {
+      "stage": 1,
+      "weapon": "laser",
+      "loadout": "base",
+      "result": "practice",
+      "flightSeconds": 187.11,
+      "bossSeconds": 67.1,
+      "hp": 650,
+      "seed": 743
+    },
+    {
+      "stage": 1,
+      "weapon": "laser",
+      "loadout": "level2-wing2",
+      "result": "practice",
+      "flightSeconds": 164.61,
+      "bossSeconds": 44.6,
+      "hp": 650,
+      "seed": 743
+    },
+    {
+      "stage": 2,
+      "weapon": "pulse",
+      "loadout": "base",
+      "result": "practice",
+      "flightSeconds": 202.91,
+      "bossSeconds": 82.9,
+      "hp": 800,
+      "seed": 743
+    },
+    {
+      "stage": 2,
+      "weapon": "pulse",
+      "loadout": "level2-wing2",
+      "result": "practice",
+      "flightSeconds": 176.21,
+      "bossSeconds": 56.2,
+      "hp": 800,
+      "seed": 743
+    },
+    {
+      "stage": 2,
+      "weapon": "plasma",
+      "loadout": "base",
+      "result": "practice",
+      "flightSeconds": 211.71,
+      "bossSeconds": 91.7,
+      "hp": 800,
+      "seed": 743
+    },
+    {
+      "stage": 2,
+      "weapon": "plasma",
+      "loadout": "level2-wing2",
+      "result": "practice",
+      "flightSeconds": 180.76,
+      "bossSeconds": 60.75,
+      "hp": 800,
+      "seed": 743
+    },
+    {
+      "stage": 2,
+      "weapon": "laser",
+      "loadout": "base",
+      "result": "practice",
+      "flightSeconds": 186.01,
+      "bossSeconds": 66,
+      "hp": 800,
+      "seed": 743
+    },
+    {
+      "stage": 2,
+      "weapon": "laser",
+      "loadout": "level2-wing2",
+      "result": "practice",
+      "flightSeconds": 164.61,
+      "bossSeconds": 44.6,
+      "hp": 800,
+      "seed": 743
+    },
+    {
+      "stage": 3,
+      "weapon": "pulse",
+      "loadout": "base",
+      "result": "practice",
+      "flightSeconds": 228.61,
+      "bossSeconds": 108.6,
+      "hp": 1000,
+      "seed": 743
+    },
+    {
+      "stage": 3,
+      "weapon": "pulse",
+      "loadout": "level2-wing2",
+      "result": "practice",
+      "flightSeconds": 189.36,
+      "bossSeconds": 69.35,
+      "hp": 1000,
+      "seed": 743
+    },
+    {
+      "stage": 3,
+      "weapon": "plasma",
+      "loadout": "base",
+      "result": "practice",
+      "flightSeconds": 228.66,
+      "bossSeconds": 108.65,
+      "hp": 1000,
+      "seed": 743
+    },
+    {
+      "stage": 3,
+      "weapon": "plasma",
+      "loadout": "level2-wing2",
+      "result": "practice",
+      "flightSeconds": 186.96,
+      "bossSeconds": 66.95,
+      "hp": 1000,
+      "seed": 743
+    },
+    {
+      "stage": 3,
+      "weapon": "laser",
+      "loadout": "base",
+      "result": "practice",
+      "flightSeconds": 223.11,
+      "bossSeconds": 103.1,
+      "hp": 1000,
+      "seed": 743
+    },
+    {
+      "stage": 3,
+      "weapon": "laser",
+      "loadout": "level2-wing2",
+      "result": "practice",
+      "flightSeconds": 184.81,
+      "bossSeconds": 64.8,
+      "hp": 1000,
+      "seed": 743
+    }
+  ]
+}

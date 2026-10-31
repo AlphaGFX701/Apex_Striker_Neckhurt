@@ -1,0 +1,391 @@
+{
+  "frames": {
+    "evo-pulse": {
+      "path": "/assets/evolution/evo-pulse.png",
+      "width": 12,
+      "height": 24,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "displayWidth": 10,
+      "forward": "up"
+    },
+    "evo-plasma": {
+      "path": "/assets/evolution/evo-plasma.png",
+      "width": 16,
+      "height": 28,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "displayWidth": 13,
+      "forward": "up"
+    },
+    "evo-red": {
+      "path": "/assets/evolution/evo-red.png",
+      "width": 12,
+      "height": 24,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "displayWidth": 11,
+      "forward": "up"
+    },
+    "evo-missile": {
+      "path": "/assets/evolution/evo-missile.png",
+      "width": 16,
+      "height": 28,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "displayWidth": 12,
+      "forward": "up"
+    },
+    "evo-beam-core": {
+      "path": "/assets/evolution/evo-beam-core.png",
+      "width": 8,
+      "height": 24,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "displayWidth": 8,
+      "forward": "up",
+      "scalableAxis": "y"
+    },
+    "evo-beam-cap": {
+      "path": "/assets/evolution/evo-beam-cap.png",
+      "width": 8,
+      "height": 8,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "displayWidth": 10,
+      "forward": "up"
+    },
+    "wingman-1": {
+      "path": "/assets/evolution/wingman-1.png",
+      "width": 24,
+      "height": 20,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "displayWidth": 25,
+      "forward": "up",
+      "palette": "friendly cyan/silver; authored silhouette and alpha retained"
+    },
+    "wingman-2": {
+      "path": "/assets/evolution/wingman-2.png",
+      "width": 32,
+      "height": 32,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "displayWidth": 30,
+      "forward": "up",
+      "palette": "friendly cyan/silver; authored silhouette and alpha retained"
+    },
+    "wingman-3": {
+      "path": "/assets/evolution/wingman-3.png",
+      "width": 32,
+      "height": 32,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "displayWidth": 35,
+      "forward": "up",
+      "palette": "friendly cyan/silver; authored silhouette and alpha retained"
+    },
+    "wingman-thruster-0": {
+      "path": "/assets/evolution/wingman-thruster-0.png",
+      "width": 4,
+      "height": 9,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "displayWidth": 7,
+      "palette": "friendly cyan/white engine emission"
+    },
+    "wingman-thruster-1": {
+      "path": "/assets/evolution/wingman-thruster-1.png",
+      "width": 4,
+      "height": 9,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "displayWidth": 7,
+      "palette": "friendly cyan/white engine emission"
+    },
+    "wingman-thruster-2": {
+      "path": "/assets/evolution/wingman-thruster-2.png",
+      "width": 4,
+      "height": 9,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "displayWidth": 7,
+      "palette": "friendly cyan/white engine emission"
+    },
+    "wingman-thruster-3": {
+      "path": "/assets/evolution/wingman-thruster-3.png",
+      "width": 4,
+      "height": 9,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "displayWidth": 7,
+      "palette": "friendly cyan/white engine emission"
+    },
+    "evo-spark-0": {
+      "path": "/assets/evolution/evo-spark-0.png",
+      "width": 24,
+      "height": 24,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "displayWidth": 20
+    },
+    "evo-spark-1": {
+      "path": "/assets/evolution/evo-spark-1.png",
+      "width": 12,
+      "height": 12,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "displayWidth": 20
+    },
+    "evo-spark-2": {
+      "path": "/assets/evolution/evo-spark-2.png",
+      "width": 24,
+      "height": 24,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "displayWidth": 20
+    },
+    "evo-spark-3": {
+      "path": "/assets/evolution/evo-spark-3.png",
+      "width": 20,
+      "height": 20,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "displayWidth": 20
+    },
+    "evo-meteor-0": {
+      "path": "/assets/evolution/evo-meteor-0.png",
+      "width": 76,
+      "height": 76,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "displayWidth": 58,
+      "outline": "black2px + warm-white2px silhouette contour",
+      "collision": "model radius; art includes decorative contour"
+    },
+    "evo-meteor-1": {
+      "path": "/assets/evolution/evo-meteor-1.png",
+      "width": 76,
+      "height": 76,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "displayWidth": 58,
+      "outline": "black2px + warm-white2px silhouette contour",
+      "collision": "model radius; art includes decorative contour"
+    },
+    "evo-meteor-2": {
+      "path": "/assets/evolution/evo-meteor-2.png",
+      "width": 76,
+      "height": 76,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "displayWidth": 58,
+      "outline": "black2px + warm-white2px silhouette contour",
+      "collision": "model radius; art includes decorative contour"
+    },
+    "evo-meteor-3": {
+      "path": "/assets/evolution/evo-meteor-3.png",
+      "width": 76,
+      "height": 76,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "displayWidth": 58,
+      "outline": "black2px + warm-white2px silhouette contour",
+      "collision": "model radius; art includes decorative contour"
+    },
+    "ui-window": {
+      "path": "/assets/evolution/ui-window.png",
+      "width": 640,
+      "height": 735,
+      "anchor": [
+        0.5,
+        0.5
+      ]
+    },
+    "ui-pause": {
+      "path": "/assets/evolution/ui-pause.png",
+      "width": 640,
+      "height": 735,
+      "anchor": [
+        0.5,
+        0.5
+      ]
+    },
+    "ui-settings": {
+      "path": "/assets/evolution/ui-settings.png",
+      "width": 640,
+      "height": 953,
+      "anchor": [
+        0.5,
+        0.5
+      ]
+    },
+    "ui-panel": {
+      "path": "/assets/evolution/ui-panel.png",
+      "width": 640,
+      "height": 531,
+      "anchor": [
+        0.5,
+        0.5
+      ]
+    },
+    "ui-pause-button": {
+      "path": "/assets/evolution/ui-pause-button.png",
+      "width": 96,
+      "height": 96,
+      "anchor": [
+        0.5,
+        0.5
+      ]
+    },
+    "ui-settings-button": {
+      "path": "/assets/evolution/ui-settings-button.png",
+      "width": 96,
+      "height": 96,
+      "anchor": [
+        0.5,
+        0.5
+      ]
+    },
+    "ui-replay-button": {
+      "path": "/assets/evolution/ui-replay-button.png",
+      "width": 96,
+      "height": 96,
+      "anchor": [
+        0.5,
+        0.5
+      ]
+    },
+    "ui-button": {
+      "path": "/assets/evolution/ui-button.png",
+      "width": 410,
+      "height": 121,
+      "anchor": [
+        0.5,
+        0.5
+      ]
+    },
+    "ui-button-active": {
+      "path": "/assets/evolution/ui-button-active.png",
+      "width": 410,
+      "height": 121,
+      "anchor": [
+        0.5,
+        0.5
+      ]
+    },
+    "ui-progress": {
+      "path": "/assets/evolution/ui-progress.png",
+      "width": 1120,
+      "height": 96,
+      "anchor": [
+        0.5,
+        0.5
+      ]
+    },
+    "ui-corner": {
+      "path": "/assets/evolution/ui-corner.png",
+      "width": 320,
+      "height": 320,
+      "anchor": [
+        0.5,
+        0.5
+      ]
+    },
+    "ui-live": {
+      "path": "/assets/evolution/ui-live.png",
+      "width": 520,
+      "height": 128,
+      "anchor": [
+        0.5,
+        0.5
+      ]
+    },
+    "ui-standby": {
+      "path": "/assets/evolution/ui-standby.png",
+      "width": 580,
+      "height": 128,
+      "anchor": [
+        0.5,
+        0.5
+      ]
+    },
+    "ship-upgrade-2": {
+      "path": "/assets/evolution/ship-upgrade-2.png",
+      "width": 512,
+      "height": 512,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "displayWidth": 95,
+      "normalizedOrigin": [
+        256,
+        256
+      ],
+      "sourceModuleCanvas": 640,
+      "layer": "over base hull",
+      "notes": "one universal equipment overlay; draw atsame square size asbase"
+    },
+    "ship-upgrade-3": {
+      "path": "/assets/evolution/ship-upgrade-3.png",
+      "width": 512,
+      "height": 512,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "displayWidth": 95,
+      "normalizedOrigin": [
+        256,
+        256
+      ],
+      "sourceModuleCanvas": 640,
+      "layer": "over base hull",
+      "notes": "includes level2 equipment plus heavy outer fins/twin-gun pods"
+    }
+  },
+  "sampling": "nearest for pixel-art projectiles/fighters; linear for GUI"
+}

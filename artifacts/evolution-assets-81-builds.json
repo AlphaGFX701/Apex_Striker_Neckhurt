@@ -1,0 +1,650 @@
+[
+  {
+    "build": "0-0-0",
+    "level": 1,
+    "majorAlphaComponents": [
+      4262
+    ],
+    "connected": true
+  },
+  {
+    "build": "0-0-0",
+    "level": 2,
+    "majorAlphaComponents": [
+      4556
+    ],
+    "connected": true
+  },
+  {
+    "build": "0-0-0",
+    "level": 3,
+    "majorAlphaComponents": [
+      5693
+    ],
+    "connected": true
+  },
+  {
+    "build": "0-0-1",
+    "level": 1,
+    "majorAlphaComponents": [
+      4302
+    ],
+    "connected": true
+  },
+  {
+    "build": "0-0-1",
+    "level": 2,
+    "majorAlphaComponents": [
+      4596
+    ],
+    "connected": true
+  },
+  {
+    "build": "0-0-1",
+    "level": 3,
+    "majorAlphaComponents": [
+      5733
+    ],
+    "connected": true
+  },
+  {
+    "build": "0-0-2",
+    "level": 1,
+    "majorAlphaComponents": [
+      4245
+    ],
+    "connected": true
+  },
+  {
+    "build": "0-0-2",
+    "level": 2,
+    "majorAlphaComponents": [
+      4539
+    ],
+    "connected": true
+  },
+  {
+    "build": "0-0-2",
+    "level": 3,
+    "majorAlphaComponents": [
+      5676
+    ],
+    "connected": true
+  },
+  {
+    "build": "0-1-0",
+    "level": 1,
+    "majorAlphaComponents": [
+      4519
+    ],
+    "connected": true
+  },
+  {
+    "build": "0-1-0",
+    "level": 2,
+    "majorAlphaComponents": [
+      4891
+    ],
+    "connected": true
+  },
+  {
+    "build": "0-1-0",
+    "level": 3,
+    "majorAlphaComponents": [
+      5601
+    ],
+    "connected": true
+  },
+  {
+    "build": "0-1-1",
+    "level": 1,
+    "majorAlphaComponents": [
+      4559
+    ],
+    "connected": true
+  },
+  {
+    "build": "0-1-1",
+    "level": 2,
+    "majorAlphaComponents": [
+      4931
+    ],
+    "connected": true
+  },
+  {
+    "build": "0-1-1",
+    "level": 3,
+    "majorAlphaComponents": [
+      5641
+    ],
+    "connected": true
+  },
+  {
+    "build": "0-1-2",
+    "level": 1,
+    "majorAlphaComponents": [
+      4502
+    ],
+    "connected": true
+  },
+  {
+    "build": "0-1-2",
+    "level": 2,
+    "majorAlphaComponents": [
+      4874
+    ],
+    "connected": true
+  },
+  {
+    "build": "0-1-2",
+    "level": 3,
+    "majorAlphaComponents": [
+      5584
+    ],
+    "connected": true
+  },
+  {
+    "build": "0-2-0",
+    "level": 1,
+    "majorAlphaComponents": [
+      4041
+    ],
+    "connected": true
+  },
+  {
+    "build": "0-2-0",
+    "level": 2,
+    "majorAlphaComponents": [
+      4375
+    ],
+    "connected": true
+  },
+  {
+    "build": "0-2-0",
+    "level": 3,
+    "majorAlphaComponents": [
+      5634
+    ],
+    "connected": true
+  },
+  {
+    "build": "0-2-1",
+    "level": 1,
+    "majorAlphaComponents": [
+      4081
+    ],
+    "connected": true
+  },
+  {
+    "build": "0-2-1",
+    "level": 2,
+    "majorAlphaComponents": [
+      4415
+    ],
+    "connected": true
+  },
+  {
+    "build": "0-2-1",
+    "level": 3,
+    "majorAlphaComponents": [
+      5674
+    ],
+    "connected": true
+  },
+  {
+    "build": "0-2-2",
+    "level": 1,
+    "majorAlphaComponents": [
+      4024
+    ],
+    "connected": true
+  },
+  {
+    "build": "0-2-2",
+    "level": 2,
+    "majorAlphaComponents": [
+      4358
+    ],
+    "connected": true
+  },
+  {
+    "build": "0-2-2",
+    "level": 3,
+    "majorAlphaComponents": [
+      5617
+    ],
+    "connected": true
+  },
+  {
+    "build": "1-0-0",
+    "level": 1,
+    "majorAlphaComponents": [
+      4100
+    ],
+    "connected": true
+  },
+  {
+    "build": "1-0-0",
+    "level": 2,
+    "majorAlphaComponents": [
+      4427
+    ],
+    "connected": true
+  },
+  {
+    "build": "1-0-0",
+    "level": 3,
+    "majorAlphaComponents": [
+      5564
+    ],
+    "connected": true
+  },
+  {
+    "build": "1-0-1",
+    "level": 1,
+    "majorAlphaComponents": [
+      4215
+    ],
+    "connected": true
+  },
+  {
+    "build": "1-0-1",
+    "level": 2,
+    "majorAlphaComponents": [
+      4542
+    ],
+    "connected": true
+  },
+  {
+    "build": "1-0-1",
+    "level": 3,
+    "majorAlphaComponents": [
+      5679
+    ],
+    "connected": true
+  },
+  {
+    "build": "1-0-2",
+    "level": 1,
+    "majorAlphaComponents": [
+      4163
+    ],
+    "connected": true
+  },
+  {
+    "build": "1-0-2",
+    "level": 2,
+    "majorAlphaComponents": [
+      4490
+    ],
+    "connected": true
+  },
+  {
+    "build": "1-0-2",
+    "level": 3,
+    "majorAlphaComponents": [
+      5627
+    ],
+    "connected": true
+  },
+  {
+    "build": "1-1-0",
+    "level": 1,
+    "majorAlphaComponents": [
+      4377
+    ],
+    "connected": true
+  },
+  {
+    "build": "1-1-0",
+    "level": 2,
+    "majorAlphaComponents": [
+      4785
+    ],
+    "connected": true
+  },
+  {
+    "build": "1-1-0",
+    "level": 3,
+    "majorAlphaComponents": [
+      5495
+    ],
+    "connected": true
+  },
+  {
+    "build": "1-1-1",
+    "level": 1,
+    "majorAlphaComponents": [
+      4492
+    ],
+    "connected": true
+  },
+  {
+    "build": "1-1-1",
+    "level": 2,
+    "majorAlphaComponents": [
+      4900
+    ],
+    "connected": true
+  },
+  {
+    "build": "1-1-1",
+    "level": 3,
+    "majorAlphaComponents": [
+      5610
+    ],
+    "connected": true
+  },
+  {
+    "build": "1-1-2",
+    "level": 1,
+    "majorAlphaComponents": [
+      4440
+    ],
+    "connected": true
+  },
+  {
+    "build": "1-1-2",
+    "level": 2,
+    "majorAlphaComponents": [
+      4848
+    ],
+    "connected": true
+  },
+  {
+    "build": "1-1-2",
+    "level": 3,
+    "majorAlphaComponents": [
+      5558
+    ],
+    "connected": true
+  },
+  {
+    "build": "1-2-0",
+    "level": 1,
+    "majorAlphaComponents": [
+      3862
+    ],
+    "connected": true
+  },
+  {
+    "build": "1-2-0",
+    "level": 2,
+    "majorAlphaComponents": [
+      4246
+    ],
+    "connected": true
+  },
+  {
+    "build": "1-2-0",
+    "level": 3,
+    "majorAlphaComponents": [
+      5505
+    ],
+    "connected": true
+  },
+  {
+    "build": "1-2-1",
+    "level": 1,
+    "majorAlphaComponents": [
+      3977
+    ],
+    "connected": true
+  },
+  {
+    "build": "1-2-1",
+    "level": 2,
+    "majorAlphaComponents": [
+      4361
+    ],
+    "connected": true
+  },
+  {
+    "build": "1-2-1",
+    "level": 3,
+    "majorAlphaComponents": [
+      5620
+    ],
+    "connected": true
+  },
+  {
+    "build": "1-2-2",
+    "level": 1,
+    "majorAlphaComponents": [
+      3925
+    ],
+    "connected": true
+  },
+  {
+    "build": "1-2-2",
+    "level": 2,
+    "majorAlphaComponents": [
+      4309
+    ],
+    "connected": true
+  },
+  {
+    "build": "1-2-2",
+    "level": 3,
+    "majorAlphaComponents": [
+      5568
+    ],
+    "connected": true
+  },
+  {
+    "build": "2-0-0",
+    "level": 1,
+    "majorAlphaComponents": [
+      4974
+    ],
+    "connected": true
+  },
+  {
+    "build": "2-0-0",
+    "level": 2,
+    "majorAlphaComponents": [
+      5189
+    ],
+    "connected": true
+  },
+  {
+    "build": "2-0-0",
+    "level": 3,
+    "majorAlphaComponents": [
+      6326
+    ],
+    "connected": true
+  },
+  {
+    "build": "2-0-1",
+    "level": 1,
+    "majorAlphaComponents": [
+      5040
+    ],
+    "connected": true
+  },
+  {
+    "build": "2-0-1",
+    "level": 2,
+    "majorAlphaComponents": [
+      5255
+    ],
+    "connected": true
+  },
+  {
+    "build": "2-0-1",
+    "level": 3,
+    "majorAlphaComponents": [
+      6392
+    ],
+    "connected": true
+  },
+  {
+    "build": "2-0-2",
+    "level": 1,
+    "majorAlphaComponents": [
+      5039
+    ],
+    "connected": true
+  },
+  {
+    "build": "2-0-2",
+    "level": 2,
+    "majorAlphaComponents": [
+      5254
+    ],
+    "connected": true
+  },
+  {
+    "build": "2-0-2",
+    "level": 3,
+    "majorAlphaComponents": [
+      6391
+    ],
+    "connected": true
+  },
+  {
+    "build": "2-1-0",
+    "level": 1,
+    "majorAlphaComponents": [
+      5237
+    ],
+    "connected": true
+  },
+  {
+    "build": "2-1-0",
+    "level": 2,
+    "majorAlphaComponents": [
+      5516
+    ],
+    "connected": true
+  },
+  {
+    "build": "2-1-0",
+    "level": 3,
+    "majorAlphaComponents": [
+      6226
+    ],
+    "connected": true
+  },
+  {
+    "build": "2-1-1",
+    "level": 1,
+    "majorAlphaComponents": [
+      5303
+    ],
+    "connected": true
+  },
+  {
+    "build": "2-1-1",
+    "level": 2,
+    "majorAlphaComponents": [
+      5582
+    ],
+    "connected": true
+  },
+  {
+    "build": "2-1-1",
+    "level": 3,
+    "majorAlphaComponents": [
+      6292
+    ],
+    "connected": true
+  },
+  {
+    "build": "2-1-2",
+    "level": 1,
+    "majorAlphaComponents": [
+      5302
+    ],
+    "connected": true
+  },
+  {
+    "build": "2-1-2",
+    "level": 2,
+    "majorAlphaComponents": [
+      5581
+    ],
+    "connected": true
+  },
+  {
+    "build": "2-1-2",
+    "level": 3,
+    "majorAlphaComponents": [
+      6291
+    ],
+    "connected": true
+  },
+  {
+    "build": "2-2-0",
+    "level": 1,
+    "majorAlphaComponents": [
+      4699
+    ],
+    "connected": true
+  },
+  {
+    "build": "2-2-0",
+    "level": 2,
+    "majorAlphaComponents": [
+      4937
+    ],
+    "connected": true
+  },
+  {
+    "build": "2-2-0",
+    "level": 3,
+    "majorAlphaComponents": [
+      6196
+    ],
+    "connected": true
+  },
+  {
+    "build": "2-2-1",
+    "level": 1,
+    "majorAlphaComponents": [
+      4765
+    ],
+    "connected": true
+  },
+  {
+    "build": "2-2-1",
+    "level": 2,
+    "majorAlphaComponents": [
+      5003
+    ],
+    "connected": true
+  },
+  {
+    "build": "2-2-1",
+    "level": 3,
+    "majorAlphaComponents": [
+      6262
+    ],
+    "connected": true
+  },
+  {
+    "build": "2-2-2",
+    "level": 1,
+    "majorAlphaComponents": [
+      4764
+    ],
+    "connected": true
+  },
+  {
+    "build": "2-2-2",
+    "level": 2,
+    "majorAlphaComponents": [
+      5002
+    ],
+    "connected": true
+  },
+  {
+    "build": "2-2-2",
+    "level": 3,
+    "majorAlphaComponents": [
+      6261
+    ],
+    "connected": true
+  }
+]
