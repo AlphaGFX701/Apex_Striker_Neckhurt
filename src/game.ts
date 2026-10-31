@@ -26,11 +26,13 @@ export class SpaceScene extends Phaser.Scene {
   }
   private sprites: Phaser.GameObjects.Image[] = [];
   private spriteIndex = 0;
+  private wasHit = false;
   preload() {
     this.load.atlas("fleet", "/assets/atlas.png", "/assets/atlas.json");
     this.load.image("combat-space", "/assets/space-combat-background.webp");
     for (let i = 0; i < 3; i++)
       this.load.image(`boss-${i}`, `/assets/tactical/boss-${i}.png`);
+    for (const kind of ["weapon", "missile", "drone", "shield", "repair", "energy"]) this.load.image(`pickup-${kind}`, `/assets/arcade/${kind}.svg`);
     this.load.image("drone", "/assets/tactical/drone.png");
     for (let i = 0; i < 3; i++)
       this.load.image(`sector-${i}`, `/assets/tactical/sector-${i}.webp`);
@@ -50,16 +52,16 @@ export class SpaceScene extends Phaser.Scene {
         .image(
           x,
           y,
-          frame.startsWith("boss-") || frame === "drone" ? frame : "fleet",
-          frame.startsWith("boss-") || frame === "drone" ? undefined : frame,
+          frame.startsWith("boss-") || frame.startsWith("pickup-") || frame === "drone" ? frame : "fleet",
+          frame.startsWith("boss-") || frame.startsWith("pickup-") || frame === "drone" ? undefined : frame,
         )
         .setDepth(1);
       this.sprites.push(image);
     }
     image
       .setTexture(
-        frame.startsWith("boss-") || frame === "drone" ? frame : "fleet",
-        frame.startsWith("boss-") || frame === "drone" ? undefined : frame,
+        frame.startsWith("boss-") || frame.startsWith("pickup-") || frame === "drone" ? frame : "fleet",
+        frame.startsWith("boss-") || frame.startsWith("pickup-") || frame === "drone" ? undefined : frame,
       )
       .setPosition(x, y)
       .setRotation(rotation)
@@ -265,6 +267,10 @@ export class SpaceScene extends Phaser.Scene {
         e.y,
         e.kind === 2 ? 80 : 65,
       );
+    for (const e of s.enemies) if (e.flash) {
+      g.fillStyle(0xffffff, Math.min(0.7, e.flash * 10));
+      g.fillCircle(e.x, e.y, e.radius);
+    }
     if (s.boss) {
       const b = s.boss;
       this.sprite(`boss-${this.model.config.stage}`, b.x, b.y, 155);
@@ -282,11 +288,8 @@ export class SpaceScene extends Phaser.Scene {
       g.fillCircle(b.x, b.y, 2);
     }
     for (const p of s.pickups) {
-      if (!p.value) continue;
-      g.lineStyle(1, 0xf0bc74);
-      g.strokeCircle(p.x, p.y, 6);
-      g.fillStyle(0xf0bc74);
-      g.fillCircle(p.x, p.y, 2);
+      if (!p.kind) continue;
+      this.sprite(`pickup-${p.kind}`, p.x, p.y, 30);
     }
     for (const e of s.explosions) {
       const progress = e.age / 0.5;
@@ -315,6 +318,9 @@ export class SpaceScene extends Phaser.Scene {
     const ship = s.ship,
       roll = s.dodgeTime > 0;
     if (roll) {
+      g.lineStyle(5, 0x60d8ff, Math.min(0.45, s.dodgeTime));
+      g.lineBetween(s.warpOrigin.x, s.warpOrigin.y, ship.x, ship.y);
+      this.sprite("player-0", s.warpOrigin.x, s.warpOrigin.y, 60, 0, Math.min(0.35, s.dodgeTime));
       for (let i = 1; i <= 4; i++) {
         g.lineStyle(2, 0x86f7ef, 0.35 / i);
         g.strokeEllipse(ship.x - i * s.dodgeDirection * 12, ship.y, 36, 55);
@@ -369,13 +375,14 @@ export class SpaceScene extends Phaser.Scene {
         );
     }
     if (s.laser > 0) {
-      const l = this.model.config.levels.laser || 1;
+      const l = 1 + s.powers.weapon;
       g.lineStyle(6 + (l - 1) * 4, 0x60d8ff, 0.35);
       g.lineBetween(ship.x, ship.y - 25, ship.x, 0);
       g.lineStyle(2 + l, 0xeaffff, 0.9);
       g.lineBetween(ship.x, ship.y - 25, ship.x, 0);
+      for (let i = 1; i <= s.powers.weapon; i++) for (const direction of [-1, 1]) { g.lineStyle(2, 0xa3efff, 0.7); g.lineBetween(ship.x + direction * i * 14, ship.y - 25, ship.x + direction * i * 14, 0); }
     }
-    if (this.model.config.equipment.wingman) {
+    if (s.powers.drone > 0) {
       const l = this.model.config.levels.drone || 1;
       this.sprite("drone", ship.x - 44, ship.y + 8, 24);
       if (l > 1) this.sprite("drone", ship.x + 44, ship.y + 8, 24);
@@ -406,8 +413,10 @@ export class SpaceScene extends Phaser.Scene {
     }
     for (let i = this.spriteIndex; i < this.sprites.length; i++)
       this.sprites[i].setVisible(false);
+    if (s.hitEffect > 0 && s.damageKind === "hull" && !this.wasHit && !this.control.reducedEffects?.()) this.cameras.main.shake(100, 0.004);
+    this.wasHit = s.hitEffect > 0;
     if (s.hitEffect > 0) {
-      g.lineStyle(5, 0xff6d93, s.hitEffect * 2);
+      g.lineStyle(5, s.damageKind === "shield" ? 0x60d8ff : 0xff6d93, s.hitEffect * 2);
       g.strokeRoundedRect(3, 3, 384, 714, 12);
     }
   }
@@ -431,3 +440,4 @@ export function createGame(parent: HTMLElement, control: GameControl) {
   });
   return { game, scene };
 }
+

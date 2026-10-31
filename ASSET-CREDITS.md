@@ -45,3 +45,6 @@ The current tactical assembly uses Skorpio Original Human Ships hulls (Human-Fig
 Three portrait combat environments crop different regions of Rawdanitsu Background-1, darken them and encode WebP without stretching; these remain CC0. Equipment and upgrade symbols in assets/tactical/*.svg are hand-authored geometric vector drawings, CC0. Combat trails, warning beams and hitbox indicators are code-drawn effects. No generative image model was used.
 
 Current derivative download: /assets/tactical-art-CC-BY-SA-3.0.zip. Rebuild with scripts/build-tactical-assets.py (Python + Pillow); check all 27 compositions with scripts/check-tactical-assets.py. Original artist files remain in assets/originals/. Earlier adaptation ZIPs describe the earlier art versions, not the tactical update.
+
+## Arcade update
+Pickup icons in public/assets/arcade were drawn as original vector artwork for this project (CC0). Rajdhani and Barlow fonts are distributed under the SIL Open Font License; license texts are included in public/assets/fonts/.

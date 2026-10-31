@@ -66,13 +66,14 @@ describe("tactical simulation", () => {
     expect(m.state.perks).toEqual({});
     expect(m.state.powerChoices).toEqual([]);
   });
-  it("shield absorbs one collision and regenerates without increasing lives", () => {
+  it("shield pickup absorbs one collision without regenerating", () => {
     const m = new GameModel(),
       c = defaultRun();
     c.equipment.armor = "shield";
     c.levels.shield = 3;
     m.configure(c);
     m.reset();
+    m.state.shield = true;
     m.state.rocks.push({
       x: 195,
       y: 610,
@@ -87,7 +88,7 @@ describe("tactical simulation", () => {
     expect(m.state.shield).toBe(false);
     m.practice = true;
     for (let i = 0; i < 210; i++) m.update(0.05, { x: -1, y: 1 });
-    expect(m.state.shield).toBe(true);
+    expect(m.state.shield).toBe(false);
   });
   it("does not damage a boss behind an upward laser", () => {
     const m = new GameModel(),
@@ -115,6 +116,7 @@ describe("tactical simulation", () => {
     c.levels.missile = 1;
     m.configure(c);
     m.practice = true;
+    m.state.powers.missile = 12;
     for (let i = 0; i < 41; i++) m.update(0.05, { x: 0, y: 0 });
     const missile = m.state.bullets.find((b) => b.missile)!;
     expect(missile).toBeTruthy();
@@ -201,14 +203,14 @@ describe("tactical simulation", () => {
           s.pickups.length +
           s.explosions.length,
       );
-      expect(s.bullets.length).toBeLessThanOrEqual(240);
-      expect(s.enemyBullets.length).toBeLessThanOrEqual(220);
-      expect(s.enemies.length).toBeLessThanOrEqual(18);
+      expect(s.bullets.length).toBeLessThanOrEqual(360);
+      expect(s.enemyBullets.length).toBeLessThanOrEqual(280);
+      expect(s.enemies.length).toBeLessThanOrEqual(24);
     }
     expect(m.state.time).toBeGreaterThan(1200);
     expect(m.state.gameOver).toBe(false);
     expect(m.state.wave).toBeGreaterThan(10);
-    expect(max).toBeLessThan(578);
+    expect(max).toBeLessThan(800);
   });
 });
 describe("save recovery", () => {

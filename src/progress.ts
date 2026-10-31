@@ -40,9 +40,10 @@ export class ProgressStore {
         return undefined;
       }
     })(),
+    private arcade = false,
   ) {
     try {
-      const raw = JSON.parse(storage?.getItem("gyro-progress-v6") || "null");
+      const raw = JSON.parse(storage?.getItem(arcade ? "gyro-arcade-progress-v1" : "gyro-progress-v6") || "null");
       if (raw?.version === 6) {
         this.state.credits =
           Number.isSafeInteger(raw.credits) && raw.credits >= 0
@@ -99,7 +100,7 @@ export class ProgressStore {
   save() {
     try {
       if (!this.storage) throw Error();
-      this.storage.setItem("gyro-progress-v6", JSON.stringify(this.state));
+      this.storage.setItem(this.arcade ? "gyro-arcade-progress-v1" : "gyro-progress-v6", JSON.stringify(this.state));
       this.persistent = true;
     } catch {
       this.persistent = false;
@@ -139,8 +140,8 @@ export class ProgressStore {
   ) {
     if (result.practice || this.state.settled.includes(id))
       return { collected: 0, clear: 0, first: 0, total: 0 };
-    const collected = Math.max(0, Math.floor(result.credits)),
-      clear = result.won && result.mode === "stage" ? 50 : 0,
+    const collected = this.arcade ? 0 : Math.max(0, Math.floor(result.credits)),
+      clear = !this.arcade && result.won && result.mode === "stage" ? 50 : 0,
       first = clear && !this.state.cleared.includes(result.stage) ? 100 : 0;
     this.state.credits += collected + clear + first;
     if (clear && !this.state.cleared.includes(result.stage))

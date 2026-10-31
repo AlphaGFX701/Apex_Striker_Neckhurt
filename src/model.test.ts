@@ -10,7 +10,7 @@ describe('space game', () => {
   it('fires automatically, scores a hit, and can restart', () => {
     const model = new GameModel(() => 0.5);
     for (let i = 0; i < 4; i++) model.update(0.05, { x: 0, y: 0 });
-    expect(model.state.bullets).toHaveLength(1);
+    expect(model.state.bullets).toHaveLength(2);
     const bullet = model.state.bullets[0];
     model.state.rocks.push({ x: bullet.x, y: bullet.y - 2, radius: 16, speed: 0, spin: 0, phase: 0, target: true });
     model.update(0.01, { x: 0, y: 0 });
@@ -38,6 +38,8 @@ describe('space game', () => {
   it('shares cooldown across left/right and prevents duplicate skill activation', () => {
     const m = new GameModel();
     expect(m.action('dodgeLeft').accepted).toBe(true);
+    expect(m.state.ship.x).toBe(65);
+    expect(m.state.dodgeCooldown).toBe(2.5);
     expect(m.action('dodgeRight').accepted).toBe(false);
     expect(m.state.invincible).toBe(0.6);
     for (let i = 0; i < 61; i++) m.update(0.05, { x: -1, y: 1 });
@@ -95,16 +97,16 @@ describe('space game', () => {
   });
 });
 
-it('spread fires three half-damage shots at twelve degrees', () => {
+it('spread fires rapid volleys at twelve degrees', () => {
   const model = new GameModel(() => 0); model.weapon = 'spread';
   for(let i=0;i<6;i++) model.update(.05,{x:0,y:0});
-  expect(model.state.bullets).toHaveLength(3);
-  expect(model.state.bullets.map(b=>b.damage)).toEqual([.5,.5,.5]);
+  expect(model.state.bullets).toHaveLength(6);
+  expect(model.state.bullets.map(b=>b.damage)).toEqual(Array(6).fill(.28));
   expect(model.state.bullets[0].vx).toBeCloseTo(-Math.sin(Math.PI/15)*530);
   expect(model.state.bullets[2].vx).toBeCloseTo(Math.sin(Math.PI/15)*530);
 });
 it('straight shot cadence and weapon choice survive restart', () => {
   const model = new GameModel(); for(let i=0;i<4;i++) model.update(.05,{x:0,y:0});
-  expect(model.state.bullets).toHaveLength(1); expect(model.state.bullets[0].damage).toBe(1);
+  expect(model.state.bullets).toHaveLength(2); expect(model.state.bullets[0].damage).toBe(.56);
   model.weapon='spread'; model.reset(); expect(model.weapon).toBe('spread'); expect(model.state.bullets).toHaveLength(0);
 });

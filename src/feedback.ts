@@ -2,7 +2,18 @@
 export class Feedback {
   private context: AudioContext | null = null;
   enabled = true;
+  voiceEnabled = true;
   haptics = false;
+  ready() {
+    this.play("ready");
+    if (this.enabled && this.voiceEnabled && "speechSynthesis" in window) {
+      try {
+        const utterance = new SpeechSynthesisUtterance("EMP ready");
+        utterance.lang = "en-US";
+        window.speechSynthesis.speak(utterance);
+      } catch { /* The ready chime remains available. */ }
+    }
+  }
   unlock() {
     try {
       this.context ??= new AudioContext();
@@ -11,7 +22,7 @@ export class Feedback {
       /* Audio optional. */
     }
   }
-  play(kind: "dodge" | "emp" | "hit" | "end" | "pulse" | "plasma" | "laser") {
+  play(kind: "dodge" | "emp" | "hit" | "end" | "pulse" | "plasma" | "laser" | "pickup" | "ready") {
     if (this.enabled && this.context?.state === "running") {
       const ctx = this.context,
         osc = ctx.createOscillator(),

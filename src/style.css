@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap");
+@import url("/assets/fonts/fonts.css");
 :root {
   color-scheme: dark;
   --void: #050914;
@@ -12,7 +12,7 @@
   --red: #f16d65;
   --green: #99e5bb;
   --radius: 8px;
-  font-family: Inter, sans-serif;
+  font-family: Barlow, sans-serif;
   background: var(--void);
   color: var(--text);
   font-size: 14px;
@@ -50,7 +50,7 @@ button {
   min-height: 44px;
   padding: 12px 18px;
   border-radius: 5px;
-  font-family: "Chakra Petch", sans-serif;
+  font-family: "Rajdhani", sans-serif;
   font-weight: 600;
   transition:
     background 0.16s,
@@ -87,7 +87,7 @@ h3,
 b,
 strong,
 .eyebrow {
-  font-family: "Chakra Petch", sans-serif;
+  font-family: "Rajdhani", sans-serif;
 }
 h1 {
   font-size: clamp(28px, 4vw, 46px);
@@ -197,7 +197,7 @@ canvas {
   z-index: 5;
 }
 .wordmark {
-  font-family: "Chakra Petch";
+  font-family: "Rajdhani";
   color: var(--text);
   letter-spacing: 0.12em;
   font-size: 14px;
@@ -224,7 +224,7 @@ canvas {
 }
 .credit-balance {
   color: var(--amber);
-  font-family: "Chakra Petch";
+  font-family: "Rajdhani";
   font-size: 16px;
 }
 .screen {
@@ -330,7 +330,7 @@ canvas {
   display: flex;
   gap: 18px;
   margin-top: 35px;
-  font-family: "Chakra Petch";
+  font-family: "Rajdhani";
   font-size: 8px;
   letter-spacing: 0.1em;
   color: var(--muted);
@@ -402,7 +402,7 @@ canvas {
   right: 7vw;
   display: flex;
   justify-content: space-between;
-  font-family: "Chakra Petch";
+  font-family: "Rajdhani";
   font-size: 9px;
   letter-spacing: 0.12em;
   color: var(--muted);
@@ -502,7 +502,7 @@ fieldset {
   border: 0;
 }
 legend {
-  font-family: "Chakra Petch";
+  font-family: "Rajdhani";
   font-size: 12px;
   margin-bottom: 9px;
   color: #ced9e5;
@@ -631,7 +631,7 @@ input[type="checkbox"] {
   flex: 1;
 }
 .catalog-item small {
-  font-family: Inter;
+  font-family: Barlow;
   font-size: 10px;
   letter-spacing: 0;
   color: var(--muted);
@@ -690,7 +690,7 @@ input[type="checkbox"] {
   padding: 16px 0 22px;
 }
 .stage-meta span {
-  font-family: "Chakra Petch";
+  font-family: "Rajdhani";
   font-size: 9px;
   letter-spacing: 0.06em;
   color: var(--muted);
@@ -934,7 +934,7 @@ body[data-view="battle"] .bottom-nav {
 }
 .hud-time b {
   font-size: 22px;
-  font-family: "Chakra Petch";
+  font-family: "Rajdhani";
 }
 .hud-bottom {
   position: absolute;
@@ -1035,7 +1035,7 @@ progress::-webkit-progress-value {
   top: 45%;
   text-align: center;
   width: 100%;
-  font-family: "Chakra Petch";
+  font-family: "Rajdhani";
   color: var(--amber);
   text-shadow: 0 2px 5px #000;
   font-size: 20px;
@@ -1101,7 +1101,7 @@ progress::-webkit-progress-value {
   border: 1px solid #4c6176;
   border-radius: 5px;
   padding: 9px;
-  font-family: "Chakra Petch";
+  font-family: "Rajdhani";
   font-size: 10px;
 }
 .pad-face {
@@ -2057,3 +2057,8 @@ dialog h2 {
 .wordmark {
   min-height: 44px;
 }
+
+#lives { color: #ff7380; text-shadow: 0 0 10px #ef556f; letter-spacing: .12em; }
+.combat-controls button { min-height: 48px; border: 1px solid #53748b; box-shadow: inset 0 1px 0 #a4d9ef55, inset 0 -5px 12px #020914aa; background-image: linear-gradient(145deg,#31465a,#101b29 65%,#233a4c); }
+
+.title-art { pointer-events: none; }

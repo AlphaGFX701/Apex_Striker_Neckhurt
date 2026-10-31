@@ -33,7 +33,9 @@ export interface Enemy extends Body {
   shot: number;
   phase: number;
   kind?: number;
+  flash?: number;
 }
+export type PickupKind = "weapon" | "missile" | "drone" | "shield" | "repair" | "energy";
 export interface EnemyBullet extends Body {
   vx: number;
   vy: number;
@@ -61,11 +63,13 @@ export interface GameSnapshot {
   dodgeCooldown: number;
   dodgeTime: number;
   dodgeDirection: number;
+  warpOrigin: { x: number; y: number };
   dodges: number;
   emps: number;
   empEffect: number;
   empOrigin: { x: number; y: number };
   hitEffect: number;
+  damageKind: "hull" | "shield";
   credits: number;
   combo: number;
   shield: boolean;
@@ -73,7 +77,9 @@ export interface GameSnapshot {
   wave: number;
   powerChoices: string[];
   perks: Record<string, number>;
-  pickups: { x: number; y: number; value: number; age: number }[];
+  pickups: { x: number; y: number; value: number; age: number; kind?: PickupKind }[];
+  powers: { weapon: number; missile: number; drone: number };
+  pickupCount: number;
   explosions: { x: number; y: number; age: number }[];
   beams: { x: number; age: number }[];
   laser: number;
@@ -104,6 +110,7 @@ export class GameModel {
   private waveAt = 30;
   private bossAt = 90;
   private velocity: Axes = { x: 0, y: 0 };
+  private killsSinceDrop = 0;
   constructor(private random = Math.random) {
     this.state = this.initialState();
   }
@@ -129,19 +136,23 @@ export class GameModel {
       dodgeCooldown: 0,
       dodgeTime: 0,
       dodgeDirection: 0,
+      warpOrigin: { x: 195, y: 610 },
       dodges: 0,
       emps: 0,
       empEffect: 0,
       empOrigin: { x: 195, y: 610 },
       hitEffect: 0,
+      damageKind: "hull",
       credits: 0,
       combo: 0,
-      shield: !!this.config.equipment.armor,
+      shield: false,
       shieldTimer: 0,
       wave: 1,
       powerChoices: [],
       perks: {},
       pickups: [],
+      powers: { weapon: 0, missile: 0, drone: 0 },
+      pickupCount: 0,
       explosions: [],
       beams: [],
       laser: 0,
@@ -149,6 +160,7 @@ export class GameModel {
   }
   reset() {
     this.fireCount = 0;
+    this.killsSinceDrop = 0;
     this.state = this.initialState();
     this.spawnClock =
       this.enemyClock =
@@ -205,7 +217,9 @@ export class GameModel {
         accepted: false,
         reason: `Dodge recharging: ${s.dodgeCooldown.toFixed(1)}s`,
       };
-    s.dodgeCooldown = 3 - (s.perks.evasive || 0) * 0.3;
+    s.warpOrigin = { x: s.ship.x, y: s.ship.y };
+    s.dodgeCooldown = 2.5;
+    s.ship.x = clampShip(s.ship.x + (action === "dodgeLeft" ? -130 : 130), s.ship.y).x;
     s.dodgeTime = 0.6;
     s.invincible = Math.max(s.invincible, 0.6);
     s.dodgeDirection = action === "dodgeLeft" ? -1 : 1;
@@ -232,7 +246,13 @@ export class GameModel {
     s.score += 40;
     s.combo++;
     s.energy = Math.min(100, s.energy + 5);
-    this.drop(e.x, e.y, e.kind === 2 ? 6 : 2);
+    this.drop(e.x, e.y, 0);
+    this.killsSinceDrop++;
+    if (e.kind === 2 || this.killsSinceDrop >= 5 || this.random() < 0.3) {
+      const kinds: PickupKind[] = s.lives === 1 ? ["weapon", "missile", "drone", "shield", "repair", "repair", "repair", "energy"] : ["weapon", "missile", "drone", "shield", "repair", "energy"];
+      s.pickups.push({ x: e.x, y: e.y, value: 0, age: 0, kind: kinds[Math.floor(this.random() * kinds.length) % kinds.length] });
+      this.killsSinceDrop = 0;
+    }
   }
   private checkBoss() {
     const s = this.state;
@@ -248,13 +268,14 @@ export class GameModel {
       this.config.stage = (this.config.stage + 1) % 3;
       this.bossAt = s.time + 90;
       this.waveAt = s.time + 30;
-      if (this.config.powerups) this.offerPower();
+      
     } else this.finish("won");
   }
   private damage() {
     const s = this.state;
     if (s.invincible > 0) return;
     s.hitEffect = 0.3;
+    s.damageKind = s.shield ? "shield" : "hull";
     s.invincible = 1.2;
     s.combo = 0;
     if (s.shield) {
@@ -270,7 +291,7 @@ export class GameModel {
   private fan(x: number, y: number, count: number, speed: number, offset = 0) {
     const s = this.state;
     speed *= Math.min(1.4, 1 + (s.wave - 1) * 0.04);
-    for (let i = 0; i < count && s.enemyBullets.length < 220; i++) {
+    for (let i = 0; i < count && s.enemyBullets.length < 280; i++) {
       const angle = offset + (i - (count - 1) / 2) * 0.25;
       s.enemyBullets.push({
         x,
@@ -336,10 +357,12 @@ export class GameModel {
     if (endless && !s.boss && s.time >= this.waveAt && s.time < this.bossAt) {
       s.wave++;
       this.waveAt += 30;
-      if (this.config.powerups) this.offerPower();
+      
       return;
     }
     s.energy = Math.min(100, s.energy + step * (5 + (s.perks.charger || 0)));
+    s.powers.missile = Math.max(0, s.powers.missile - step);
+    s.powers.drone = Math.max(0, s.powers.drone - step);
     for (const key of [
       "invincible",
       "dodgeCooldown",
@@ -350,7 +373,7 @@ export class GameModel {
       "laser",
     ] as const)
       s[key] = Math.max(0, s[key] - step);
-    if (this.config.equipment.armor && s.shieldTimer === 0) s.shield = true;
+    
     this.actionLock = Math.max(0, this.actionLock - step);
     s.explosions.forEach((e) => (e.age += step));
     s.explosions = s.explosions.filter((e) => e.age < 0.5).slice(-40);
@@ -359,12 +382,21 @@ export class GameModel {
       const dx = s.ship.x - p.x,
         dy = s.ship.y - p.y,
         d = Math.hypot(dx, dy);
-      if (d < 80 + (s.perks.magnet || 0) * 40) {
-        p.x += dx * step * 7;
-        p.y += dy * step * 7;
+      if (d < 150 + (s.perks.magnet || 0) * 40) {
+        const attraction = 1 - Math.exp(-step * 7);
+        p.x += dx * attraction;
+        p.y += dy * attraction;
       } else p.y += 35 * step;
       if (d < 16) {
-        s.credits += p.value;
+        if (p.kind) {
+          s.pickupCount++;
+          if (p.kind === "weapon") {
+            if (s.powers.weapon < 2) s.powers.weapon++; else s.energy = Math.min(100, s.energy + 25);
+          } else if (p.kind === "missile" || p.kind === "drone") s.powers[p.kind] = Math.min(24, s.powers[p.kind] + 12);
+          else if (p.kind === "shield") s.shield = true;
+          else if (p.kind === "repair" && s.lives < 3) s.lives++;
+          else s.energy = Math.min(100, s.energy + 25);
+        }
         p.age = 20;
       }
     }
@@ -391,11 +423,7 @@ export class GameModel {
     this.velocity.y += (desired.y - this.velocity.y) * blend;
     const next = clampShip(
       s.ship.x +
-        (this.velocity.x +
-          (s.dodgeTime > 0
-            ? (s.dodgeDirection * 220 * s.dodgeTime) / 0.6
-            : 0)) *
-          step,
+        this.velocity.x * step,
       s.ship.y + this.velocity.y * step,
     );
     if (next.x === WORLD.margin || next.x === WORLD.width - WORLD.margin)
@@ -408,11 +436,11 @@ export class GameModel {
           : this.weapon === "spread"
             ? "plasma"
             : "pulse",
-      level = Math.max(1, this.config.levels[main]),
+      level = 1 + s.powers.weapon,
       boost = 1 + (s.perks.damage || 0) * 0.1;
     this.shotClock += step;
     const interval =
-      (main === "plasma" ? 0.27 : main === "laser" ? 0.1 : 0.18) /
+      (main === "plasma" ? 0.108 : main === "laser" ? 0.1 : 0.072) /
       (1 + (s.perks.rapid || 0) * 0.1);
     if (this.shotClock >= interval) {
       this.fireCount++;
@@ -424,11 +452,11 @@ export class GameModel {
             (e) =>
               e.health > 0 &&
               e.y < s.ship.y &&
-              Math.abs(e.x - s.ship.x) < e.radius + 3 + level * 2,
+              Math.abs(e.x - s.ship.x) < e.radius + 3 + level * 2 + s.powers.weapon * 14,
           ),
           ...(s.boss &&
           s.boss.y < s.ship.y &&
-          Math.abs(s.boss.x - s.ship.x) < s.boss.radius + 3 + level * 2
+          Math.abs(s.boss.x - s.ship.x) < s.boss.radius + 3 + level * 2 + s.powers.weapon * 14
             ? [s.boss]
             : []),
         ]
@@ -456,14 +484,14 @@ export class GameModel {
             radius: 4,
             speed: Math.cos(angle) * 530,
             vx: Math.sin(angle) * 530,
-            damage: shot.damage * boost,
+            damage: shot.damage * boost * 0.56,
             type: main,
           });
         }
     }
     this.missileClock += step;
     this.droneClock += step;
-    if (this.config.equipment.secondary && this.missileClock >= 2) {
+    if (s.powers.missile > 0 && this.missileClock >= 2) {
       this.missileClock = 0;
       const l = Math.max(1, this.config.levels.missile);
       for (let i = 0; i < l; i++)
@@ -479,7 +507,7 @@ export class GameModel {
           age: 0,
         });
     }
-    if (this.config.equipment.wingman && this.droneClock >= 0.8) {
+    if (s.powers.drone > 0 && this.droneClock >= 0.8) {
       this.droneClock = 0;
       const l = Math.max(1, this.config.levels.drone),
         n = l === 1 ? 1 : l === 2 ? 2 : 4;
@@ -516,12 +544,12 @@ export class GameModel {
     if (
       !s.boss &&
       (endless || s.time < 60) &&
-      this.enemyClock >= (local < 15 ? 3 : 2.4)
+      this.enemyClock >= (local < 15 ? 2.3 : 1.85)
     ) {
       this.enemyClock = 0;
       const kind = Math.floor(this.random() * 3),
         center = 65 + this.random() * 260;
-      for (let i = 0; i < 3 && s.enemies.length < 18; i++)
+      for (let i = 0; i < 3 && s.enemies.length < 24; i++)
         s.enemies.push({
           x: clamp(center + (i - 1) * 55, 30, 360),
           y: -30 - Math.abs(i - 1) * 30,
@@ -543,7 +571,7 @@ export class GameModel {
     if (s.boss && stage === 2 && this.enemyClock >= 6) {
       this.enemyClock = 0;
       for (const x of [40, 350])
-        if (s.enemies.length < 18)
+        if (s.enemies.length < 24)
           s.enemies.push({
             x,
             y: -30,
@@ -596,6 +624,7 @@ export class GameModel {
       r.phase += r.spin * step;
     }
     for (const e of s.enemies) {
+      e.flash = Math.max(0, (e.flash || 0) - step);
       e.y += (e.kind === 1 ? 75 : 55) * step;
       e.x = clamp(
         e.x + Math.sin(s.time * 1.5 + e.phase) * (stage > 0 ? 35 : 22) * step,
@@ -657,6 +686,8 @@ export class GameModel {
       const e = s.enemies.find((e) => e.health > 0 && collides(b, e));
       if (e) {
         spent.add(b);
+        e.flash = 0.07;
+        s.explosions.push({ x: b.x, y: b.y, age: 0.3 });
         e.health -=
           (b.damage ?? 1) *
           damageMultiplier(b.type || "pulse", e.kind === 2, e.kind === 0);
@@ -693,7 +724,7 @@ export class GameModel {
     });
     if (s.boss && collides(s.ship, s.boss)) this.damage();
     s.bullets = s.bullets
-      .slice(-240)
+      .slice(-360)
       .filter(
         (b) =>
           b.y > -30 &&

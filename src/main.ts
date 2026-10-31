@@ -31,12 +31,12 @@ const el = <T extends HTMLElement = HTMLElement>(id: string) =>
   document.getElementById(id) as T;
 const dialog = (id: string) => el<HTMLDialogElement>(id);
 const icon = (id: string) => `<img src="/assets/tactical/${id}.svg" alt="">`;
-const progress = new ProgressStore(),
+const progress = new ProgressStore(undefined, true),
   build = new ShipBuildStore(),
   sensor = new SensorController(),
   pad = new GamepadAdapter(),
   feedback = new Feedback();
-let source = "sensor",
+let source = matchMedia("(pointer: coarse)").matches ? "sensor" : "manual",
   view = "home",
   settingsReturn = "home",
   selectedStage = 0,
@@ -46,6 +46,10 @@ let source = "sensor",
   selectedItem: EquipmentId = progress.state.equipment.main,
   slot = "main";
 const returnRoutes: string[] = [];
+const legacyWeapon = new ProgressStore().state.equipment.main;
+let arcadeWeapon: "pulse" | "plasma" | "laser" = legacyWeapon === "laser" || legacyWeapon === "plasma" ? legacyWeapon : "pulse";
+try { const saved = localStorage.getItem("gyro-arcade-weapon"); if (saved === "pulse" || saved === "plasma" || saved === "laser") arcadeWeapon = saved; } catch {}
+let lastEnergy = 0, lastPickupCount = 0;
 let runId = "",
   settled = false,
   lastLives = 3,
@@ -171,8 +175,10 @@ function clearInput() {
   pad.reset();
   sensor.resetTransient();
 }
+el<HTMLInputElement>("voice").onchange = () => { feedback.voiceEnabled = el<HTMLInputElement>("voice").checked; };
+el("test-sound").onclick = () => { feedback.unlock(); feedback.ready(); };
 function balance() {
-  el("balance").textContent = progress.state.credits.toLocaleString("en-US");
+  el("balance").textContent = "";
   el("save-status").textContent = progress.persistent
     ? "Progress saves locally in this browser."
     : "Local storage is unavailable. Progress lasts for this session.";
@@ -227,7 +233,7 @@ function navigate(next: string) {
   if (scene.hasStarted && next !== "battle" && next !== "results") {
     confirmAction(
       "Leave this mission?",
-      "Withdraw and bank collected credits. Clear bonuses are not awarded.",
+      "The current run ends and its score is recorded.",
       () => {
         scene.model.withdraw();
         completeRound();
@@ -411,45 +417,14 @@ function practice() {
   return el<HTMLInputElement>("practice-mode").checked;
 }
 function renderEquipment() {
-  el("hangar-status").textContent = practice()
-    ? "PRACTICE LOADOUT: unlocked systems can be equipped without spending credits."
-    : "";
-  el("equipment-slots").innerHTML = (
-    ["main", "secondary", "armor", "wingman"] as const
-  )
-    .map((s) => {
-      const item = EQUIPMENT.find(
-        (e) =>
-          e.id ===
-          (practice() ? practiceEquipment : progress.state.equipment)[s],
-      );
-      return `<button data-slot="${s}" class="slot ${slot === s ? "selected" : ""}">${icon(item?.id || "shield")}<small>${{ main: "MAIN WEAPON", secondary: "SECONDARY", armor: "ARMOR", wingman: "WINGMAN" }[s]}</small><strong>${item?.name || "Empty slot"}</strong><span>${item ? `LEVEL ${practice() ? practiceLevels[item.id] : progress.state.levels[item.id]}` : "Choose a system"}</span></button>`;
-    })
-    .join("");
-  el("equipment-slots")
-    .querySelectorAll<HTMLButtonElement>("[data-slot]")
-    .forEach(
-      (b) =>
-        (b.onclick = () => {
-          slot = b.dataset.slot!;
-          renderEquipment();
-        }),
-    );
-  const catalog = el("equipment-catalog");
-  catalog.replaceChildren();
-  for (const item of EQUIPMENT.filter((e) => e.slot === slot)) {
-    const button = document.createElement("button");
-    button.className = "catalog-item";
-    button.dataset.equipment = item.id;
-    const detail = practice()
-      ? equipmentStat(item.id, practiceLevels[item.id]) + " · PRACTICE"
-      : progress.state.levels[item.id]
-        ? equipmentStat(item.id, progress.state.levels[item.id])
-        : "Unlock · 90 credits";
-    button.innerHTML = `${icon(item.id)}<span><strong>${item.name}</strong><small>${detail}</small></span><b>↗</b>`;
-    button.onclick = () => openEquipment(item.id);
-    catalog.append(button);
-  }
+  el("hangar-status").textContent = "All weapons are available. Collect temporary power-ups during flight.";
+  el("equipment-slots").innerHTML = "";
+  el("equipment-catalog").innerHTML = EQUIPMENT.filter(e => e.slot === "main").map(e => `<button class="catalog-item ${arcadeWeapon === e.id ? "selected" : ""}" data-weapon="${e.id}" aria-pressed="${arcadeWeapon === e.id}">${icon(e.id)}<span><strong>${e.name}</strong><small>${e.description}</small></span><b>${arcadeWeapon === e.id ? "EQUIPPED" : "SELECT"}</b></button>`).join("");
+  el("equipment-catalog").querySelectorAll<HTMLButtonElement>("[data-weapon]").forEach(b => b.onclick = () => {
+    arcadeWeapon = b.dataset.weapon as typeof arcadeWeapon; selectedItem = arcadeWeapon;
+    try { localStorage.setItem("gyro-arcade-weapon", arcadeWeapon); } catch { toast("Weapon saved for this session."); }
+    previewDirty = true; renderEquipment();
+  });
 }
 
 function openEquipment(id: EquipmentId) {
@@ -545,11 +520,10 @@ el("preview-level").onchange = () => {
 function renderStages() {
   el("stage-cards").innerHTML =
     STAGES.map((s, i) => {
-      const locked =
-        !practice() && i > 0 && !progress.state.cleared.includes(i - 1);
-      return `<article class="stage-card stage-${i}"><span class="eyebrow">SECTOR 0${i + 1} · ${progress.state.cleared.includes(i) ? "CLEARED" : locked ? "LOCKED" : "AVAILABLE"}</span><img src="/assets/tactical/boss-${i}.png" alt="${s.boss}"><h2>${s.name}</h2><p>${s.description}</p><div class="stage-meta"><span>BOSS <b>${s.boss}</b></span><span>WEAKNESS <b>${s.weakness.toUpperCase()} ×1.25</b></span><span>REWARD <b>50 clear + 100 first clear + drops</b></span></div><button class="${locked ? "secondary" : "primary"}" data-stage="${i}" ${locked ? "disabled" : ""}>${locked ? "Clear the previous stage" : "Prepare mission →"}</button></article>`;
+      const locked = false;
+      return `<article class="stage-card stage-${i}"><span class="eyebrow">SECTOR 0${i + 1} · ${progress.state.cleared.includes(i) ? "CLEARED" : locked ? "LOCKED" : "AVAILABLE"}</span><img src="/assets/tactical/boss-${i}.png" alt="${s.boss}"><h2>${s.name}</h2><p>${s.description}</p><div class="stage-meta"><span>BOSS <b>${s.boss}</b></span><span>WEAKNESS <b>${s.weakness.toUpperCase()} ×1.25</b></span></div><button class="${locked ? "secondary" : "primary"}" data-stage="${i}" ${locked ? "disabled" : ""}>${locked ? "Clear the previous stage" : "Prepare mission →"}</button></article>`;
     }).join("") +
-    `<article class="stage-card endless-card"><span class="eyebrow">SURVIVAL OPERATIONS</span><h2>Endless frontier.</h2><p>No time limit. Escalating waves, rotating threats and a boss every three waves.</p><button class="primary" id="endless-start" ${!practice() && !progress.state.cleared.includes(0) ? "disabled" : ""}>${!practice() && !progress.state.cleared.includes(0) ? "Clear Asteroid Belt to unlock" : "Prepare endless run →"}</button></article>`;
+    `<article class="stage-card endless-card"><span class="eyebrow">SURVIVAL OPERATIONS</span><h2>Endless frontier.</h2><p>No time limit. Escalating waves, rotating threats and a boss every three waves.</p><button class="primary" id="endless-start" >Prepare endless run →</button></article>`;
   el("stage-cards")
     .querySelectorAll<HTMLButtonElement>("[data-stage]")
     .forEach(
@@ -571,11 +545,9 @@ function config(): RunConfig {
   const c = defaultRun();
   c.mode = mode;
   c.stage = selectedStage;
-  c.powerups = true;
-  c.equipment = structuredClone(
-    practice() ? practiceEquipment : progress.state.equipment,
-  );
-  c.levels = practice() ? { ...practiceLevels } : { ...progress.state.levels };
+  c.powerups = false;
+  c.equipment = { main: arcadeWeapon, secondary: null, armor: null, wingman: null };
+  c.levels = { pulse: 1, plasma: 1, laser: 1, missile: 1, shield: 1, drone: 1 };
   return c;
 }
 function renderPreflight() {
@@ -589,11 +561,13 @@ function renderPreflight() {
     .filter(Boolean)
     .map((id) => {
       const e = EQUIPMENT.find((e) => e.id === id)!;
-      return `<span>${icon(e.id)}${e.name} · Lv ${c.levels[e.id]}</span>`;
+      return `<span>${icon(e.id)}${e.name}</span>`;
     })
     .join("");
+  el<HTMLSelectElement>("mission-weapon").value = arcadeWeapon;
   updateControlHelp();
 }
+el<HTMLSelectElement>("mission-weapon").onchange = () => { arcadeWeapon = el<HTMLSelectElement>("mission-weapon").value as typeof arcadeWeapon; selectedItem = arcadeWeapon; try { localStorage.setItem("gyro-arcade-weapon", arcadeWeapon); } catch {} renderPreflight(); };
 function updateControlHelp() {
   const copy: Record<string, string> = {
     sensor:
@@ -654,6 +628,7 @@ el("launch").onclick = () => {
   runId = crypto.randomUUID();
   settled = false;
   lastLives = 3;
+  lastEnergy = 0; lastPickupCount = 0;
   renderedPower = false;
   clearInput();
   setView("battle");
@@ -680,8 +655,11 @@ function resume() {
   }
   dialog("pause-dialog").close();
   clearInput();
-  countdownUntil = performance.now() + 2000;
-  el("battle-hint").textContent = "GET READY · 2";
+  countdownUntil = 0;
+  scene.model.state.invincible = Math.max(scene.model.state.invincible, 0.6);
+  scene.resume();
+  sensor.setGestureActive(source === "sensor");
+  el("battle-hint").textContent = "";
 }
 el("pause").onclick = () => pause();
 el("resume").onclick = resume;
@@ -692,7 +670,7 @@ el("restart").onclick = () => {
   dialog("pause-dialog").close();
   confirmAction(
     "Restart this mission?",
-    "The current run ends and collected credits are banked.",
+    "The current run ends and its score is recorded.",
     () => {
       scene.model.withdraw();
       completeRound();
@@ -704,7 +682,7 @@ el("withdraw").onclick = () => {
   dialog("pause-dialog").close();
   confirmAction(
     "Withdraw from this mission?",
-    "Collected credits will be banked. Clear bonuses are not awarded.",
+    "The current run ends and its score is recorded.",
     () => {
       scene.model.withdraw();
       completeRound();
@@ -771,18 +749,19 @@ function updateHud(s: GameSnapshot) {
   el("wave").textContent =
     scene.model.config.mode === "endless" ? `WAVE ${s.wave}` : "TIME LEFT";
   el("combo").textContent = s.combo > 1 ? `${s.combo} CHAIN` : "";
-  el("lives").textContent = "◆ ".repeat(Math.max(0, s.lives));
+  el("lives").textContent = "♥ ".repeat(Math.max(0, s.lives)) + "♡ ".repeat(Math.max(0, 3 - s.lives));
   el("shield-status").textContent = s.shield
-    ? "SHIELD ONLINE"
-    : scene.model.config.equipment.armor
-      ? `SHIELD ${Math.ceil(s.shieldTimer)}s`
-      : "";
-  el("run-credits").textContent = `◈ ${s.credits}`;
+    ? "SHIELD ONLINE" : "";
+  el("run-credits").textContent = s.powers.weapon ? `POWER ${s.powers.weapon + 1}` : "";
+  if (s.pickupCount > lastPickupCount) feedback.play("pickup");
+  lastPickupCount = s.pickupCount;
+  if (s.energy >= 100 && lastEnergy < 100) feedback.ready();
+  lastEnergy = s.energy;
   el("emp-state").textContent =
     s.energy >= 100 ? "READY" : `${Math.floor(s.energy)}%`;
   el("emp").classList.toggle("charged", s.energy >= 100);
   el("dodge-state").textContent =
-    s.dodgeCooldown > 0 ? `${s.dodgeCooldown.toFixed(1)}s` : "READY";
+    s.dodgeCooldown > 0 ? "RECHARGING" : "READY";
   el("boss-hud").hidden = !s.boss;
   if (s.boss) {
     el("boss-name").textContent = STAGES[scene.model.config.stage].boss;
@@ -808,7 +787,7 @@ function completeRound() {
   dialog("power-dialog").close();
   const s = scene.model.state,
     c = scene.model.config,
-    reward = progress.settle(runId, {
+    _reward = progress.settle(runId, {
       practice: scene.model.practice,
       mode: c.mode,
       stage: c.stage,
@@ -839,15 +818,14 @@ function completeRound() {
   ]
     .map(([l, v]) => `<div><small>${l}</small><b>${v}</b></div>`)
     .join("");
-  el("reward-breakdown").innerHTML =
-    `<h3>Mission salvage</h3><p>Collected <b>◈ ${reward.collected}</b></p><p>Clear bonus <b>◈ ${reward.clear}</b></p><p>First clear <b>◈ ${reward.first}</b></p><p class="reward-total">Banked <strong>◈ ${reward.total}</strong></p>`;
+  el("reward-breakdown").textContent = `Power-ups collected: ${s.pickupCount}`;
   el("result-perks").innerHTML = Object.entries(s.perks)
     .map(([p, n]) => `<span>${perkNames[p][0]} ×${n}</span>`)
     .join("");
   el("next-stage").hidden =
     c.mode !== "stage" ||
     c.stage >= 2 ||
-    !progress.state.cleared.includes(c.stage);
+    s.result !== "won";
   paint("result-ship");
   setView("results");
   feedback.play("end");
@@ -1149,11 +1127,9 @@ function animate(now: number) {
     if (previewDirty) {
       previewDirty = false;
       const c = defaultRun();
-      c.equipment = structuredClone(
-        practice() ? practiceEquipment : progress.state.equipment,
-      );
-      const item = EQUIPMENT.find((e) => e.id === selectedItem)!;
-      c.equipment[item.slot] = item.id;
+      c.equipment = { main: arcadeWeapon, secondary: null, armor: null, wingman: null };
+      const item = EQUIPMENT.find((e) => e.id === arcadeWeapon)!;
+      c.equipment.main = item.id;
       c.levels = {
         ...(practice() ? practiceLevels : progress.state.levels),
         [selectedItem]: Number(el<HTMLSelectElement>("preview-level").value),
@@ -1163,7 +1139,7 @@ function animate(now: number) {
       preview.practice = true;
       previewArt = composeShip(build.draft, parts, 256);
       el("firing-stat").textContent =
-        `${item.name} · ${equipmentStat(item.id, c.levels[item.id])} · Preview only, no purchase applied`;
+        `${item.name} · base weapon · collect power-ups in battle`;
     }
     preview.update(dt, { x: 0, y: 0 });
     preview.state.rocks = [];
