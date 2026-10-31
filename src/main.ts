@@ -1,17 +1,17 @@
 import { screens } from "./screens";
 import {
-  ShipBuildStore,
+  PixelShipStore,
   loadShipParts,
   composeShip,
   type ShipPartImages,
-  type ShipSlot,
 } from "./ship-build";
 import { GamepadAdapter, type PadFrame, type PadCommand } from "./gamepad";
 import { ControllerLab } from "./controller-lab";
 import { SensorController } from "./sensor";
 import { AudioDirector } from "./audio-director";
 import { createGame } from "./game";
-import { GameModel, comboMultiplier, type GameSnapshot } from "./model";
+import { GameModel, comboMultiplier, bossAimPoints, type GameSnapshot } from "./model";
+import { SHIPS, pixelShip } from "./pixel-fleet";
 import { ProgressStore } from "./progress";
 import {
   EQUIPMENT,
@@ -34,9 +34,9 @@ const icon = (id: string) => `<img src="/assets/tactical/${id}.svg" alt="">`;
 const progress = new ProgressStore(
     undefined,
     true,
-    "gyro-evolution-progress-v1",
+    "gyro-pixel-progress-v1",
   ),
-  build = new ShipBuildStore(),
+  build = new PixelShipStore(),
   sensor = new SensorController(),
   pad = new GamepadAdapter(),
   feedback = new AudioDirector();
@@ -148,10 +148,10 @@ let sceneAssetsReady = false,
   assetFailure = false;
 function refreshLoading() {
   el<HTMLProgressElement>("load-progress").value =
-    loaderProgress * 0.9 + (parts?.["hull-0"] ? 0.1 : 0);
+    loaderProgress * 0.9 + (parts?.["pixel-0-1"] ? 0.1 : 0);
   if (assetFailure) return;
   el("load-status").textContent =
-    `Loading flight assets · ${Math.round((loaderProgress * 0.9 + (parts?.["hull-0"] ? 0.1 : 0)) * 100)}%`;
+    `Loading flight assets · ${Math.round((loaderProgress * 0.9 + (parts?.["pixel-0-1"] ? 0.1 : 0)) * 100)}%`;
   el("boot-loading").hidden = sceneAssetsReady && !!parts && !assetFailure;
 }
 function loadingFailed(message: string) {
@@ -160,6 +160,12 @@ function loadingFailed(message: string) {
   el("load-retry").hidden = false;
 }
 el("load-retry").onclick = () => location.reload();
+function pilotAimPoint() {
+  const s = scene.model.state;
+  return (s.boss && bossAimPoints(s.boss)[0]) || s.miniBoss ||
+    s.pickups.find(p => p.kind) || { x: 195, y: 160 };
+}
+
 const { scene } = createGame(el("game"), {
   onLoadProgress: (p) => {
     loaderProgress = p;
@@ -195,11 +201,7 @@ const { scene } = createGame(el("game"), {
             -1,
             Math.min(
               1,
-              ((
-                scene.model.state.boss ||
-                scene.model.state.miniBoss ||
-                scene.model.state.pickups.find((p) => p.kind) || { x: 195 }
-              ).x -
+              (pilotAimPoint().x -
                 scene.model.state.ship.x) /
                 25,
             ),
@@ -265,7 +267,7 @@ function setView(next: string) {
     feedback.music("menu");
   }
   document.body.dataset.view = next;
-  document.title = `${({ home: "Evolution Arcade", stages: "Missions", hangar: "Hangar", battle: "In flight", preflight: "Preflight", settings: "Settings", controller: "Controller Lab", results: "Flight report", records: "Records" } as Record<string, string>)[next] || "Flight"} · Gyro Space Combat`;
+  document.title = `${({ home: "Pixel Combat", stages: "Missions", hangar: "Hangar", battle: "In flight", preflight: "Preflight", settings: "Settings", controller: "Controller Lab", results: "Flight report", records: "Records" } as Record<string, string>)[next] || "Flight"} · Gyro Space Combat`;
   document.querySelectorAll<HTMLElement>(".screen").forEach((s) => {
     s.hidden = s.id !== next;
   });
@@ -323,7 +325,7 @@ function navigate(next: string) {
   }
   if (view === "hangar" && build.dirty && next !== "hangar") {
     confirmAction(
-      "Discard appearance changes?",
+      "Discard ship selection?",
       "Your saved ship will stay unchanged.",
       () => {
         build.discard();
@@ -355,29 +357,37 @@ document.querySelectorAll<HTMLElement>("[data-go]").forEach(
     }),
 );
 el("title-hangar").onclick = () => navigate("hangar");
-function paint(id: string, draft = false, level: 1 | 2 | 3 = 1) {
+function paintPixelCanvas(canvas: HTMLCanvasElement, shipId: number, level: 1 | 2 | 3) {
   if (!parts) return;
-  const c = el<HTMLCanvasElement>(id),
-    ctx = c.getContext("2d")!;
-  ctx.clearRect(0, 0, c.width, c.height);
-  ctx.drawImage(
-    composeShip(draft ? build.draft : build.saved, parts, c.width, level),
-    0,
-    0,
-  );
+  const ship = pixelShip(shipId), frame = ship.levels[level],
+    image = parts[`pixel-${ship.id}-${level}`], ctx = canvas.getContext("2d")!;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!image) return;
+  const bounds = frame.alphaBounds,
+    scale = Math.min(canvas.width * .72 / bounds.width, canvas.height * .72 / bounds.height),
+    width = Math.round(bounds.width * scale), height = Math.round(bounds.height * scale);
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(image, bounds.x, bounds.y, bounds.width, bounds.height,
+    Math.round((canvas.width - width) / 2), Math.round((canvas.height - height) / 2), width, height);
+}
+function paint(id: string, draft = false, level: 1 | 2 | 3 = 1) {
+  paintPixelCanvas(el<HTMLCanvasElement>(id), (draft ? build.draft : build.saved).hull, level);
 }
 function paintAll() {
   for (const id of ["title-ship", "preflight-ship", "result-ship"]) paint(id);
   paint("ship-preview", true, previewLevel);
-  el("title-ship-name").textContent = ["FALCON", "RAVEN", "ATLAS"][
-    build.saved.hull
-  ];
-  el("ship-name").textContent = ["FALCON", "RAVEN", "ATLAS"][build.draft.hull];
+  el("title-ship-name").textContent = pixelShip(build.saved.hull).name.toUpperCase();
+  el("ship-name").textContent = pixelShip(build.draft.hull).name.toUpperCase();
+  el("ship-role").textContent = pixelShip(build.draft.hull).role;
+  el("showcase-level").textContent = `LEVEL ${previewLevel} · ${previewLevel === 1 ? "STANDARD FRAME" : previewLevel === 2 ? "ASSAULT FRAME" : "HEAVY FRAME"}`;
+  el("save-build").textContent = build.dirty ? "Save ship" : "Ship selected";
+  el<HTMLButtonElement>("save-build").disabled = !build.dirty;
 }
 loadShipParts()
   .then((images) => {
     parts = images;
     refreshLoading();
+    renderHangar();
     paintAll();
     previewDirty = true;
   })
@@ -386,81 +396,40 @@ loadShipParts()
     loadingFailed(e.message);
   });
 function renderHangar() {
-  const labels: Record<ShipSlot, string> = {
-    hull: "Hull",
-    wing: "Wings",
-    engine: "Engine",
-  };
-  const choices: Record<ShipSlot, string[]> = {
-    hull: ["Falcon", "Raven", "Atlas"],
-    wing: ["Swept", "Delta", "Heavy"],
-    engine: ["Ion", "Fusion", "Vector"],
-  };
-  const partHost = el("part-options");
-  partHost.replaceChildren();
-  for (const part of ["hull", "wing", "engine"] as ShipSlot[]) {
-    const field = document.createElement("fieldset"),
-      legend = document.createElement("legend"),
-      row = document.createElement("div");
-    legend.textContent = labels[part];
-    row.className = "part-options";
-    for (let i = 0; i < 3; i++) {
-      const button = document.createElement("button"),
-        image = document.createElement("img"),
-        caption = document.createElement("span");
-      button.dataset.part = part;
-      button.dataset.index = String(i);
-      button.setAttribute("aria-pressed", String(build.draft[part] === i));
-      image.src = `/assets/modules/${part === "wing" ? "wings" : part}-${i}.png`;
-      image.alt = "";
-      caption.textContent = choices[part][i];
-      button.append(image, caption);
-      button.onclick = () => {
-        build.select(part, i);
-        renderHangar();
-        paintAll();
-        previewDirty = true;
-        el("part-options")
-          .querySelector<HTMLButtonElement>(
-            `[data-part="${part}"][data-index="${i}"]`,
-          )
-          ?.focus();
-      };
-      row.append(button);
-    }
-    field.append(legend, row);
-    partHost.append(field);
+  const host = el("part-options");
+  host.replaceChildren();
+  host.className = "fleet-options";
+  for (const ship of SHIPS) {
+    const button = document.createElement("button"),
+      portrait = document.createElement("canvas"),
+      name = document.createElement("strong"),
+      status = document.createElement("span");
+    button.className = "fleet-option";
+    button.dataset.ship = String(ship.id);
+    button.setAttribute("aria-pressed", String(build.draft.hull === ship.id));
+    button.setAttribute("aria-label", `Select ${ship.name}`);
+    portrait.width = portrait.height = 144;
+    portrait.setAttribute("aria-hidden", "true");
+    paintPixelCanvas(portrait, ship.id, 1);
+    name.textContent = ship.name;
+    status.textContent = build.draft.hull === ship.id ? "SELECTED" : "AVAILABLE";
+    button.append(portrait, name, status);
+    button.onclick = () => {
+      build.select("hull", ship.id);
+      renderHangar(); paintAll(); previewDirty = true;
+      host.querySelector<HTMLButtonElement>(`[data-ship="${ship.id}"]`)?.focus();
+    };
+    host.append(button);
   }
-  document
-    .querySelectorAll<HTMLButtonElement>("[data-color]")
-    .forEach((b) =>
-      b.setAttribute(
-        "aria-pressed",
-        String(Number(b.dataset.color) === build.draft.color),
-      ),
-    );
   renderEquipment();
 }
-document.querySelectorAll<HTMLButtonElement>("[data-color]").forEach(
-  (b) =>
-    (b.onclick = () => {
-      build.selectColor(Number(b.dataset.color));
-      paintAll();
-      renderHangar();
-      previewDirty = true;
-    }),
-);
 el("save-build").onclick = () => {
   const ok = build.save();
-  paintAll();
-  toast(ok ? "Appearance saved." : "Appearance applied for this session.");
+  renderHangar(); paintAll();
+  toast(ok ? "Ship saved." : "Ship selected for this session.");
 };
 el("reset-build").onclick = () => {
-  for (const s of ["hull", "wing", "engine"] as ShipSlot[]) build.select(s, 0);
-  build.selectColor(0);
-  renderHangar();
-  paintAll();
-  previewDirty = true;
+  build.discard(); renderHangar(); paintAll(); previewDirty = true;
 };
 el("rotate-left").onclick = () => rotate(-30);
 el("rotate-right").onclick = () => rotate(30);
@@ -501,7 +470,7 @@ function practice() {
 }
 function renderEquipment() {
   el("hangar-status").textContent =
-    "All weapons are available. Collect temporary power-ups during flight.";
+    "All ships and weapons are free. Power grows only during your flight.";
   el("equipment-slots").innerHTML = "";
   el("equipment-catalog").innerHTML = EQUIPMENT.filter((e) => e.slot === "main")
     .map(
@@ -657,6 +626,7 @@ el("launch").onclick = () => {
   feedback.clearAnnouncements();
   scene.model.configure(config());
   scene.setPractice(practice());
+  scene.setPixelShip(build.saved.hull);
   for (const level of [1, 2, 3] as const)
     scene.setShipCanvas(composeShip(build.saved, parts, 512, level), level);
   runId = crypto.randomUUID();
@@ -962,6 +932,11 @@ function updateHud(s: GameSnapshot) {
         ];
     el("boss-phase").textContent =
       `${Math.max(0, Math.ceil(targetBoss.health))} / ${targetBoss.maxHealth} · PHASE ${targetBoss.phase || 1}${s.boss ? "/3" : ""}`;
+    const bossState = s.boss?.state;
+    el("boss-objective").hidden = !bossState || bossState === "defeated";
+    el("boss-objective").textContent = bossState === "armored" ? "BREAK THE TURRETS" :
+      bossState === "exposed" ? "CORE EXPOSED" : bossState === "transition" ? "REARMING" : "";
+    el("boss-hud").dataset.state = bossState || "";
     el<HTMLProgressElement>("boss-health").value = Math.max(
       0,
       targetBoss.health / targetBoss.maxHealth,
@@ -1311,6 +1286,11 @@ for (const key of ["evo-pulse", "evo-plasma", "evo-red", "evo-missile"]) {
   im.src = `/assets/evolution/${key}.png`;
   previewTextures.set(key, im);
 }
+for (const ship of SHIPS) for (const level of [1, 2, 3] as const) {
+  for (const frame of [...ship.levels[level].engineFrames, ...ship.levels[level].muzzleFrames]) {
+    const im = new Image(); im.src = frame.url; previewTextures.set(frame.key, im);
+  }
+}
 let previewLevel: 1 | 2 | 3 = 1;
 let previewDirty = true,
   preview = new GameModel(),
@@ -1334,7 +1314,7 @@ for (const button of Array.from(
   button.onclick = () => {
     previewLevel = Number(button.dataset.previewLevel) as 1 | 2 | 3;
     previewDirty = true;
-    paint("ship-preview", true, previewLevel);
+    paintAll();
     for (const b of Array.from(el("preview-levels").querySelectorAll("button")))
       b.setAttribute("aria-pressed", String(b === button));
   };
@@ -1450,8 +1430,15 @@ function animate(now: number) {
             180,
           );
     }
-    if (previewArt)
-      ctx.drawImage(previewArt, preview.state.ship.x * sx - 43, 154, 86, 86);
+    const shipFrame = pixelShip(build.draft.hull).levels[previewLevel],
+      engine = previewTextures.get(shipFrame.engineFrames[Math.floor(now / 90) % shipFrame.engineFrames.length].key),
+      muzzle = previewTextures.get(shipFrame.muzzleFrames[Math.floor(now / 45) % shipFrame.muzzleFrames.length].key),
+      shipLeft = Math.round(preview.state.ship.x * sx - 66);
+    if (engine?.complete && engine.naturalWidth)
+      ctx.drawImage(engine, shipLeft, 130, 132, 132);
+    if (previewArt) ctx.drawImage(previewArt, shipLeft, 130, 132, 132);
+    if (muzzle?.complete && muzzle.naturalWidth)
+      ctx.drawImage(muzzle, shipLeft, 130, 132, 132);
     if (preview.config.equipment.wingman && previewArt) {
       ctx.drawImage(previewArt, preview.state.ship.x * sx - 72, 185, 30, 30);
       if (preview.config.levels.drone > 1)

@@ -52,14 +52,33 @@ const timeline: StageEvent[] = (
 ).sort((a, b) => a.at - b.at);
 export class StageWaveManager {
   private cursor = 0;
+  private previousSquad = "";
   reset() {
     this.cursor = 0;
+    this.previousSquad = "";
   }
   advance(time: number): StageEvent[] {
     const events: StageEvent[] = [];
     while (this.cursor < timeline.length && timeline[this.cursor].at <= time)
       events.push(timeline[this.cursor++]);
     return events;
+  }
+  nextSquad(time: number, random: () => number): WaveScript {
+    const pool =
+      time < 30
+        ? PIXEL_MOTIFS.slice(0, 2)
+        : time < 75
+          ? PIXEL_MOTIFS.slice(2, 6)
+          : [
+              PIXEL_MOTIFS[6],
+              PIXEL_MOTIFS[7],
+              PIXEL_MOTIFS[2],
+              PIXEL_MOTIFS[4],
+            ];
+    const choices = pool.filter((id) => id !== this.previousSquad);
+    const id = choices[Math.floor(random() * choices.length) % choices.length];
+    this.previousSquad = id;
+    return { id, ships: pixelSquad(id) };
   }
 }
 export function waveAt(time: number) {
@@ -80,6 +99,26 @@ export const FORMATIONS = [
   "escort",
 ] as const;
 export type Formation = (typeof FORMATIONS)[number];
+export type FlightPath = readonly [
+  { x: number; y: number },
+  { x: number; y: number },
+  { x: number; y: number },
+  { x: number; y: number },
+];
+export const PIXEL_MOTIFS = [
+  "line",
+  "vee",
+  "arc-left",
+  "arc-right",
+  "zigzag-pair",
+  "bomber-pass",
+  "turret-pair",
+  "armored-escort",
+] as const;
+export interface WaveScript {
+  id: (typeof PIXEL_MOTIFS)[number];
+  ships: SpawnSpec[];
+}
 export interface SpawnSpec {
   x: number;
   y: number;
@@ -87,6 +126,86 @@ export interface SpawnSpec {
   phase: number;
   motion: Formation;
   leader: boolean;
+  path?: FlightPath;
+}
+/** Authored paths are data. Simulation, previews and tests evaluate the same curve. */
+export function flightPathPosition(path: FlightPath, progress: number) {
+  const t = Math.max(0, Math.min(1, progress)),
+    u = 1 - t;
+  return {
+    x:
+      u * u * u * path[0].x +
+      3 * u * u * t * path[1].x +
+      3 * u * t * t * path[2].x +
+      t * t * t * path[3].x,
+    y:
+      u * u * u * path[0].y +
+      3 * u * u * t * path[1].y +
+      3 * u * t * t * path[2].y +
+      t * t * t * path[3].y,
+  };
+}
+function pixelSquad(id: WaveScript["id"]): SpawnSpec[] {
+  if (id === "line" || id === "vee") return formationSpecs(id, 0, 195);
+  if (id === "arc-left" || id === "arc-right") {
+    const left = id === "arc-left";
+    const mirror = (x: number) => (left ? x : 390 - x);
+    return Array.from({ length: 4 }, (_, i) => ({
+      x: mirror(-40),
+      y: 70 - i * 35,
+      kind: i % 2,
+      phase: i * 0.9,
+      motion: "semicircle",
+      leader: false,
+      path: [
+        { x: mirror(-40), y: 70 - i * 35 },
+        { x: mirror(85), y: 210 - i * 22 },
+        { x: mirror(310), y: 300 - i * 15 },
+        { x: mirror(435), y: 65 - i * 12 },
+      ],
+    }));
+  }
+  if (id === "zigzag-pair")
+    return [120, 270].map((x, i) => ({
+      x,
+      y: -40 - i * 35,
+      kind: i,
+      phase: i * Math.PI,
+      motion: "zigzag",
+      leader: false,
+    }));
+  if (id === "bomber-pass")
+    return [65, 150, 240, 325].map((x, i) => ({
+      x,
+      y: -40 - i * 25,
+      kind: 1,
+      phase: i * 0.9,
+      motion: "bombers",
+      leader: false,
+      path: [
+        { x, y: -40 - i * 25 },
+        { x, y: 190 },
+        { x: x < 195 ? 20 : 370, y: 350 },
+        { x: x < 195 ? -45 : 435, y: 120 },
+      ],
+    }));
+  if (id === "turret-pair")
+    return [65, 325].map((x, i) => ({
+      x,
+      y: -35,
+      kind: 2,
+      phase: i * Math.PI,
+      motion: "turrets",
+      leader: false,
+    }));
+  return Array.from({ length: 6 }, (_, i) => ({
+    x: i < 2 ? 130 + i * 130 : 60 + (i - 2) * 90,
+    y: i < 2 ? -35 : -130 - Math.floor((i - 2) / 2) * 35,
+    kind: i < 2 ? 2 : i % 2,
+    phase: i * 0.9,
+    motion: "escort",
+    leader: false,
+  }));
 }
 export function formationSpecs(
   name: Formation,

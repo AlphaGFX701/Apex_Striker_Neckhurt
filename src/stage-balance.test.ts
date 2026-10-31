@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { GameModel } from "./model";
+import { GameModel, bossAimPoints } from "./model";
 import { defaultRun } from "./equipment";
 it.each([0, 1, 2])(
   "base weapons can beat endurance boss in sector %i without EMP damage or pickups",
@@ -15,7 +15,8 @@ it.each([0, 1, 2])(
       m.reset();
       for (let i = 0; i < 14000 && !m.state.gameOver; i++) {
         m.state.pickups = [];
-        const target = m.state.boss ? { x: m.state.boss.x, y: 610 } : null;
+        const aim = m.state.boss && bossAimPoints(m.state.boss)[0];
+        const target = aim ? { x: aim.x, y: 610 } : null;
         m.update(0.05, { x: 0, y: 0 }, target);
         m.drainEvents();
       }

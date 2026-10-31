@@ -1,6 +1,7 @@
 import { ParallaxEnvironment } from "./parallax";
 import { BOSS_ART, ONSLAUGHT_IMAGES } from "./onslaught-assets";
 import { EVOLUTION_IMAGES } from "./evolution-assets";
+import { PIXEL_FLEET_IMAGES, pixelShip, normalizeShipId } from "./pixel-fleet";
 import Phaser from "phaser";
 import { GameModel, WORLD, dronePosition, type GameSnapshot } from "./model";
 import type { Axes } from "./sensor";
@@ -24,11 +25,17 @@ export class SpaceScene extends Phaser.Scene {
   readonly model = new GameModel();
   shipStyle = 0;
   private customShip = false;
+  private pixelShipId: 0 | 1 | 2 = 0;
+  private muzzleRemaining = 0;
+  setPixelShip(id: number) {
+    this.pixelShipId = normalizeShipId(id);
+  }
   setShipCanvas(canvas: HTMLCanvasElement, level: 1 | 2 | 3 = 1) {
     if (!this.textures) return;
     const key = `player-custom-${level}`;
     if (this.textures.exists(key)) this.textures.remove(key);
     this.textures.addCanvas(key, canvas);
+    this.textures.get(key).setFilter(Phaser.Textures.FilterMode.NEAREST);
     this.customShip = true;
   }
   private sprites: Phaser.GameObjects.Image[] = [];
@@ -43,6 +50,8 @@ export class SpaceScene extends Phaser.Scene {
     );
     for (const key of EVOLUTION_IMAGES)
       this.load.image(key, `/assets/evolution/${key}.png`);
+    for (const image of PIXEL_FLEET_IMAGES)
+      this.load.image(image.key, image.url);
     this.load.atlas(
       "environment",
       "/assets/environment/environment.png",
@@ -113,6 +122,11 @@ export class SpaceScene extends Phaser.Scene {
     super("Space");
   }
   create() {
+    for (const { key } of PIXEL_FLEET_IMAGES)
+      this.textures.get(key).setFilter(Phaser.Textures.FilterMode.NEAREST);
+    this.textures.get("environment").setFilter(Phaser.Textures.FilterMode.NEAREST);
+    for (const key of ONSLAUGHT_IMAGES)
+      this.textures.get(key).setFilter(Phaser.Textures.FilterMode.NEAREST);
     for (const key of EVOLUTION_IMAGES)
       if (/^(evo-(pulse|plasma|red|missile|beam|spark)|wingman)/.test(key))
         this.textures.get(key).setFilter(Phaser.Textures.FilterMode.NEAREST);
@@ -163,6 +177,7 @@ export class SpaceScene extends Phaser.Scene {
   start() {
     this.model.reset();
     this.endAge = 0;
+    this.muzzleRemaining = 0;
     this.lastBossBurst = -10;
     this.clearInput();
     this.started = true;
@@ -245,7 +260,8 @@ export class SpaceScene extends Phaser.Scene {
         axes,
         this.control.manual?.() === false ? null : this.dragTarget,
       );
-      if (this.model.fireCount !== beforeFire)
+      if (this.model.fireCount !== beforeFire) {
+        this.muzzleRemaining = 0.075;
         this.control.onFire?.(
           this.model.config.equipment.main === "laser"
             ? "laser"
@@ -253,6 +269,7 @@ export class SpaceScene extends Phaser.Scene {
               ? "plasma"
               : "pulse",
         );
+      }
       if (this.model.state.gameOver) {
         this.running = false;
         this.clearInput();
@@ -499,17 +516,20 @@ export class SpaceScene extends Phaser.Scene {
     }
     const ship = s.ship,
       warp = s.dodgeTime > 0,
-      shipKey = this.customShip
-        ? `player-custom-${s.evolution.level}`
-        : `player-${this.shipStyle}`,
-      shipWidth = this.customShip ? 95 : 65,
+      definition = pixelShip(this.pixelShipId),
+      frame = definition.levels[s.evolution.level],
+      unfolding = s.evolution.transformRemaining > 0,
+      unfoldProgress = 1 - s.evolution.transformRemaining / 0.45,
+      shipKey = unfolding
+        ? frame.unfoldFrames[Math.min(3, Math.floor(unfoldProgress * 4))].key
+        : Math.abs(s.velocity.x) > 60 && !reduced
+          ? (s.velocity.x < 0 ? frame.bankFrames.left : frame.bankFrames.right).key
+          : frame.key,
+      shipWidth = definition.displayWidth,
       lean = reduced
         ? 0
         : (Phaser.Math.Clamp(s.velocity.x / 310, -1, 1) * Math.PI) / 15;
-    const anchor = (dx: number, dy: number) => ({
-      x: ship.x + dx * Math.cos(lean) - dy * Math.sin(lean),
-      y: ship.y + dx * Math.sin(lean) + dy * Math.cos(lean),
-    });
+    if (this.running) this.muzzleRemaining = Math.max(0, this.muzzleRemaining - _dt);
     if (warp) {
       const alpha = s.dodgeTime / 0.6;
       this.sprite(
@@ -533,17 +553,24 @@ export class SpaceScene extends Phaser.Scene {
         );
     }
     if (warp || s.invincible === 0 || Math.floor(s.time * 14) % 2 === 0) {
-      for (const side of [-1, 1])
-        this.sprite(
-          "thruster",
-          anchor(side * 9, 39).x,
-          anchor(side * 9, 39).y,
-          21 + Math.abs(s.velocity.y) / 80,
-          lean,
-          0.8 + Math.sin(s.time * 35) * 0.15,
-          0.5,
-        );
+      this.sprite(
+        frame.engineFrames[Math.floor(s.time * 16) % frame.engineFrames.length].key,
+        ship.x,
+        ship.y,
+        shipWidth,
+        lean,
+        reduced ? 0.75 : 0.85 + Math.min(0.15, Math.abs(s.velocity.y) / 2000),
+      ).setDepth(0.9);
       this.sprite(shipKey, ship.x, ship.y, shipWidth, lean);
+      if (this.muzzleRemaining > 0 || s.laser > 0)
+        this.sprite(
+          frame.muzzleFrames[Math.min(2, Math.floor((1 - this.muzzleRemaining / 0.075) * 3))].key,
+          ship.x,
+          ship.y,
+          shipWidth,
+          lean,
+          reduced ? 0.55 : 0.95,
+        ).setDepth(2);
     }
     if (s.evolution.transformRemaining > 0) {
       const p = 1 - s.evolution.transformRemaining / 0.45;
@@ -614,7 +641,7 @@ export class SpaceScene extends Phaser.Scene {
         );
     }
     if (s.shield)
-      this.sprite(`shield-${Math.floor(s.time * 12) % 8}`, ship.x, ship.y, 90);
+      this.sprite(`shield-${Math.floor(s.time * 12) % 8}`, ship.x, ship.y, 106);
 
     if (s.hitEffect > 0 && s.damageKind === "shield")
       this.sprite(

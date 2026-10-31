@@ -4,6 +4,9 @@ import {
   FORMATIONS,
   formationSpecs,
   seededRandom,
+  flightPathPosition,
+  type FlightPath,
+  type SpawnSpec,
   type Formation,
 } from "./stage-waves";
 import { BOSS_ART } from "./onslaught-assets";
@@ -53,6 +56,7 @@ export interface Bullet extends Body {
   age?: number;
 }
 export interface Enemy extends Body {
+  path?: FlightPath;
   health: number;
   shot: number;
   phase: number;
@@ -67,7 +71,12 @@ export interface Enemy extends Body {
   faction?: number;
 }
 export type PickupKind =
-  "weapon" | "missile" | "drone" | "shield" | "repair" | "energy";
+  | "weapon"
+  | "missile"
+  | "drone"
+  | "shield"
+  | "repair"
+  | "energy";
 export interface EnemyBullet extends Body {
   prevX?: number;
   prevY?: number;
@@ -83,6 +92,8 @@ export interface Turret {
   flashAt?: number;
 }
 export interface Boss extends Body {
+  state?: "armored" | "exposed" | "transition" | "defeated";
+  transitionRemaining?: number;
   safeLaneX?: number;
   attackSerial?: number;
   restUntil?: number;
@@ -222,6 +233,15 @@ export function dronePosition(ship: Body, d: Drone) {
     x: clamp(ship.x + d.side * (42 + d.rank * 23), 12, 378),
     y: ship.y + 8 + d.rank * 23,
   };
+}
+/** Stage-one guided weapons share the same visible hardpoint geometry as collisions. */
+export function bossAimPoints(b: Boss): Body[] {
+  if (b.state === "transition" || b.state === "defeated") return [];
+  if (b.state === "armored")
+    return (b.turrets ?? [])
+      .filter((t) => t.health > 0)
+      .map((t) => ({ x: b.x + t.x, y: b.y + t.y, radius: 18 }));
+  return [{ x: b.x, y: b.y, radius: b.radius }];
 }
 /** One geometry owner for projectile admission, beam selection and damage routing. */
 export function findBossHit(
@@ -586,19 +606,26 @@ export class GameModel {
   private spawnFormation(bossSupport = false) {
     const s = this.state,
       stage = this.config.stage;
-    let pool: readonly Formation[] =
-      s.segment === 0
-        ? FORMATIONS.slice(0, 2)
-        : s.segment === 1
-          ? FORMATIONS.filter((f) => f !== "wall")
-          : FORMATIONS;
-    if (bossSupport) pool = ["vee", "pincer", "escort", "zigzag"];
-    const choices = pool.filter((f) => f !== this.lastFormation);
-    const f =
-      choices[Math.floor(this.random() * choices.length) % choices.length];
-    this.lastFormation = f;
-    s.formation = f;
-    const specs = formationSpecs(f, stage, 85 + this.random() * 220);
+    let specs: SpawnSpec[];
+    if (stage === 0 && this.config.mode === "stage" && !bossSupport) {
+      const squad = this.director.nextSquad(s.time, this.random);
+      s.formation = squad.id;
+      specs = squad.ships;
+    } else {
+      let pool: readonly Formation[] =
+        s.segment === 0
+          ? FORMATIONS.slice(0, 2)
+          : s.segment === 1
+            ? FORMATIONS.filter((f) => f !== "wall")
+            : FORMATIONS;
+      if (bossSupport) pool = ["vee", "pincer", "escort", "zigzag"];
+      const choices = pool.filter((f) => f !== this.lastFormation);
+      const f =
+        choices[Math.floor(this.random() * choices.length) % choices.length];
+      this.lastFormation = f;
+      s.formation = f;
+      specs = formationSpecs(f, stage, 85 + this.random() * 220);
+    }
     for (const e of bossSupport ? specs.slice(0, 2) : specs) {
       if (s.enemies.length >= (bossSupport ? 2 : 10 + stage * 2)) break;
       if (
@@ -638,6 +665,9 @@ export class GameModel {
       art = BOSS_ART[stage];
     const hp = STAGES[stage].hp * Math.min(2.5, 1 + (s.wave - 1) * 0.04);
     s.boss = {
+      ...(stage === 0 && this.config.mode === "stage"
+        ? { state: "armored" as const, transitionRemaining: 0 }
+        : {}),
       safeLaneX: 265,
       attackSerial: 0,
       restUntil: 0,
@@ -690,6 +720,7 @@ export class GameModel {
       this.event("mini-destroyed", "TARGET DESTROYED");
     }
     if (!s.boss || s.boss.health > 0 || s.gameOver) return;
+    if (s.boss.state) s.boss.state = "defeated";
     this.explode(s.boss.x, s.boss.y, undefined, 210);
     for (let i = 0; i < 4; i++) {
       this.explode(
@@ -956,8 +987,10 @@ export class GameModel {
       const a = e.age,
         origin = e.originX ?? e.x;
       if (a > 5.5) {
-        e.x += (origin < 195 ? -1 : 1) * 150 * step;
+        e.x += ((e.path ? e.x : origin) < 195 ? -1 : 1) * 150 * step;
         e.y -= 90 * step;
+      } else if (e.path) {
+        Object.assign(e, flightPathPosition(e.path, a / 5.5));
       } else {
         if (e.motion === "turrets" && e.y > 95 && a < 6) e.y += 0;
         else
@@ -982,6 +1015,8 @@ export class GameModel {
         e.shot <= 0 &&
         e.y > 35 &&
         e.y < 460 &&
+        e.x > 18 &&
+        e.x < 372 &&
         !s.beams.length &&
         !(s.boss && (s.boss.restUntil ?? 0) > s.time)
       ) {
@@ -1028,11 +1063,7 @@ export class GameModel {
       b.prevY = b.y;
       if (b.missile) {
         b.age = (b.age ?? 0) + step;
-        const targets = [
-          ...s.enemies.filter((e) => e.health > 0),
-          ...(s.miniBoss ? [s.miniBoss] : []),
-          ...(s.boss ? [s.boss] : []),
-        ];
+        const targets = this.guidedTargets();
         let nearest: Body | undefined;
         let distance = Infinity;
         for (const t of targets) {
@@ -1182,11 +1213,7 @@ export class GameModel {
       this.droneClock = 0;
       for (const d of s.drones) {
         const p = dronePosition(s.ship, d);
-        const targets = [
-          ...s.enemies.filter((e) => e.health > 0),
-          ...(s.miniBoss ? [s.miniBoss] : []),
-          ...(s.boss ? [s.boss] : []),
-        ].filter((e) => e.y < p.y);
+        const targets = this.guidedTargets().filter((e) => e.y < p.y);
         const target = targets.sort(
           (a, b) =>
             Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y),
@@ -1213,6 +1240,16 @@ export class GameModel {
       target.flashAt = this.state.time;
     }
   }
+  private guidedTargets(): Body[] {
+    const s = this.state;
+    if (s.boss?.state === "armored" || s.boss?.state === "exposed")
+      return bossAimPoints(s.boss);
+    return [
+      ...s.enemies.filter((e) => e.health > 0),
+      ...(s.miniBoss ? [s.miniBoss] : []),
+      ...(s.boss ? bossAimPoints(s.boss) : []),
+    ];
+  }
   private hitBoss(
     damage: number,
     x: number,
@@ -1221,19 +1258,51 @@ export class GameModel {
     laser = false,
   ) {
     const b = this.state.boss;
-    if (!b) return;
+    if (!b || b.state === "transition" || b.state === "defeated") return false;
     const hit = findBossHit(b, x, y, radius, laser);
-    if (!hit) return;
+    if (!hit) return false;
+    if (hit === "core" && b.state === "armored") {
+      this.spark(x, laser ? b.y : y);
+      return false;
+    }
     if (hit !== "core") {
       hit.health -= damage;
       this.markHit(hit);
       if (hit.health <= 0) {
         this.explode(b.x + hit.x, b.y + hit.y, undefined, 75);
         this.state.score += 125;
+        if (b.state === "armored" && b.turrets!.every((t) => t.health <= 0)) {
+          b.state = "exposed";
+          this.notice("CORE EXPOSED", 1.2);
+        }
       }
+    } else if (b.state === "exposed") {
+      const phase = b.phase ?? 1;
+      const threshold = (b.maxHealth * (3 - phase)) / 3;
+      b.health = Math.max(threshold, b.health - damage);
+      if (b.health <= threshold && phase < 3) {
+        b.phase = phase + 1;
+        b.state = "transition";
+        b.transitionRemaining = 1.5;
+        b.shot = 1.5;
+        b.attackSerial = 0;
+        b.restUntil = this.state.time + 1.5;
+        b.safeLaneX = clamp(
+          this.state.ship.x + (b.phase === 2 ? -70 : 70),
+          65,
+          325,
+        );
+        this.state.enemyBullets = [];
+        this.state.beams = [];
+        this.beamClock = 2;
+        this.stationary = 0;
+        this.event("phase", `PHASE ${b.phase}`);
+        this.notice(`REARMING · PHASE ${b.phase}`, 1.5);
+      } else if (b.health <= 0) b.state = "defeated";
     } else b.health -= damage;
     this.markHit(b);
     this.spark(x, laser ? (hit === "core" ? b.y : b.y + hit.y) : y);
+    return true;
   }
   private updateBoss(step: number) {
     const s = this.state,
@@ -1242,8 +1311,31 @@ export class GameModel {
     const stage = this.config.stage;
     b.age = (b.age ?? 0) + step;
     b.flash = Math.max(0, (b.flash ?? 0) - step);
-    const phase =
-      b.health <= b.maxHealth / 3
+    if (b.state === "transition") {
+      b.transitionRemaining = Math.max(0, (b.transitionRemaining ?? 0) - step);
+      if (b.transitionRemaining > 0) return;
+      const health = 10 + (b.phase ?? 1) * 5;
+      b.turrets = BOSS_ART[0].mounts.map((m) => ({
+        x: m.x * BOSS_ART[0].width,
+        y: m.y * BOSS_ART[0].width,
+        health,
+        maxHealth: health,
+        flash: 0,
+      }));
+      b.state = "armored";
+      b.shot = 0.35;
+      this.notice("BREAK THE TURRETS", 1.2);
+    }
+    if (
+      b.state === "armored" &&
+      (b.turrets ?? []).every((t) => t.health <= 0)
+    ) {
+      b.state = "exposed";
+      this.notice("CORE EXPOSED", 1.2);
+    }
+    const phase = b.state
+      ? (b.phase ?? 1)
+      : b.health <= b.maxHealth / 3
         ? 3
         : b.health <= (b.maxHealth * 2) / 3
           ? 2
@@ -1420,7 +1512,7 @@ export class GameModel {
         const boss = s.boss;
         if (findBossHit(boss, b.x, b.y, b.radius)) {
           spent.add(b);
-          this.hitBoss(
+          const damaged = this.hitBoss(
             (b.damage ?? 1) *
               damageMultiplier(
                 b.type ?? "pulse",
@@ -1432,7 +1524,7 @@ export class GameModel {
             b.y,
             b.radius,
           );
-          s.score += 2;
+          if (damaged) s.score += 2;
         }
       }
     }

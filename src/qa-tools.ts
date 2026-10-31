@@ -23,10 +23,13 @@ export function installQaCapture(
   capture.textContent = "QA Record 12s";
   capture.style.cssText =
     "font-size:9px;min-height:24px;height:24px;padding:3px 7px";
+  const soak = document.createElement("button");
+  soak.textContent = "QA Soak 20m";
+  soak.style.cssText = capture.style.cssText;
   const stats = document.createElement("span");
   stats.style.cssText =
     "font:9px monospace;color:#9cdeff;background:#071322;padding:5px";
-  host.append(capture, stats);
+  host.append(capture, soak, stats);
   document.body.append(host);
   const frames: number[] = [];
   const samples: Record<string, number>[] = [];
@@ -34,8 +37,13 @@ export function installQaCapture(
     lastTime = 0;
   let trackedState=scene.model.state;
   let previous = performance.now();
+  let renderedSeconds = 0;
   const measure = (now: number) => {
-    frames.push(now - previous);
+    const interval = now - previous;
+    frames.push(interval);
+    // Exclude occluded/background 1fps intervals from the endurance duration.
+    if (scene.isRunning && interval > 0 && interval < 100)
+      renderedSeconds += interval / 1000;
     previous = now;
     if (frames.length > 1800) frames.shift();
     requestAnimationFrame(measure);
@@ -48,6 +56,7 @@ export function installQaCapture(
       runStart = performance.now();
       samples.length = 0;
       trackedState=s;
+      renderedSeconds = 0;
     }
     lastTime = s.time;
     const heapBytes = (
@@ -57,6 +66,7 @@ export function installQaCapture(
       samples.push({
         wallSeconds: (performance.now() - runStart) / 1000,
         time: s.time,
+        renderedSeconds,
         wave: s.wave,
         enemies: s.enemies.length,
         playerBullets: s.bullets.length,
@@ -78,13 +88,17 @@ export function installQaCapture(
       enemyBullets: s.enemyBullets.length,
     });
   }, 1000);
-  capture.onclick = () => {
+  const record = (endurance: boolean) => {
     const canvas = document.querySelector<HTMLCanvasElement>("#game canvas");
     if (!canvas) return;
     const stream = canvas.captureStream(30);
     for (const track of audio()?.getAudioTracks() ?? [])
       stream.addTrack(track.clone());
-    const recorder = new MediaRecorder(stream, { mimeType: "video/webm" });
+    const recorder = new MediaRecorder(stream, {
+      mimeType: "video/webm",
+      videoBitsPerSecond: endurance ? 450000 : 1200000,
+      audioBitsPerSecond: 96000,
+    });
     const chunks: Blob[] = [];
     recorder.ondataavailable = (e) => {
       if (e.data.size) chunks.push(e.data);
@@ -93,16 +107,37 @@ export function installQaCapture(
       const u = URL.createObjectURL(new Blob(chunks, { type: "video/webm" })),
         a = document.createElement("a");
       a.href = u;
-      a.download = "onslaught-boss-canvas.webm";
+      a.download = endurance ? "pixel-endless-20m.webm" : "pixel-combat-canvas.webm";
       a.click();
       stream.getTracks().forEach((t) => t.stop());
       setTimeout(() => URL.revokeObjectURL(u), 1000);
       capture.disabled = false;
       capture.textContent = "QA Record 12s";
+      soak.disabled = false;
+      soak.textContent = "QA Soak 20m";
+      host.dataset.recording = "stopped";
     };
-    recorder.start();
+    recorder.start(5000);
     capture.disabled = true;
+    soak.disabled = true;
     capture.textContent = "Recording…";
-    setTimeout(() => recorder.stop(), 12000);
+    host.dataset.recording = endurance ? "endurance" : "clip";
+    if (endurance) {
+      const began = performance.now();
+      const startedAt = scene.model.state.time;
+      const renderedAt = renderedSeconds;
+      const monitor = window.setInterval(() => {
+        const complete = scene.model.state.time - startedAt >= 1200 &&
+          renderedSeconds - renderedAt >= 1200;
+        if (complete || !scene.isRunning || performance.now() - began > 2400000) {
+          clearInterval(monitor);
+          host.dataset.enduranceResult = complete ? "complete" : "interrupted";
+          recorder.stop();
+        }
+      }, 1000);
+      soak.textContent = "Soak recording…";
+    } else setTimeout(() => recorder.stop(), 12000);
   };
+  capture.onclick = () => record(false);
+  soak.onclick = () => record(true);
 }

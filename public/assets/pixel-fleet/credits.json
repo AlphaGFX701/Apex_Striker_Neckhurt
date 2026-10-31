@@ -1,0 +1,24 @@
+{
+  "sources": [
+    {
+      "title": "Void Fleet Pack 2",
+      "artist": "Baldur",
+      "distributor": "Foozle",
+      "archive": "Foozle_2DS0013_Void_FleetPack_2.zip",
+      "license": "CC0 1.0",
+      "licenseURL": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "changes": "Fighter, Scout and Bomber body pixels; bounded Frigate/Torpedo/Battlecruiser machinery crops; mirrored modules, short original attachment spars, cyan/silver recoloring, banks, unfolding and8engine frames. Integer nearest scaling preserves authored pixel edges."
+    },
+    {
+      "title": "Space Shooter Asset Pack",
+      "artist": "Gustavo Vituri",
+      "url": "https://gvituri.itch.io/space-shooter",
+      "archive": "SpaceShooterAssetPack.zip",
+      "license": "Personal/commercial game use and modifications allowed; no standalone pack redistribution",
+      "changes": "Selected authored projectile cell adapted into three short muzzle-flash frames."
+    }
+  ],
+  "originalArchivesPublished": false,
+  "apkArtworkUsed": false,
+  "generativeImagesUsed": false
+}

@@ -1,0 +1,2559 @@
+{
+  "canvasSize": 192,
+  "anchor": {
+    "x": 96,
+    "y": 96
+  },
+  "sampling": "nearest",
+  "frames": {
+    "pixel-falcon-1": {
+      "key": "pixel-falcon-1",
+      "url": "/assets/pixel-fleet/pixel-falcon-1.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 51,
+        "y": 60,
+        "width": 90,
+        "height": 81
+      }
+    },
+    "pixel-falcon-1-engine-0": {
+      "key": "pixel-falcon-1-engine-0",
+      "url": "/assets/pixel-fleet/pixel-falcon-1-engine-0.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 75,
+        "y": 135,
+        "width": 42,
+        "height": 42
+      }
+    },
+    "pixel-falcon-1-engine-1": {
+      "key": "pixel-falcon-1-engine-1",
+      "url": "/assets/pixel-fleet/pixel-falcon-1-engine-1.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 75,
+        "y": 135,
+        "width": 42,
+        "height": 36
+      }
+    },
+    "pixel-falcon-1-engine-2": {
+      "key": "pixel-falcon-1-engine-2",
+      "url": "/assets/pixel-fleet/pixel-falcon-1-engine-2.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 75,
+        "y": 135,
+        "width": 42,
+        "height": 39
+      }
+    },
+    "pixel-falcon-1-engine-3": {
+      "key": "pixel-falcon-1-engine-3",
+      "url": "/assets/pixel-fleet/pixel-falcon-1-engine-3.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 75,
+        "y": 132,
+        "width": 42,
+        "height": 45
+      }
+    },
+    "pixel-falcon-1-engine-4": {
+      "key": "pixel-falcon-1-engine-4",
+      "url": "/assets/pixel-fleet/pixel-falcon-1-engine-4.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 75,
+        "y": 135,
+        "width": 42,
+        "height": 45
+      }
+    },
+    "pixel-falcon-1-engine-5": {
+      "key": "pixel-falcon-1-engine-5",
+      "url": "/assets/pixel-fleet/pixel-falcon-1-engine-5.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 75,
+        "y": 135,
+        "width": 42,
+        "height": 39
+      }
+    },
+    "pixel-falcon-1-engine-6": {
+      "key": "pixel-falcon-1-engine-6",
+      "url": "/assets/pixel-fleet/pixel-falcon-1-engine-6.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 75,
+        "y": 135,
+        "width": 42,
+        "height": 39
+      }
+    },
+    "pixel-falcon-1-engine-7": {
+      "key": "pixel-falcon-1-engine-7",
+      "url": "/assets/pixel-fleet/pixel-falcon-1-engine-7.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 75,
+        "y": 132,
+        "width": 42,
+        "height": 42
+      }
+    },
+    "pixel-falcon-1-muzzle-0": {
+      "key": "pixel-falcon-1-muzzle-0",
+      "url": "/assets/pixel-fleet/pixel-falcon-1-muzzle-0.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 96,
+        "y": 51,
+        "width": 3,
+        "height": 9
+      }
+    },
+    "pixel-falcon-1-muzzle-1": {
+      "key": "pixel-falcon-1-muzzle-1",
+      "url": "/assets/pixel-fleet/pixel-falcon-1-muzzle-1.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 93,
+        "y": 48,
+        "width": 6,
+        "height": 12
+      }
+    },
+    "pixel-falcon-1-muzzle-2": {
+      "key": "pixel-falcon-1-muzzle-2",
+      "url": "/assets/pixel-fleet/pixel-falcon-1-muzzle-2.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 96,
+        "y": 51,
+        "width": 3,
+        "height": 9
+      }
+    },
+    "pixel-falcon-1-bank-left": {
+      "key": "pixel-falcon-1-bank-left",
+      "url": "/assets/pixel-fleet/pixel-falcon-1-bank-left.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 54,
+        "y": 60,
+        "width": 84,
+        "height": 81
+      }
+    },
+    "pixel-falcon-1-bank-right": {
+      "key": "pixel-falcon-1-bank-right",
+      "url": "/assets/pixel-fleet/pixel-falcon-1-bank-right.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 54,
+        "y": 60,
+        "width": 84,
+        "height": 81
+      }
+    },
+    "pixel-falcon-2": {
+      "key": "pixel-falcon-2",
+      "url": "/assets/pixel-fleet/pixel-falcon-2.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 33,
+        "y": 60,
+        "width": 126,
+        "height": 81
+      }
+    },
+    "pixel-falcon-2-engine-0": {
+      "key": "pixel-falcon-2-engine-0",
+      "url": "/assets/pixel-fleet/pixel-falcon-2-engine-0.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 39,
+        "y": 135,
+        "width": 114,
+        "height": 42
+      }
+    },
+    "pixel-falcon-2-engine-1": {
+      "key": "pixel-falcon-2-engine-1",
+      "url": "/assets/pixel-fleet/pixel-falcon-2-engine-1.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 39,
+        "y": 135,
+        "width": 114,
+        "height": 36
+      }
+    },
+    "pixel-falcon-2-engine-2": {
+      "key": "pixel-falcon-2-engine-2",
+      "url": "/assets/pixel-fleet/pixel-falcon-2-engine-2.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 39,
+        "y": 135,
+        "width": 114,
+        "height": 39
+      }
+    },
+    "pixel-falcon-2-engine-3": {
+      "key": "pixel-falcon-2-engine-3",
+      "url": "/assets/pixel-fleet/pixel-falcon-2-engine-3.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 39,
+        "y": 132,
+        "width": 114,
+        "height": 45
+      }
+    },
+    "pixel-falcon-2-engine-4": {
+      "key": "pixel-falcon-2-engine-4",
+      "url": "/assets/pixel-fleet/pixel-falcon-2-engine-4.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 39,
+        "y": 135,
+        "width": 114,
+        "height": 45
+      }
+    },
+    "pixel-falcon-2-engine-5": {
+      "key": "pixel-falcon-2-engine-5",
+      "url": "/assets/pixel-fleet/pixel-falcon-2-engine-5.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 39,
+        "y": 135,
+        "width": 114,
+        "height": 39
+      }
+    },
+    "pixel-falcon-2-engine-6": {
+      "key": "pixel-falcon-2-engine-6",
+      "url": "/assets/pixel-fleet/pixel-falcon-2-engine-6.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 39,
+        "y": 135,
+        "width": 114,
+        "height": 39
+      }
+    },
+    "pixel-falcon-2-engine-7": {
+      "key": "pixel-falcon-2-engine-7",
+      "url": "/assets/pixel-fleet/pixel-falcon-2-engine-7.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 39,
+        "y": 132,
+        "width": 114,
+        "height": 42
+      }
+    },
+    "pixel-falcon-2-muzzle-0": {
+      "key": "pixel-falcon-2-muzzle-0",
+      "url": "/assets/pixel-fleet/pixel-falcon-2-muzzle-0.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 87,
+        "y": 51,
+        "width": 21,
+        "height": 9
+      }
+    },
+    "pixel-falcon-2-muzzle-1": {
+      "key": "pixel-falcon-2-muzzle-1",
+      "url": "/assets/pixel-fleet/pixel-falcon-2-muzzle-1.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 84,
+        "y": 48,
+        "width": 24,
+        "height": 12
+      }
+    },
+    "pixel-falcon-2-muzzle-2": {
+      "key": "pixel-falcon-2-muzzle-2",
+      "url": "/assets/pixel-fleet/pixel-falcon-2-muzzle-2.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 87,
+        "y": 51,
+        "width": 21,
+        "height": 9
+      }
+    },
+    "pixel-falcon-2-bank-left": {
+      "key": "pixel-falcon-2-bank-left",
+      "url": "/assets/pixel-fleet/pixel-falcon-2-bank-left.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 39,
+        "y": 60,
+        "width": 114,
+        "height": 81
+      }
+    },
+    "pixel-falcon-2-bank-right": {
+      "key": "pixel-falcon-2-bank-right",
+      "url": "/assets/pixel-fleet/pixel-falcon-2-bank-right.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 39,
+        "y": 60,
+        "width": 114,
+        "height": 81
+      }
+    },
+    "pixel-falcon-2-unfold-0": {
+      "key": "pixel-falcon-2-unfold-0",
+      "url": "/assets/pixel-fleet/pixel-falcon-2-unfold-0.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 48,
+        "y": 60,
+        "width": 96,
+        "height": 81
+      }
+    },
+    "pixel-falcon-2-unfold-1": {
+      "key": "pixel-falcon-2-unfold-1",
+      "url": "/assets/pixel-fleet/pixel-falcon-2-unfold-1.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 45,
+        "y": 60,
+        "width": 102,
+        "height": 81
+      }
+    },
+    "pixel-falcon-2-unfold-2": {
+      "key": "pixel-falcon-2-unfold-2",
+      "url": "/assets/pixel-fleet/pixel-falcon-2-unfold-2.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 39,
+        "y": 60,
+        "width": 114,
+        "height": 81
+      }
+    },
+    "pixel-falcon-2-unfold-3": {
+      "key": "pixel-falcon-2-unfold-3",
+      "url": "/assets/pixel-fleet/pixel-falcon-2-unfold-3.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 33,
+        "y": 60,
+        "width": 126,
+        "height": 81
+      }
+    },
+    "pixel-falcon-3": {
+      "key": "pixel-falcon-3",
+      "url": "/assets/pixel-fleet/pixel-falcon-3.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 6,
+        "y": 51,
+        "width": 180,
+        "height": 93
+      }
+    },
+    "pixel-falcon-3-engine-0": {
+      "key": "pixel-falcon-3-engine-0",
+      "url": "/assets/pixel-fleet/pixel-falcon-3-engine-0.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 15,
+        "y": 135,
+        "width": 162,
+        "height": 42
+      }
+    },
+    "pixel-falcon-3-engine-1": {
+      "key": "pixel-falcon-3-engine-1",
+      "url": "/assets/pixel-fleet/pixel-falcon-3-engine-1.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 12,
+        "y": 135,
+        "width": 168,
+        "height": 36
+      }
+    },
+    "pixel-falcon-3-engine-2": {
+      "key": "pixel-falcon-3-engine-2",
+      "url": "/assets/pixel-fleet/pixel-falcon-3-engine-2.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 12,
+        "y": 135,
+        "width": 168,
+        "height": 39
+      }
+    },
+    "pixel-falcon-3-engine-3": {
+      "key": "pixel-falcon-3-engine-3",
+      "url": "/assets/pixel-fleet/pixel-falcon-3-engine-3.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 12,
+        "y": 132,
+        "width": 168,
+        "height": 45
+      }
+    },
+    "pixel-falcon-3-engine-4": {
+      "key": "pixel-falcon-3-engine-4",
+      "url": "/assets/pixel-fleet/pixel-falcon-3-engine-4.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 12,
+        "y": 135,
+        "width": 168,
+        "height": 45
+      }
+    },
+    "pixel-falcon-3-engine-5": {
+      "key": "pixel-falcon-3-engine-5",
+      "url": "/assets/pixel-fleet/pixel-falcon-3-engine-5.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 12,
+        "y": 135,
+        "width": 168,
+        "height": 39
+      }
+    },
+    "pixel-falcon-3-engine-6": {
+      "key": "pixel-falcon-3-engine-6",
+      "url": "/assets/pixel-fleet/pixel-falcon-3-engine-6.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 12,
+        "y": 135,
+        "width": 168,
+        "height": 39
+      }
+    },
+    "pixel-falcon-3-engine-7": {
+      "key": "pixel-falcon-3-engine-7",
+      "url": "/assets/pixel-fleet/pixel-falcon-3-engine-7.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 12,
+        "y": 132,
+        "width": 168,
+        "height": 42
+      }
+    },
+    "pixel-falcon-3-muzzle-0": {
+      "key": "pixel-falcon-3-muzzle-0",
+      "url": "/assets/pixel-fleet/pixel-falcon-3-muzzle-0.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 81,
+        "y": 42,
+        "width": 33,
+        "height": 9
+      }
+    },
+    "pixel-falcon-3-muzzle-1": {
+      "key": "pixel-falcon-3-muzzle-1",
+      "url": "/assets/pixel-fleet/pixel-falcon-3-muzzle-1.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 78,
+        "y": 39,
+        "width": 36,
+        "height": 12
+      }
+    },
+    "pixel-falcon-3-muzzle-2": {
+      "key": "pixel-falcon-3-muzzle-2",
+      "url": "/assets/pixel-fleet/pixel-falcon-3-muzzle-2.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 81,
+        "y": 42,
+        "width": 33,
+        "height": 9
+      }
+    },
+    "pixel-falcon-3-bank-left": {
+      "key": "pixel-falcon-3-bank-left",
+      "url": "/assets/pixel-fleet/pixel-falcon-3-bank-left.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 15,
+        "y": 51,
+        "width": 162,
+        "height": 93
+      }
+    },
+    "pixel-falcon-3-bank-right": {
+      "key": "pixel-falcon-3-bank-right",
+      "url": "/assets/pixel-fleet/pixel-falcon-3-bank-right.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 15,
+        "y": 51,
+        "width": 162,
+        "height": 93
+      }
+    },
+    "pixel-falcon-3-unfold-0": {
+      "key": "pixel-falcon-3-unfold-0",
+      "url": "/assets/pixel-fleet/pixel-falcon-3-unfold-0.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 21,
+        "y": 51,
+        "width": 150,
+        "height": 93
+      }
+    },
+    "pixel-falcon-3-unfold-1": {
+      "key": "pixel-falcon-3-unfold-1",
+      "url": "/assets/pixel-fleet/pixel-falcon-3-unfold-1.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 18,
+        "y": 51,
+        "width": 156,
+        "height": 93
+      }
+    },
+    "pixel-falcon-3-unfold-2": {
+      "key": "pixel-falcon-3-unfold-2",
+      "url": "/assets/pixel-fleet/pixel-falcon-3-unfold-2.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 12,
+        "y": 51,
+        "width": 168,
+        "height": 93
+      }
+    },
+    "pixel-falcon-3-unfold-3": {
+      "key": "pixel-falcon-3-unfold-3",
+      "url": "/assets/pixel-fleet/pixel-falcon-3-unfold-3.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 6,
+        "y": 51,
+        "width": 180,
+        "height": 93
+      }
+    },
+    "pixel-raven-1": {
+      "key": "pixel-raven-1",
+      "url": "/assets/pixel-fleet/pixel-raven-1.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 60,
+        "y": 69,
+        "width": 72,
+        "height": 66
+      }
+    },
+    "pixel-raven-1-engine-0": {
+      "key": "pixel-raven-1-engine-0",
+      "url": "/assets/pixel-fleet/pixel-raven-1-engine-0.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 78,
+        "y": 132,
+        "width": 36,
+        "height": 36
+      }
+    },
+    "pixel-raven-1-engine-1": {
+      "key": "pixel-raven-1-engine-1",
+      "url": "/assets/pixel-fleet/pixel-raven-1-engine-1.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 78,
+        "y": 132,
+        "width": 36,
+        "height": 30
+      }
+    },
+    "pixel-raven-1-engine-2": {
+      "key": "pixel-raven-1-engine-2",
+      "url": "/assets/pixel-fleet/pixel-raven-1-engine-2.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 78,
+        "y": 132,
+        "width": 36,
+        "height": 33
+      }
+    },
+    "pixel-raven-1-engine-3": {
+      "key": "pixel-raven-1-engine-3",
+      "url": "/assets/pixel-fleet/pixel-raven-1-engine-3.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 75,
+        "y": 129,
+        "width": 39,
+        "height": 39
+      }
+    },
+    "pixel-raven-1-engine-4": {
+      "key": "pixel-raven-1-engine-4",
+      "url": "/assets/pixel-fleet/pixel-raven-1-engine-4.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 75,
+        "y": 132,
+        "width": 39,
+        "height": 39
+      }
+    },
+    "pixel-raven-1-engine-5": {
+      "key": "pixel-raven-1-engine-5",
+      "url": "/assets/pixel-fleet/pixel-raven-1-engine-5.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 78,
+        "y": 132,
+        "width": 36,
+        "height": 33
+      }
+    },
+    "pixel-raven-1-engine-6": {
+      "key": "pixel-raven-1-engine-6",
+      "url": "/assets/pixel-fleet/pixel-raven-1-engine-6.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 78,
+        "y": 132,
+        "width": 36,
+        "height": 33
+      }
+    },
+    "pixel-raven-1-engine-7": {
+      "key": "pixel-raven-1-engine-7",
+      "url": "/assets/pixel-fleet/pixel-raven-1-engine-7.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 78,
+        "y": 129,
+        "width": 36,
+        "height": 36
+      }
+    },
+    "pixel-raven-1-muzzle-0": {
+      "key": "pixel-raven-1-muzzle-0",
+      "url": "/assets/pixel-fleet/pixel-raven-1-muzzle-0.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 96,
+        "y": 60,
+        "width": 3,
+        "height": 9
+      }
+    },
+    "pixel-raven-1-muzzle-1": {
+      "key": "pixel-raven-1-muzzle-1",
+      "url": "/assets/pixel-fleet/pixel-raven-1-muzzle-1.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 93,
+        "y": 57,
+        "width": 6,
+        "height": 12
+      }
+    },
+    "pixel-raven-1-muzzle-2": {
+      "key": "pixel-raven-1-muzzle-2",
+      "url": "/assets/pixel-fleet/pixel-raven-1-muzzle-2.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 96,
+        "y": 60,
+        "width": 3,
+        "height": 9
+      }
+    },
+    "pixel-raven-1-bank-left": {
+      "key": "pixel-raven-1-bank-left",
+      "url": "/assets/pixel-fleet/pixel-raven-1-bank-left.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 63,
+        "y": 69,
+        "width": 66,
+        "height": 66
+      }
+    },
+    "pixel-raven-1-bank-right": {
+      "key": "pixel-raven-1-bank-right",
+      "url": "/assets/pixel-fleet/pixel-raven-1-bank-right.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 63,
+        "y": 69,
+        "width": 66,
+        "height": 66
+      }
+    },
+    "pixel-raven-2": {
+      "key": "pixel-raven-2",
+      "url": "/assets/pixel-fleet/pixel-raven-2.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 36,
+        "y": 66,
+        "width": 120,
+        "height": 69
+      }
+    },
+    "pixel-raven-2-engine-0": {
+      "key": "pixel-raven-2-engine-0",
+      "url": "/assets/pixel-fleet/pixel-raven-2-engine-0.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 42,
+        "y": 132,
+        "width": 108,
+        "height": 36
+      }
+    },
+    "pixel-raven-2-engine-1": {
+      "key": "pixel-raven-2-engine-1",
+      "url": "/assets/pixel-fleet/pixel-raven-2-engine-1.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 42,
+        "y": 132,
+        "width": 108,
+        "height": 30
+      }
+    },
+    "pixel-raven-2-engine-2": {
+      "key": "pixel-raven-2-engine-2",
+      "url": "/assets/pixel-fleet/pixel-raven-2-engine-2.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 42,
+        "y": 132,
+        "width": 108,
+        "height": 33
+      }
+    },
+    "pixel-raven-2-engine-3": {
+      "key": "pixel-raven-2-engine-3",
+      "url": "/assets/pixel-fleet/pixel-raven-2-engine-3.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 39,
+        "y": 129,
+        "width": 114,
+        "height": 39
+      }
+    },
+    "pixel-raven-2-engine-4": {
+      "key": "pixel-raven-2-engine-4",
+      "url": "/assets/pixel-fleet/pixel-raven-2-engine-4.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 39,
+        "y": 132,
+        "width": 114,
+        "height": 39
+      }
+    },
+    "pixel-raven-2-engine-5": {
+      "key": "pixel-raven-2-engine-5",
+      "url": "/assets/pixel-fleet/pixel-raven-2-engine-5.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 42,
+        "y": 132,
+        "width": 108,
+        "height": 33
+      }
+    },
+    "pixel-raven-2-engine-6": {
+      "key": "pixel-raven-2-engine-6",
+      "url": "/assets/pixel-fleet/pixel-raven-2-engine-6.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 42,
+        "y": 132,
+        "width": 108,
+        "height": 33
+      }
+    },
+    "pixel-raven-2-engine-7": {
+      "key": "pixel-raven-2-engine-7",
+      "url": "/assets/pixel-fleet/pixel-raven-2-engine-7.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 42,
+        "y": 129,
+        "width": 108,
+        "height": 36
+      }
+    },
+    "pixel-raven-2-muzzle-0": {
+      "key": "pixel-raven-2-muzzle-0",
+      "url": "/assets/pixel-fleet/pixel-raven-2-muzzle-0.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 87,
+        "y": 57,
+        "width": 21,
+        "height": 9
+      }
+    },
+    "pixel-raven-2-muzzle-1": {
+      "key": "pixel-raven-2-muzzle-1",
+      "url": "/assets/pixel-fleet/pixel-raven-2-muzzle-1.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 84,
+        "y": 54,
+        "width": 24,
+        "height": 12
+      }
+    },
+    "pixel-raven-2-muzzle-2": {
+      "key": "pixel-raven-2-muzzle-2",
+      "url": "/assets/pixel-fleet/pixel-raven-2-muzzle-2.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 87,
+        "y": 57,
+        "width": 21,
+        "height": 9
+      }
+    },
+    "pixel-raven-2-bank-left": {
+      "key": "pixel-raven-2-bank-left",
+      "url": "/assets/pixel-fleet/pixel-raven-2-bank-left.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 42,
+        "y": 66,
+        "width": 108,
+        "height": 69
+      }
+    },
+    "pixel-raven-2-bank-right": {
+      "key": "pixel-raven-2-bank-right",
+      "url": "/assets/pixel-fleet/pixel-raven-2-bank-right.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 42,
+        "y": 66,
+        "width": 108,
+        "height": 69
+      }
+    },
+    "pixel-raven-2-unfold-0": {
+      "key": "pixel-raven-2-unfold-0",
+      "url": "/assets/pixel-fleet/pixel-raven-2-unfold-0.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 51,
+        "y": 66,
+        "width": 90,
+        "height": 69
+      }
+    },
+    "pixel-raven-2-unfold-1": {
+      "key": "pixel-raven-2-unfold-1",
+      "url": "/assets/pixel-fleet/pixel-raven-2-unfold-1.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 48,
+        "y": 66,
+        "width": 96,
+        "height": 69
+      }
+    },
+    "pixel-raven-2-unfold-2": {
+      "key": "pixel-raven-2-unfold-2",
+      "url": "/assets/pixel-fleet/pixel-raven-2-unfold-2.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 42,
+        "y": 66,
+        "width": 108,
+        "height": 69
+      }
+    },
+    "pixel-raven-2-unfold-3": {
+      "key": "pixel-raven-2-unfold-3",
+      "url": "/assets/pixel-fleet/pixel-raven-2-unfold-3.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 36,
+        "y": 66,
+        "width": 120,
+        "height": 69
+      }
+    },
+    "pixel-raven-3": {
+      "key": "pixel-raven-3",
+      "url": "/assets/pixel-fleet/pixel-raven-3.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 6,
+        "y": 57,
+        "width": 180,
+        "height": 78
+      }
+    },
+    "pixel-raven-3-engine-0": {
+      "key": "pixel-raven-3-engine-0",
+      "url": "/assets/pixel-fleet/pixel-raven-3-engine-0.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 15,
+        "y": 132,
+        "width": 162,
+        "height": 36
+      }
+    },
+    "pixel-raven-3-engine-1": {
+      "key": "pixel-raven-3-engine-1",
+      "url": "/assets/pixel-fleet/pixel-raven-3-engine-1.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 15,
+        "y": 132,
+        "width": 162,
+        "height": 30
+      }
+    },
+    "pixel-raven-3-engine-2": {
+      "key": "pixel-raven-3-engine-2",
+      "url": "/assets/pixel-fleet/pixel-raven-3-engine-2.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 15,
+        "y": 132,
+        "width": 162,
+        "height": 33
+      }
+    },
+    "pixel-raven-3-engine-3": {
+      "key": "pixel-raven-3-engine-3",
+      "url": "/assets/pixel-fleet/pixel-raven-3-engine-3.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 12,
+        "y": 129,
+        "width": 168,
+        "height": 39
+      }
+    },
+    "pixel-raven-3-engine-4": {
+      "key": "pixel-raven-3-engine-4",
+      "url": "/assets/pixel-fleet/pixel-raven-3-engine-4.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 15,
+        "y": 132,
+        "width": 162,
+        "height": 39
+      }
+    },
+    "pixel-raven-3-engine-5": {
+      "key": "pixel-raven-3-engine-5",
+      "url": "/assets/pixel-fleet/pixel-raven-3-engine-5.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 15,
+        "y": 132,
+        "width": 162,
+        "height": 33
+      }
+    },
+    "pixel-raven-3-engine-6": {
+      "key": "pixel-raven-3-engine-6",
+      "url": "/assets/pixel-fleet/pixel-raven-3-engine-6.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 15,
+        "y": 132,
+        "width": 162,
+        "height": 33
+      }
+    },
+    "pixel-raven-3-engine-7": {
+      "key": "pixel-raven-3-engine-7",
+      "url": "/assets/pixel-fleet/pixel-raven-3-engine-7.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 15,
+        "y": 129,
+        "width": 162,
+        "height": 36
+      }
+    },
+    "pixel-raven-3-muzzle-0": {
+      "key": "pixel-raven-3-muzzle-0",
+      "url": "/assets/pixel-fleet/pixel-raven-3-muzzle-0.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 81,
+        "y": 48,
+        "width": 33,
+        "height": 9
+      }
+    },
+    "pixel-raven-3-muzzle-1": {
+      "key": "pixel-raven-3-muzzle-1",
+      "url": "/assets/pixel-fleet/pixel-raven-3-muzzle-1.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 78,
+        "y": 45,
+        "width": 36,
+        "height": 12
+      }
+    },
+    "pixel-raven-3-muzzle-2": {
+      "key": "pixel-raven-3-muzzle-2",
+      "url": "/assets/pixel-fleet/pixel-raven-3-muzzle-2.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 81,
+        "y": 48,
+        "width": 33,
+        "height": 9
+      }
+    },
+    "pixel-raven-3-bank-left": {
+      "key": "pixel-raven-3-bank-left",
+      "url": "/assets/pixel-fleet/pixel-raven-3-bank-left.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 15,
+        "y": 57,
+        "width": 162,
+        "height": 78
+      }
+    },
+    "pixel-raven-3-bank-right": {
+      "key": "pixel-raven-3-bank-right",
+      "url": "/assets/pixel-fleet/pixel-raven-3-bank-right.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 15,
+        "y": 57,
+        "width": 162,
+        "height": 78
+      }
+    },
+    "pixel-raven-3-unfold-0": {
+      "key": "pixel-raven-3-unfold-0",
+      "url": "/assets/pixel-fleet/pixel-raven-3-unfold-0.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 21,
+        "y": 57,
+        "width": 150,
+        "height": 78
+      }
+    },
+    "pixel-raven-3-unfold-1": {
+      "key": "pixel-raven-3-unfold-1",
+      "url": "/assets/pixel-fleet/pixel-raven-3-unfold-1.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 18,
+        "y": 57,
+        "width": 156,
+        "height": 78
+      }
+    },
+    "pixel-raven-3-unfold-2": {
+      "key": "pixel-raven-3-unfold-2",
+      "url": "/assets/pixel-fleet/pixel-raven-3-unfold-2.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 12,
+        "y": 57,
+        "width": 168,
+        "height": 78
+      }
+    },
+    "pixel-raven-3-unfold-3": {
+      "key": "pixel-raven-3-unfold-3",
+      "url": "/assets/pixel-fleet/pixel-raven-3-unfold-3.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 6,
+        "y": 57,
+        "width": 180,
+        "height": 78
+      }
+    },
+    "pixel-atlas-1": {
+      "key": "pixel-atlas-1",
+      "url": "/assets/pixel-fleet/pixel-atlas-1.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 48,
+        "y": 54,
+        "width": 96,
+        "height": 90
+      }
+    },
+    "pixel-atlas-1-engine-0": {
+      "key": "pixel-atlas-1-engine-0",
+      "url": "/assets/pixel-fleet/pixel-atlas-1-engine-0.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 69,
+        "y": 126,
+        "width": 54,
+        "height": 51
+      }
+    },
+    "pixel-atlas-1-engine-1": {
+      "key": "pixel-atlas-1-engine-1",
+      "url": "/assets/pixel-fleet/pixel-atlas-1-engine-1.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 69,
+        "y": 126,
+        "width": 54,
+        "height": 45
+      }
+    },
+    "pixel-atlas-1-engine-2": {
+      "key": "pixel-atlas-1-engine-2",
+      "url": "/assets/pixel-fleet/pixel-atlas-1-engine-2.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 69,
+        "y": 126,
+        "width": 54,
+        "height": 48
+      }
+    },
+    "pixel-atlas-1-engine-3": {
+      "key": "pixel-atlas-1-engine-3",
+      "url": "/assets/pixel-fleet/pixel-atlas-1-engine-3.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 69,
+        "y": 126,
+        "width": 54,
+        "height": 51
+      }
+    },
+    "pixel-atlas-1-engine-4": {
+      "key": "pixel-atlas-1-engine-4",
+      "url": "/assets/pixel-fleet/pixel-atlas-1-engine-4.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 69,
+        "y": 126,
+        "width": 54,
+        "height": 54
+      }
+    },
+    "pixel-atlas-1-engine-5": {
+      "key": "pixel-atlas-1-engine-5",
+      "url": "/assets/pixel-fleet/pixel-atlas-1-engine-5.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 69,
+        "y": 126,
+        "width": 54,
+        "height": 48
+      }
+    },
+    "pixel-atlas-1-engine-6": {
+      "key": "pixel-atlas-1-engine-6",
+      "url": "/assets/pixel-fleet/pixel-atlas-1-engine-6.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 69,
+        "y": 126,
+        "width": 54,
+        "height": 48
+      }
+    },
+    "pixel-atlas-1-engine-7": {
+      "key": "pixel-atlas-1-engine-7",
+      "url": "/assets/pixel-fleet/pixel-atlas-1-engine-7.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 69,
+        "y": 126,
+        "width": 54,
+        "height": 48
+      }
+    },
+    "pixel-atlas-1-muzzle-0": {
+      "key": "pixel-atlas-1-muzzle-0",
+      "url": "/assets/pixel-fleet/pixel-atlas-1-muzzle-0.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 96,
+        "y": 51,
+        "width": 3,
+        "height": 9
+      }
+    },
+    "pixel-atlas-1-muzzle-1": {
+      "key": "pixel-atlas-1-muzzle-1",
+      "url": "/assets/pixel-fleet/pixel-atlas-1-muzzle-1.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 93,
+        "y": 48,
+        "width": 6,
+        "height": 12
+      }
+    },
+    "pixel-atlas-1-muzzle-2": {
+      "key": "pixel-atlas-1-muzzle-2",
+      "url": "/assets/pixel-fleet/pixel-atlas-1-muzzle-2.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 96,
+        "y": 51,
+        "width": 3,
+        "height": 9
+      }
+    },
+    "pixel-atlas-1-bank-left": {
+      "key": "pixel-atlas-1-bank-left",
+      "url": "/assets/pixel-fleet/pixel-atlas-1-bank-left.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 51,
+        "y": 54,
+        "width": 87,
+        "height": 90
+      }
+    },
+    "pixel-atlas-1-bank-right": {
+      "key": "pixel-atlas-1-bank-right",
+      "url": "/assets/pixel-fleet/pixel-atlas-1-bank-right.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 51,
+        "y": 54,
+        "width": 87,
+        "height": 90
+      }
+    },
+    "pixel-atlas-2": {
+      "key": "pixel-atlas-2",
+      "url": "/assets/pixel-fleet/pixel-atlas-2.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 24,
+        "y": 54,
+        "width": 144,
+        "height": 93
+      }
+    },
+    "pixel-atlas-2-engine-0": {
+      "key": "pixel-atlas-2-engine-0",
+      "url": "/assets/pixel-fleet/pixel-atlas-2-engine-0.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 24,
+        "y": 126,
+        "width": 144,
+        "height": 51
+      }
+    },
+    "pixel-atlas-2-engine-1": {
+      "key": "pixel-atlas-2-engine-1",
+      "url": "/assets/pixel-fleet/pixel-atlas-2-engine-1.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 24,
+        "y": 126,
+        "width": 144,
+        "height": 45
+      }
+    },
+    "pixel-atlas-2-engine-2": {
+      "key": "pixel-atlas-2-engine-2",
+      "url": "/assets/pixel-fleet/pixel-atlas-2-engine-2.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 24,
+        "y": 126,
+        "width": 144,
+        "height": 48
+      }
+    },
+    "pixel-atlas-2-engine-3": {
+      "key": "pixel-atlas-2-engine-3",
+      "url": "/assets/pixel-fleet/pixel-atlas-2-engine-3.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 24,
+        "y": 126,
+        "width": 144,
+        "height": 51
+      }
+    },
+    "pixel-atlas-2-engine-4": {
+      "key": "pixel-atlas-2-engine-4",
+      "url": "/assets/pixel-fleet/pixel-atlas-2-engine-4.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 24,
+        "y": 126,
+        "width": 144,
+        "height": 54
+      }
+    },
+    "pixel-atlas-2-engine-5": {
+      "key": "pixel-atlas-2-engine-5",
+      "url": "/assets/pixel-fleet/pixel-atlas-2-engine-5.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 24,
+        "y": 126,
+        "width": 144,
+        "height": 48
+      }
+    },
+    "pixel-atlas-2-engine-6": {
+      "key": "pixel-atlas-2-engine-6",
+      "url": "/assets/pixel-fleet/pixel-atlas-2-engine-6.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 24,
+        "y": 126,
+        "width": 144,
+        "height": 48
+      }
+    },
+    "pixel-atlas-2-engine-7": {
+      "key": "pixel-atlas-2-engine-7",
+      "url": "/assets/pixel-fleet/pixel-atlas-2-engine-7.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 24,
+        "y": 126,
+        "width": 144,
+        "height": 48
+      }
+    },
+    "pixel-atlas-2-muzzle-0": {
+      "key": "pixel-atlas-2-muzzle-0",
+      "url": "/assets/pixel-fleet/pixel-atlas-2-muzzle-0.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 87,
+        "y": 51,
+        "width": 21,
+        "height": 9
+      }
+    },
+    "pixel-atlas-2-muzzle-1": {
+      "key": "pixel-atlas-2-muzzle-1",
+      "url": "/assets/pixel-fleet/pixel-atlas-2-muzzle-1.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 84,
+        "y": 48,
+        "width": 24,
+        "height": 12
+      }
+    },
+    "pixel-atlas-2-muzzle-2": {
+      "key": "pixel-atlas-2-muzzle-2",
+      "url": "/assets/pixel-fleet/pixel-atlas-2-muzzle-2.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 87,
+        "y": 51,
+        "width": 21,
+        "height": 9
+      }
+    },
+    "pixel-atlas-2-bank-left": {
+      "key": "pixel-atlas-2-bank-left",
+      "url": "/assets/pixel-fleet/pixel-atlas-2-bank-left.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 30,
+        "y": 54,
+        "width": 132,
+        "height": 93
+      }
+    },
+    "pixel-atlas-2-bank-right": {
+      "key": "pixel-atlas-2-bank-right",
+      "url": "/assets/pixel-fleet/pixel-atlas-2-bank-right.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 30,
+        "y": 54,
+        "width": 132,
+        "height": 93
+      }
+    },
+    "pixel-atlas-2-unfold-0": {
+      "key": "pixel-atlas-2-unfold-0",
+      "url": "/assets/pixel-fleet/pixel-atlas-2-unfold-0.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 39,
+        "y": 54,
+        "width": 114,
+        "height": 93
+      }
+    },
+    "pixel-atlas-2-unfold-1": {
+      "key": "pixel-atlas-2-unfold-1",
+      "url": "/assets/pixel-fleet/pixel-atlas-2-unfold-1.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 36,
+        "y": 54,
+        "width": 120,
+        "height": 93
+      }
+    },
+    "pixel-atlas-2-unfold-2": {
+      "key": "pixel-atlas-2-unfold-2",
+      "url": "/assets/pixel-fleet/pixel-atlas-2-unfold-2.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 30,
+        "y": 54,
+        "width": 132,
+        "height": 93
+      }
+    },
+    "pixel-atlas-2-unfold-3": {
+      "key": "pixel-atlas-2-unfold-3",
+      "url": "/assets/pixel-fleet/pixel-atlas-2-unfold-3.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 24,
+        "y": 54,
+        "width": 144,
+        "height": 93
+      }
+    },
+    "pixel-atlas-3": {
+      "key": "pixel-atlas-3",
+      "url": "/assets/pixel-fleet/pixel-atlas-3.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 6,
+        "y": 51,
+        "width": 180,
+        "height": 96
+      }
+    },
+    "pixel-atlas-3-engine-0": {
+      "key": "pixel-atlas-3-engine-0",
+      "url": "/assets/pixel-fleet/pixel-atlas-3-engine-0.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 12,
+        "y": 126,
+        "width": 168,
+        "height": 51
+      }
+    },
+    "pixel-atlas-3-engine-1": {
+      "key": "pixel-atlas-3-engine-1",
+      "url": "/assets/pixel-fleet/pixel-atlas-3-engine-1.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 12,
+        "y": 126,
+        "width": 168,
+        "height": 45
+      }
+    },
+    "pixel-atlas-3-engine-2": {
+      "key": "pixel-atlas-3-engine-2",
+      "url": "/assets/pixel-fleet/pixel-atlas-3-engine-2.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 12,
+        "y": 126,
+        "width": 168,
+        "height": 48
+      }
+    },
+    "pixel-atlas-3-engine-3": {
+      "key": "pixel-atlas-3-engine-3",
+      "url": "/assets/pixel-fleet/pixel-atlas-3-engine-3.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 12,
+        "y": 126,
+        "width": 168,
+        "height": 51
+      }
+    },
+    "pixel-atlas-3-engine-4": {
+      "key": "pixel-atlas-3-engine-4",
+      "url": "/assets/pixel-fleet/pixel-atlas-3-engine-4.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 12,
+        "y": 126,
+        "width": 168,
+        "height": 54
+      }
+    },
+    "pixel-atlas-3-engine-5": {
+      "key": "pixel-atlas-3-engine-5",
+      "url": "/assets/pixel-fleet/pixel-atlas-3-engine-5.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 12,
+        "y": 126,
+        "width": 168,
+        "height": 48
+      }
+    },
+    "pixel-atlas-3-engine-6": {
+      "key": "pixel-atlas-3-engine-6",
+      "url": "/assets/pixel-fleet/pixel-atlas-3-engine-6.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 12,
+        "y": 126,
+        "width": 168,
+        "height": 48
+      }
+    },
+    "pixel-atlas-3-engine-7": {
+      "key": "pixel-atlas-3-engine-7",
+      "url": "/assets/pixel-fleet/pixel-atlas-3-engine-7.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 12,
+        "y": 126,
+        "width": 168,
+        "height": 48
+      }
+    },
+    "pixel-atlas-3-muzzle-0": {
+      "key": "pixel-atlas-3-muzzle-0",
+      "url": "/assets/pixel-fleet/pixel-atlas-3-muzzle-0.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 81,
+        "y": 42,
+        "width": 33,
+        "height": 9
+      }
+    },
+    "pixel-atlas-3-muzzle-1": {
+      "key": "pixel-atlas-3-muzzle-1",
+      "url": "/assets/pixel-fleet/pixel-atlas-3-muzzle-1.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 78,
+        "y": 39,
+        "width": 36,
+        "height": 12
+      }
+    },
+    "pixel-atlas-3-muzzle-2": {
+      "key": "pixel-atlas-3-muzzle-2",
+      "url": "/assets/pixel-fleet/pixel-atlas-3-muzzle-2.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 81,
+        "y": 42,
+        "width": 33,
+        "height": 9
+      }
+    },
+    "pixel-atlas-3-bank-left": {
+      "key": "pixel-atlas-3-bank-left",
+      "url": "/assets/pixel-fleet/pixel-atlas-3-bank-left.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 15,
+        "y": 51,
+        "width": 162,
+        "height": 96
+      }
+    },
+    "pixel-atlas-3-bank-right": {
+      "key": "pixel-atlas-3-bank-right",
+      "url": "/assets/pixel-fleet/pixel-atlas-3-bank-right.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 15,
+        "y": 51,
+        "width": 162,
+        "height": 96
+      }
+    },
+    "pixel-atlas-3-unfold-0": {
+      "key": "pixel-atlas-3-unfold-0",
+      "url": "/assets/pixel-fleet/pixel-atlas-3-unfold-0.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 21,
+        "y": 51,
+        "width": 150,
+        "height": 96
+      }
+    },
+    "pixel-atlas-3-unfold-1": {
+      "key": "pixel-atlas-3-unfold-1",
+      "url": "/assets/pixel-fleet/pixel-atlas-3-unfold-1.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 18,
+        "y": 51,
+        "width": 156,
+        "height": 96
+      }
+    },
+    "pixel-atlas-3-unfold-2": {
+      "key": "pixel-atlas-3-unfold-2",
+      "url": "/assets/pixel-fleet/pixel-atlas-3-unfold-2.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 12,
+        "y": 51,
+        "width": 168,
+        "height": 96
+      }
+    },
+    "pixel-atlas-3-unfold-3": {
+      "key": "pixel-atlas-3-unfold-3",
+      "url": "/assets/pixel-fleet/pixel-atlas-3-unfold-3.png",
+      "canvasSize": 192,
+      "alphaBounds": {
+        "x": 6,
+        "y": 51,
+        "width": 180,
+        "height": 96
+      }
+    }
+  },
+  "ships": [
+    {
+      "id": 0,
+      "name": "Falcon",
+      "slug": "falcon",
+      "role": "Strike fighter",
+      "sourceHull": "Nairan Fighter",
+      "displayWidth": 132,
+      "levels": {
+        "1": {
+          "level": 1,
+          "key": "pixel-falcon-1",
+          "url": "/assets/pixel-fleet/pixel-falcon-1.png",
+          "canvasSize": 192,
+          "anchor": {
+            "x": 96,
+            "y": 96
+          },
+          "alphaBounds": {
+            "x": 51,
+            "y": 60,
+            "width": 90,
+            "height": 81
+          },
+          "gunMounts": [
+            {
+              "x": 96,
+              "y": 60
+            }
+          ],
+          "engineFrames": [
+            {
+              "key": "pixel-falcon-1-engine-0",
+              "url": "/assets/pixel-fleet/pixel-falcon-1-engine-0.png"
+            },
+            {
+              "key": "pixel-falcon-1-engine-1",
+              "url": "/assets/pixel-fleet/pixel-falcon-1-engine-1.png"
+            },
+            {
+              "key": "pixel-falcon-1-engine-2",
+              "url": "/assets/pixel-fleet/pixel-falcon-1-engine-2.png"
+            },
+            {
+              "key": "pixel-falcon-1-engine-3",
+              "url": "/assets/pixel-fleet/pixel-falcon-1-engine-3.png"
+            },
+            {
+              "key": "pixel-falcon-1-engine-4",
+              "url": "/assets/pixel-fleet/pixel-falcon-1-engine-4.png"
+            },
+            {
+              "key": "pixel-falcon-1-engine-5",
+              "url": "/assets/pixel-fleet/pixel-falcon-1-engine-5.png"
+            },
+            {
+              "key": "pixel-falcon-1-engine-6",
+              "url": "/assets/pixel-fleet/pixel-falcon-1-engine-6.png"
+            },
+            {
+              "key": "pixel-falcon-1-engine-7",
+              "url": "/assets/pixel-fleet/pixel-falcon-1-engine-7.png"
+            }
+          ],
+          "muzzleFrames": [
+            {
+              "key": "pixel-falcon-1-muzzle-0",
+              "url": "/assets/pixel-fleet/pixel-falcon-1-muzzle-0.png"
+            },
+            {
+              "key": "pixel-falcon-1-muzzle-1",
+              "url": "/assets/pixel-fleet/pixel-falcon-1-muzzle-1.png"
+            },
+            {
+              "key": "pixel-falcon-1-muzzle-2",
+              "url": "/assets/pixel-fleet/pixel-falcon-1-muzzle-2.png"
+            }
+          ],
+          "bankFrames": {
+            "left": {
+              "key": "pixel-falcon-1-bank-left",
+              "url": "/assets/pixel-fleet/pixel-falcon-1-bank-left.png"
+            },
+            "right": {
+              "key": "pixel-falcon-1-bank-right",
+              "url": "/assets/pixel-fleet/pixel-falcon-1-bank-right.png"
+            }
+          },
+          "unfoldFrames": []
+        },
+        "2": {
+          "level": 2,
+          "key": "pixel-falcon-2",
+          "url": "/assets/pixel-fleet/pixel-falcon-2.png",
+          "canvasSize": 192,
+          "anchor": {
+            "x": 96,
+            "y": 96
+          },
+          "alphaBounds": {
+            "x": 33,
+            "y": 60,
+            "width": 126,
+            "height": 81
+          },
+          "gunMounts": [
+            {
+              "x": 87,
+              "y": 60
+            },
+            {
+              "x": 105,
+              "y": 60
+            }
+          ],
+          "engineFrames": [
+            {
+              "key": "pixel-falcon-2-engine-0",
+              "url": "/assets/pixel-fleet/pixel-falcon-2-engine-0.png"
+            },
+            {
+              "key": "pixel-falcon-2-engine-1",
+              "url": "/assets/pixel-fleet/pixel-falcon-2-engine-1.png"
+            },
+            {
+              "key": "pixel-falcon-2-engine-2",
+              "url": "/assets/pixel-fleet/pixel-falcon-2-engine-2.png"
+            },
+            {
+              "key": "pixel-falcon-2-engine-3",
+              "url": "/assets/pixel-fleet/pixel-falcon-2-engine-3.png"
+            },
+            {
+              "key": "pixel-falcon-2-engine-4",
+              "url": "/assets/pixel-fleet/pixel-falcon-2-engine-4.png"
+            },
+            {
+              "key": "pixel-falcon-2-engine-5",
+              "url": "/assets/pixel-fleet/pixel-falcon-2-engine-5.png"
+            },
+            {
+              "key": "pixel-falcon-2-engine-6",
+              "url": "/assets/pixel-fleet/pixel-falcon-2-engine-6.png"
+            },
+            {
+              "key": "pixel-falcon-2-engine-7",
+              "url": "/assets/pixel-fleet/pixel-falcon-2-engine-7.png"
+            }
+          ],
+          "muzzleFrames": [
+            {
+              "key": "pixel-falcon-2-muzzle-0",
+              "url": "/assets/pixel-fleet/pixel-falcon-2-muzzle-0.png"
+            },
+            {
+              "key": "pixel-falcon-2-muzzle-1",
+              "url": "/assets/pixel-fleet/pixel-falcon-2-muzzle-1.png"
+            },
+            {
+              "key": "pixel-falcon-2-muzzle-2",
+              "url": "/assets/pixel-fleet/pixel-falcon-2-muzzle-2.png"
+            }
+          ],
+          "bankFrames": {
+            "left": {
+              "key": "pixel-falcon-2-bank-left",
+              "url": "/assets/pixel-fleet/pixel-falcon-2-bank-left.png"
+            },
+            "right": {
+              "key": "pixel-falcon-2-bank-right",
+              "url": "/assets/pixel-fleet/pixel-falcon-2-bank-right.png"
+            }
+          },
+          "unfoldFrames": [
+            {
+              "key": "pixel-falcon-2-unfold-0",
+              "url": "/assets/pixel-fleet/pixel-falcon-2-unfold-0.png"
+            },
+            {
+              "key": "pixel-falcon-2-unfold-1",
+              "url": "/assets/pixel-fleet/pixel-falcon-2-unfold-1.png"
+            },
+            {
+              "key": "pixel-falcon-2-unfold-2",
+              "url": "/assets/pixel-fleet/pixel-falcon-2-unfold-2.png"
+            },
+            {
+              "key": "pixel-falcon-2-unfold-3",
+              "url": "/assets/pixel-fleet/pixel-falcon-2-unfold-3.png"
+            }
+          ]
+        },
+        "3": {
+          "level": 3,
+          "key": "pixel-falcon-3",
+          "url": "/assets/pixel-fleet/pixel-falcon-3.png",
+          "canvasSize": 192,
+          "anchor": {
+            "x": 96,
+            "y": 96
+          },
+          "alphaBounds": {
+            "x": 6,
+            "y": 51,
+            "width": 180,
+            "height": 93
+          },
+          "gunMounts": [
+            {
+              "x": 81,
+              "y": 51
+            },
+            {
+              "x": 96,
+              "y": 51
+            },
+            {
+              "x": 111,
+              "y": 51
+            }
+          ],
+          "engineFrames": [
+            {
+              "key": "pixel-falcon-3-engine-0",
+              "url": "/assets/pixel-fleet/pixel-falcon-3-engine-0.png"
+            },
+            {
+              "key": "pixel-falcon-3-engine-1",
+              "url": "/assets/pixel-fleet/pixel-falcon-3-engine-1.png"
+            },
+            {
+              "key": "pixel-falcon-3-engine-2",
+              "url": "/assets/pixel-fleet/pixel-falcon-3-engine-2.png"
+            },
+            {
+              "key": "pixel-falcon-3-engine-3",
+              "url": "/assets/pixel-fleet/pixel-falcon-3-engine-3.png"
+            },
+            {
+              "key": "pixel-falcon-3-engine-4",
+              "url": "/assets/pixel-fleet/pixel-falcon-3-engine-4.png"
+            },
+            {
+              "key": "pixel-falcon-3-engine-5",
+              "url": "/assets/pixel-fleet/pixel-falcon-3-engine-5.png"
+            },
+            {
+              "key": "pixel-falcon-3-engine-6",
+              "url": "/assets/pixel-fleet/pixel-falcon-3-engine-6.png"
+            },
+            {
+              "key": "pixel-falcon-3-engine-7",
+              "url": "/assets/pixel-fleet/pixel-falcon-3-engine-7.png"
+            }
+          ],
+          "muzzleFrames": [
+            {
+              "key": "pixel-falcon-3-muzzle-0",
+              "url": "/assets/pixel-fleet/pixel-falcon-3-muzzle-0.png"
+            },
+            {
+              "key": "pixel-falcon-3-muzzle-1",
+              "url": "/assets/pixel-fleet/pixel-falcon-3-muzzle-1.png"
+            },
+            {
+              "key": "pixel-falcon-3-muzzle-2",
+              "url": "/assets/pixel-fleet/pixel-falcon-3-muzzle-2.png"
+            }
+          ],
+          "bankFrames": {
+            "left": {
+              "key": "pixel-falcon-3-bank-left",
+              "url": "/assets/pixel-fleet/pixel-falcon-3-bank-left.png"
+            },
+            "right": {
+              "key": "pixel-falcon-3-bank-right",
+              "url": "/assets/pixel-fleet/pixel-falcon-3-bank-right.png"
+            }
+          },
+          "unfoldFrames": [
+            {
+              "key": "pixel-falcon-3-unfold-0",
+              "url": "/assets/pixel-fleet/pixel-falcon-3-unfold-0.png"
+            },
+            {
+              "key": "pixel-falcon-3-unfold-1",
+              "url": "/assets/pixel-fleet/pixel-falcon-3-unfold-1.png"
+            },
+            {
+              "key": "pixel-falcon-3-unfold-2",
+              "url": "/assets/pixel-fleet/pixel-falcon-3-unfold-2.png"
+            },
+            {
+              "key": "pixel-falcon-3-unfold-3",
+              "url": "/assets/pixel-fleet/pixel-falcon-3-unfold-3.png"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": 1,
+      "name": "Raven",
+      "slug": "raven",
+      "role": "Recon interceptor",
+      "sourceHull": "Nairan Scout",
+      "displayWidth": 132,
+      "levels": {
+        "1": {
+          "level": 1,
+          "key": "pixel-raven-1",
+          "url": "/assets/pixel-fleet/pixel-raven-1.png",
+          "canvasSize": 192,
+          "anchor": {
+            "x": 96,
+            "y": 96
+          },
+          "alphaBounds": {
+            "x": 60,
+            "y": 69,
+            "width": 72,
+            "height": 66
+          },
+          "gunMounts": [
+            {
+              "x": 96,
+              "y": 69
+            }
+          ],
+          "engineFrames": [
+            {
+              "key": "pixel-raven-1-engine-0",
+              "url": "/assets/pixel-fleet/pixel-raven-1-engine-0.png"
+            },
+            {
+              "key": "pixel-raven-1-engine-1",
+              "url": "/assets/pixel-fleet/pixel-raven-1-engine-1.png"
+            },
+            {
+              "key": "pixel-raven-1-engine-2",
+              "url": "/assets/pixel-fleet/pixel-raven-1-engine-2.png"
+            },
+            {
+              "key": "pixel-raven-1-engine-3",
+              "url": "/assets/pixel-fleet/pixel-raven-1-engine-3.png"
+            },
+            {
+              "key": "pixel-raven-1-engine-4",
+              "url": "/assets/pixel-fleet/pixel-raven-1-engine-4.png"
+            },
+            {
+              "key": "pixel-raven-1-engine-5",
+              "url": "/assets/pixel-fleet/pixel-raven-1-engine-5.png"
+            },
+            {
+              "key": "pixel-raven-1-engine-6",
+              "url": "/assets/pixel-fleet/pixel-raven-1-engine-6.png"
+            },
+            {
+              "key": "pixel-raven-1-engine-7",
+              "url": "/assets/pixel-fleet/pixel-raven-1-engine-7.png"
+            }
+          ],
+          "muzzleFrames": [
+            {
+              "key": "pixel-raven-1-muzzle-0",
+              "url": "/assets/pixel-fleet/pixel-raven-1-muzzle-0.png"
+            },
+            {
+              "key": "pixel-raven-1-muzzle-1",
+              "url": "/assets/pixel-fleet/pixel-raven-1-muzzle-1.png"
+            },
+            {
+              "key": "pixel-raven-1-muzzle-2",
+              "url": "/assets/pixel-fleet/pixel-raven-1-muzzle-2.png"
+            }
+          ],
+          "bankFrames": {
+            "left": {
+              "key": "pixel-raven-1-bank-left",
+              "url": "/assets/pixel-fleet/pixel-raven-1-bank-left.png"
+            },
+            "right": {
+              "key": "pixel-raven-1-bank-right",
+              "url": "/assets/pixel-fleet/pixel-raven-1-bank-right.png"
+            }
+          },
+          "unfoldFrames": []
+        },
+        "2": {
+          "level": 2,
+          "key": "pixel-raven-2",
+          "url": "/assets/pixel-fleet/pixel-raven-2.png",
+          "canvasSize": 192,
+          "anchor": {
+            "x": 96,
+            "y": 96
+          },
+          "alphaBounds": {
+            "x": 36,
+            "y": 66,
+            "width": 120,
+            "height": 69
+          },
+          "gunMounts": [
+            {
+              "x": 87,
+              "y": 66
+            },
+            {
+              "x": 105,
+              "y": 66
+            }
+          ],
+          "engineFrames": [
+            {
+              "key": "pixel-raven-2-engine-0",
+              "url": "/assets/pixel-fleet/pixel-raven-2-engine-0.png"
+            },
+            {
+              "key": "pixel-raven-2-engine-1",
+              "url": "/assets/pixel-fleet/pixel-raven-2-engine-1.png"
+            },
+            {
+              "key": "pixel-raven-2-engine-2",
+              "url": "/assets/pixel-fleet/pixel-raven-2-engine-2.png"
+            },
+            {
+              "key": "pixel-raven-2-engine-3",
+              "url": "/assets/pixel-fleet/pixel-raven-2-engine-3.png"
+            },
+            {
+              "key": "pixel-raven-2-engine-4",
+              "url": "/assets/pixel-fleet/pixel-raven-2-engine-4.png"
+            },
+            {
+              "key": "pixel-raven-2-engine-5",
+              "url": "/assets/pixel-fleet/pixel-raven-2-engine-5.png"
+            },
+            {
+              "key": "pixel-raven-2-engine-6",
+              "url": "/assets/pixel-fleet/pixel-raven-2-engine-6.png"
+            },
+            {
+              "key": "pixel-raven-2-engine-7",
+              "url": "/assets/pixel-fleet/pixel-raven-2-engine-7.png"
+            }
+          ],
+          "muzzleFrames": [
+            {
+              "key": "pixel-raven-2-muzzle-0",
+              "url": "/assets/pixel-fleet/pixel-raven-2-muzzle-0.png"
+            },
+            {
+              "key": "pixel-raven-2-muzzle-1",
+              "url": "/assets/pixel-fleet/pixel-raven-2-muzzle-1.png"
+            },
+            {
+              "key": "pixel-raven-2-muzzle-2",
+              "url": "/assets/pixel-fleet/pixel-raven-2-muzzle-2.png"
+            }
+          ],
+          "bankFrames": {
+            "left": {
+              "key": "pixel-raven-2-bank-left",
+              "url": "/assets/pixel-fleet/pixel-raven-2-bank-left.png"
+            },
+            "right": {
+              "key": "pixel-raven-2-bank-right",
+              "url": "/assets/pixel-fleet/pixel-raven-2-bank-right.png"
+            }
+          },
+          "unfoldFrames": [
+            {
+              "key": "pixel-raven-2-unfold-0",
+              "url": "/assets/pixel-fleet/pixel-raven-2-unfold-0.png"
+            },
+            {
+              "key": "pixel-raven-2-unfold-1",
+              "url": "/assets/pixel-fleet/pixel-raven-2-unfold-1.png"
+            },
+            {
+              "key": "pixel-raven-2-unfold-2",
+              "url": "/assets/pixel-fleet/pixel-raven-2-unfold-2.png"
+            },
+            {
+              "key": "pixel-raven-2-unfold-3",
+              "url": "/assets/pixel-fleet/pixel-raven-2-unfold-3.png"
+            }
+          ]
+        },
+        "3": {
+          "level": 3,
+          "key": "pixel-raven-3",
+          "url": "/assets/pixel-fleet/pixel-raven-3.png",
+          "canvasSize": 192,
+          "anchor": {
+            "x": 96,
+            "y": 96
+          },
+          "alphaBounds": {
+            "x": 6,
+            "y": 57,
+            "width": 180,
+            "height": 78
+          },
+          "gunMounts": [
+            {
+              "x": 81,
+              "y": 57
+            },
+            {
+              "x": 96,
+              "y": 57
+            },
+            {
+              "x": 111,
+              "y": 57
+            }
+          ],
+          "engineFrames": [
+            {
+              "key": "pixel-raven-3-engine-0",
+              "url": "/assets/pixel-fleet/pixel-raven-3-engine-0.png"
+            },
+            {
+              "key": "pixel-raven-3-engine-1",
+              "url": "/assets/pixel-fleet/pixel-raven-3-engine-1.png"
+            },
+            {
+              "key": "pixel-raven-3-engine-2",
+              "url": "/assets/pixel-fleet/pixel-raven-3-engine-2.png"
+            },
+            {
+              "key": "pixel-raven-3-engine-3",
+              "url": "/assets/pixel-fleet/pixel-raven-3-engine-3.png"
+            },
+            {
+              "key": "pixel-raven-3-engine-4",
+              "url": "/assets/pixel-fleet/pixel-raven-3-engine-4.png"
+            },
+            {
+              "key": "pixel-raven-3-engine-5",
+              "url": "/assets/pixel-fleet/pixel-raven-3-engine-5.png"
+            },
+            {
+              "key": "pixel-raven-3-engine-6",
+              "url": "/assets/pixel-fleet/pixel-raven-3-engine-6.png"
+            },
+            {
+              "key": "pixel-raven-3-engine-7",
+              "url": "/assets/pixel-fleet/pixel-raven-3-engine-7.png"
+            }
+          ],
+          "muzzleFrames": [
+            {
+              "key": "pixel-raven-3-muzzle-0",
+              "url": "/assets/pixel-fleet/pixel-raven-3-muzzle-0.png"
+            },
+            {
+              "key": "pixel-raven-3-muzzle-1",
+              "url": "/assets/pixel-fleet/pixel-raven-3-muzzle-1.png"
+            },
+            {
+              "key": "pixel-raven-3-muzzle-2",
+              "url": "/assets/pixel-fleet/pixel-raven-3-muzzle-2.png"
+            }
+          ],
+          "bankFrames": {
+            "left": {
+              "key": "pixel-raven-3-bank-left",
+              "url": "/assets/pixel-fleet/pixel-raven-3-bank-left.png"
+            },
+            "right": {
+              "key": "pixel-raven-3-bank-right",
+              "url": "/assets/pixel-fleet/pixel-raven-3-bank-right.png"
+            }
+          },
+          "unfoldFrames": [
+            {
+              "key": "pixel-raven-3-unfold-0",
+              "url": "/assets/pixel-fleet/pixel-raven-3-unfold-0.png"
+            },
+            {
+              "key": "pixel-raven-3-unfold-1",
+              "url": "/assets/pixel-fleet/pixel-raven-3-unfold-1.png"
+            },
+            {
+              "key": "pixel-raven-3-unfold-2",
+              "url": "/assets/pixel-fleet/pixel-raven-3-unfold-2.png"
+            },
+            {
+              "key": "pixel-raven-3-unfold-3",
+              "url": "/assets/pixel-fleet/pixel-raven-3-unfold-3.png"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": 2,
+      "name": "Atlas",
+      "slug": "atlas",
+      "role": "Heavy gunship",
+      "sourceHull": "Nairan Bomber",
+      "displayWidth": 132,
+      "levels": {
+        "1": {
+          "level": 1,
+          "key": "pixel-atlas-1",
+          "url": "/assets/pixel-fleet/pixel-atlas-1.png",
+          "canvasSize": 192,
+          "anchor": {
+            "x": 96,
+            "y": 96
+          },
+          "alphaBounds": {
+            "x": 48,
+            "y": 54,
+            "width": 96,
+            "height": 90
+          },
+          "gunMounts": [
+            {
+              "x": 96,
+              "y": 60
+            }
+          ],
+          "engineFrames": [
+            {
+              "key": "pixel-atlas-1-engine-0",
+              "url": "/assets/pixel-fleet/pixel-atlas-1-engine-0.png"
+            },
+            {
+              "key": "pixel-atlas-1-engine-1",
+              "url": "/assets/pixel-fleet/pixel-atlas-1-engine-1.png"
+            },
+            {
+              "key": "pixel-atlas-1-engine-2",
+              "url": "/assets/pixel-fleet/pixel-atlas-1-engine-2.png"
+            },
+            {
+              "key": "pixel-atlas-1-engine-3",
+              "url": "/assets/pixel-fleet/pixel-atlas-1-engine-3.png"
+            },
+            {
+              "key": "pixel-atlas-1-engine-4",
+              "url": "/assets/pixel-fleet/pixel-atlas-1-engine-4.png"
+            },
+            {
+              "key": "pixel-atlas-1-engine-5",
+              "url": "/assets/pixel-fleet/pixel-atlas-1-engine-5.png"
+            },
+            {
+              "key": "pixel-atlas-1-engine-6",
+              "url": "/assets/pixel-fleet/pixel-atlas-1-engine-6.png"
+            },
+            {
+              "key": "pixel-atlas-1-engine-7",
+              "url": "/assets/pixel-fleet/pixel-atlas-1-engine-7.png"
+            }
+          ],
+          "muzzleFrames": [
+            {
+              "key": "pixel-atlas-1-muzzle-0",
+              "url": "/assets/pixel-fleet/pixel-atlas-1-muzzle-0.png"
+            },
+            {
+              "key": "pixel-atlas-1-muzzle-1",
+              "url": "/assets/pixel-fleet/pixel-atlas-1-muzzle-1.png"
+            },
+            {
+              "key": "pixel-atlas-1-muzzle-2",
+              "url": "/assets/pixel-fleet/pixel-atlas-1-muzzle-2.png"
+            }
+          ],
+          "bankFrames": {
+            "left": {
+              "key": "pixel-atlas-1-bank-left",
+              "url": "/assets/pixel-fleet/pixel-atlas-1-bank-left.png"
+            },
+            "right": {
+              "key": "pixel-atlas-1-bank-right",
+              "url": "/assets/pixel-fleet/pixel-atlas-1-bank-right.png"
+            }
+          },
+          "unfoldFrames": []
+        },
+        "2": {
+          "level": 2,
+          "key": "pixel-atlas-2",
+          "url": "/assets/pixel-fleet/pixel-atlas-2.png",
+          "canvasSize": 192,
+          "anchor": {
+            "x": 96,
+            "y": 96
+          },
+          "alphaBounds": {
+            "x": 24,
+            "y": 54,
+            "width": 144,
+            "height": 93
+          },
+          "gunMounts": [
+            {
+              "x": 87,
+              "y": 60
+            },
+            {
+              "x": 105,
+              "y": 60
+            }
+          ],
+          "engineFrames": [
+            {
+              "key": "pixel-atlas-2-engine-0",
+              "url": "/assets/pixel-fleet/pixel-atlas-2-engine-0.png"
+            },
+            {
+              "key": "pixel-atlas-2-engine-1",
+              "url": "/assets/pixel-fleet/pixel-atlas-2-engine-1.png"
+            },
+            {
+              "key": "pixel-atlas-2-engine-2",
+              "url": "/assets/pixel-fleet/pixel-atlas-2-engine-2.png"
+            },
+            {
+              "key": "pixel-atlas-2-engine-3",
+              "url": "/assets/pixel-fleet/pixel-atlas-2-engine-3.png"
+            },
+            {
+              "key": "pixel-atlas-2-engine-4",
+              "url": "/assets/pixel-fleet/pixel-atlas-2-engine-4.png"
+            },
+            {
+              "key": "pixel-atlas-2-engine-5",
+              "url": "/assets/pixel-fleet/pixel-atlas-2-engine-5.png"
+            },
+            {
+              "key": "pixel-atlas-2-engine-6",
+              "url": "/assets/pixel-fleet/pixel-atlas-2-engine-6.png"
+            },
+            {
+              "key": "pixel-atlas-2-engine-7",
+              "url": "/assets/pixel-fleet/pixel-atlas-2-engine-7.png"
+            }
+          ],
+          "muzzleFrames": [
+            {
+              "key": "pixel-atlas-2-muzzle-0",
+              "url": "/assets/pixel-fleet/pixel-atlas-2-muzzle-0.png"
+            },
+            {
+              "key": "pixel-atlas-2-muzzle-1",
+              "url": "/assets/pixel-fleet/pixel-atlas-2-muzzle-1.png"
+            },
+            {
+              "key": "pixel-atlas-2-muzzle-2",
+              "url": "/assets/pixel-fleet/pixel-atlas-2-muzzle-2.png"
+            }
+          ],
+          "bankFrames": {
+            "left": {
+              "key": "pixel-atlas-2-bank-left",
+              "url": "/assets/pixel-fleet/pixel-atlas-2-bank-left.png"
+            },
+            "right": {
+              "key": "pixel-atlas-2-bank-right",
+              "url": "/assets/pixel-fleet/pixel-atlas-2-bank-right.png"
+            }
+          },
+          "unfoldFrames": [
+            {
+              "key": "pixel-atlas-2-unfold-0",
+              "url": "/assets/pixel-fleet/pixel-atlas-2-unfold-0.png"
+            },
+            {
+              "key": "pixel-atlas-2-unfold-1",
+              "url": "/assets/pixel-fleet/pixel-atlas-2-unfold-1.png"
+            },
+            {
+              "key": "pixel-atlas-2-unfold-2",
+              "url": "/assets/pixel-fleet/pixel-atlas-2-unfold-2.png"
+            },
+            {
+              "key": "pixel-atlas-2-unfold-3",
+              "url": "/assets/pixel-fleet/pixel-atlas-2-unfold-3.png"
+            }
+          ]
+        },
+        "3": {
+          "level": 3,
+          "key": "pixel-atlas-3",
+          "url": "/assets/pixel-fleet/pixel-atlas-3.png",
+          "canvasSize": 192,
+          "anchor": {
+            "x": 96,
+            "y": 96
+          },
+          "alphaBounds": {
+            "x": 6,
+            "y": 51,
+            "width": 180,
+            "height": 96
+          },
+          "gunMounts": [
+            {
+              "x": 81,
+              "y": 51
+            },
+            {
+              "x": 96,
+              "y": 51
+            },
+            {
+              "x": 111,
+              "y": 51
+            }
+          ],
+          "engineFrames": [
+            {
+              "key": "pixel-atlas-3-engine-0",
+              "url": "/assets/pixel-fleet/pixel-atlas-3-engine-0.png"
+            },
+            {
+              "key": "pixel-atlas-3-engine-1",
+              "url": "/assets/pixel-fleet/pixel-atlas-3-engine-1.png"
+            },
+            {
+              "key": "pixel-atlas-3-engine-2",
+              "url": "/assets/pixel-fleet/pixel-atlas-3-engine-2.png"
+            },
+            {
+              "key": "pixel-atlas-3-engine-3",
+              "url": "/assets/pixel-fleet/pixel-atlas-3-engine-3.png"
+            },
+            {
+              "key": "pixel-atlas-3-engine-4",
+              "url": "/assets/pixel-fleet/pixel-atlas-3-engine-4.png"
+            },
+            {
+              "key": "pixel-atlas-3-engine-5",
+              "url": "/assets/pixel-fleet/pixel-atlas-3-engine-5.png"
+            },
+            {
+              "key": "pixel-atlas-3-engine-6",
+              "url": "/assets/pixel-fleet/pixel-atlas-3-engine-6.png"
+            },
+            {
+              "key": "pixel-atlas-3-engine-7",
+              "url": "/assets/pixel-fleet/pixel-atlas-3-engine-7.png"
+            }
+          ],
+          "muzzleFrames": [
+            {
+              "key": "pixel-atlas-3-muzzle-0",
+              "url": "/assets/pixel-fleet/pixel-atlas-3-muzzle-0.png"
+            },
+            {
+              "key": "pixel-atlas-3-muzzle-1",
+              "url": "/assets/pixel-fleet/pixel-atlas-3-muzzle-1.png"
+            },
+            {
+              "key": "pixel-atlas-3-muzzle-2",
+              "url": "/assets/pixel-fleet/pixel-atlas-3-muzzle-2.png"
+            }
+          ],
+          "bankFrames": {
+            "left": {
+              "key": "pixel-atlas-3-bank-left",
+              "url": "/assets/pixel-fleet/pixel-atlas-3-bank-left.png"
+            },
+            "right": {
+              "key": "pixel-atlas-3-bank-right",
+              "url": "/assets/pixel-fleet/pixel-atlas-3-bank-right.png"
+            }
+          },
+          "unfoldFrames": [
+            {
+              "key": "pixel-atlas-3-unfold-0",
+              "url": "/assets/pixel-fleet/pixel-atlas-3-unfold-0.png"
+            },
+            {
+              "key": "pixel-atlas-3-unfold-1",
+              "url": "/assets/pixel-fleet/pixel-atlas-3-unfold-1.png"
+            },
+            {
+              "key": "pixel-atlas-3-unfold-2",
+              "url": "/assets/pixel-fleet/pixel-atlas-3-unfold-2.png"
+            },
+            {
+              "key": "pixel-atlas-3-unfold-3",
+              "url": "/assets/pixel-fleet/pixel-atlas-3-unfold-3.png"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

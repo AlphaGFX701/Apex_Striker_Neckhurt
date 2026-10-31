@@ -306,11 +306,18 @@ main {
   max-height: 320px;
   margin: 4px 0 14px;
 }
+#title-ship,
+#ship-preview,
+#preflight-ship,
+#result-ship {
+  image-rendering: pixelated;
+}
 .title-art canvas {
   position: relative;
   z-index: 1;
   width: 255px;
   filter: drop-shadow(0 10px 30px #2e9cc337);
+  image-rendering: pixelated;
 }
 .orbit {
   position: absolute;
@@ -431,6 +438,7 @@ body[data-view="home"] main {
   max-height: 235px;
   position: relative;
   object-fit: contain;
+  image-rendering: pixelated;
 }
 .rotate-controls {
   position: absolute;
@@ -455,6 +463,10 @@ body[data-view="home"] main {
 .showcase-caption span {
   font-size: 8px;
   letter-spacing: 0.16em;
+  color: var(--muted);
+}
+.showcase-caption small {
+  font-size: 10px;
   color: var(--muted);
 }
 .tabs {
@@ -488,38 +500,55 @@ legend {
   margin-bottom: 9px;
   color: var(--muted);
 }
-.part-options {
+.fleet-options {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
+  margin: 16px 0;
 }
-.part-options button {
+.fleet-option {
   min-width: 0;
-  padding: 7px;
+  min-height: 132px;
+  padding: 8px 4px 12px;
   display: grid;
   justify-items: center;
   gap: 5px;
   background: #0b1624;
+  border: 1px solid var(--line);
 }
-.part-options img {
-  height: 52px;
-  width: 70px;
+.fleet-option canvas {
+  height: 78px;
+  width: 78px;
+  max-width: 100%;
   object-fit: contain;
   image-rendering: pixelated;
 }
-.part-options span {
-  font-size: 10px;
+.fleet-option strong {
+  font-size: 12px;
+  letter-spacing: .035em;
 }
-.part-options [aria-pressed="true"],
-.color-options [aria-pressed="true"],
+.fleet-option span {
+  font: 8px JetBrainsMono, monospace;
+  color: var(--muted);
+}
+.fleet-option[aria-pressed="true"] span {
+  color: var(--cyan);
+}
+.fleet-option:hover {
+  border-color: var(--cyan);
+}
+.fleet-option:active {
+  transform: translateY(1px);
+}
+.fleet-option:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 3px;
+}
+.fleet-option[aria-pressed="true"],
 .catalog-item.selected {
   border-color: var(--cyan);
   box-shadow: inset 0 0 0 1px #60d8ff44;
   background-color: #173344;
-}
-.color-options button {
-  flex: 1;
-  font-size: 10px;
 }
 .preview-range {
   margin: 15px 0;
@@ -941,12 +970,15 @@ body[data-view="battle"] main {
 #boss-health::-moz-progress-bar {
   background: #f17c64;
 }
-#boss-hud:after {
+.boss-meter {
+  position: relative;
+}
+.boss-meter:after {
   content: "";
   position: absolute;
-  bottom: 9px;
-  left: 8px;
-  right: 8px;
+  bottom: 0;
+  left: 0;
+  right: 0;
   height: 5px;
   pointer-events: none;
   background: linear-gradient(
@@ -960,6 +992,22 @@ body[data-view="battle"] main {
     #091322 67%,
     transparent 67%
   );
+}
+#boss-objective {
+  display: block;
+  margin-top: 6px;
+  color: var(--amber);
+  font: 8px JetBrainsMono, monospace;
+  letter-spacing: .04em;
+}
+#boss-hud[data-state="exposed"] #boss-objective {
+  color: var(--cyan);
+}
+#boss-hud[data-state="transition"] #boss-objective {
+  color: var(--muted);
+}
+#boss-hud:not([hidden]) ~ #stage-warning {
+  top: 128px;
 }
 #segment-label {
   position: absolute;

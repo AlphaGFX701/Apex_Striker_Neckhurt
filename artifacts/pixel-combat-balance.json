@@ -1,0 +1,61 @@
+{
+  "kind": "deterministic-reference-not-human-playtest",
+  "trackingDutyCycle": 0.65,
+  "seed": 743,
+  "runs": [
+    {
+      "weapon": "pulse",
+      "loadout": "base",
+      "bossSeconds": 88.55,
+      "result": "won",
+      "coreHP": 650,
+      "transitions": 2,
+      "finalState": "defeated"
+    },
+    {
+      "weapon": "pulse",
+      "loadout": "level2-wing2",
+      "bossSeconds": 63.6,
+      "result": "won",
+      "coreHP": 650,
+      "transitions": 2,
+      "finalState": "defeated"
+    },
+    {
+      "weapon": "plasma",
+      "loadout": "base",
+      "bossSeconds": 111.35,
+      "result": "won",
+      "coreHP": 650,
+      "transitions": 2,
+      "finalState": "defeated"
+    },
+    {
+      "weapon": "plasma",
+      "loadout": "level2-wing2",
+      "bossSeconds": 62.95,
+      "result": "won",
+      "coreHP": 650,
+      "transitions": 2,
+      "finalState": "defeated"
+    },
+    {
+      "weapon": "laser",
+      "loadout": "base",
+      "bossSeconds": 83.7,
+      "result": "won",
+      "coreHP": 650,
+      "transitions": 2,
+      "finalState": "defeated"
+    },
+    {
+      "weapon": "laser",
+      "loadout": "level2-wing2",
+      "bossSeconds": 54.6,
+      "result": "won",
+      "coreHP": 650,
+      "transitions": 2,
+      "finalState": "defeated"
+    }
+  ]
+}

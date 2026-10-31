@@ -1,0 +1,154 @@
+{
+  "forms": 9,
+  "runtimeImages": 150,
+  "pngBytes": 116446,
+  "sampling": "nearest,3xinteger",
+  "checks": [
+    {
+      "ship": "Falcon",
+      "level": 1,
+      "alphaBounds": {
+        "x": 51,
+        "y": 60,
+        "width": 90,
+        "height": 81
+      },
+      "componentAreasAt64px": [
+        438
+      ],
+      "connectedMajorSilhouette": true,
+      "clipped": false,
+      "sameAnchor": true
+    },
+    {
+      "ship": "Falcon",
+      "level": 2,
+      "alphaBounds": {
+        "x": 33,
+        "y": 60,
+        "width": 126,
+        "height": 81
+      },
+      "componentAreasAt64px": [
+        662
+      ],
+      "connectedMajorSilhouette": true,
+      "clipped": false,
+      "sameAnchor": true
+    },
+    {
+      "ship": "Falcon",
+      "level": 3,
+      "alphaBounds": {
+        "x": 6,
+        "y": 51,
+        "width": 180,
+        "height": 93
+      },
+      "componentAreasAt64px": [
+        922
+      ],
+      "connectedMajorSilhouette": true,
+      "clipped": false,
+      "sameAnchor": true
+    },
+    {
+      "ship": "Raven",
+      "level": 1,
+      "alphaBounds": {
+        "x": 60,
+        "y": 69,
+        "width": 72,
+        "height": 66
+      },
+      "componentAreasAt64px": [
+        378
+      ],
+      "connectedMajorSilhouette": true,
+      "clipped": false,
+      "sameAnchor": true
+    },
+    {
+      "ship": "Raven",
+      "level": 2,
+      "alphaBounds": {
+        "x": 36,
+        "y": 66,
+        "width": 120,
+        "height": 69
+      },
+      "componentAreasAt64px": [
+        625
+      ],
+      "connectedMajorSilhouette": true,
+      "clipped": false,
+      "sameAnchor": true
+    },
+    {
+      "ship": "Raven",
+      "level": 3,
+      "alphaBounds": {
+        "x": 6,
+        "y": 57,
+        "width": 180,
+        "height": 78
+      },
+      "componentAreasAt64px": [
+        861
+      ],
+      "connectedMajorSilhouette": true,
+      "clipped": false,
+      "sameAnchor": true
+    },
+    {
+      "ship": "Atlas",
+      "level": 1,
+      "alphaBounds": {
+        "x": 48,
+        "y": 54,
+        "width": 96,
+        "height": 90
+      },
+      "componentAreasAt64px": [
+        636
+      ],
+      "connectedMajorSilhouette": true,
+      "clipped": false,
+      "sameAnchor": true
+    },
+    {
+      "ship": "Atlas",
+      "level": 2,
+      "alphaBounds": {
+        "x": 24,
+        "y": 54,
+        "width": 144,
+        "height": 93
+      },
+      "componentAreasAt64px": [
+        1014
+      ],
+      "connectedMajorSilhouette": true,
+      "clipped": false,
+      "sameAnchor": true
+    },
+    {
+      "ship": "Atlas",
+      "level": 3,
+      "alphaBounds": {
+        "x": 6,
+        "y": 51,
+        "width": 180,
+        "height": 96
+      },
+      "componentAreasAt64px": [
+        1091
+      ],
+      "connectedMajorSilhouette": true,
+      "clipped": false,
+      "sameAnchor": true
+    }
+  ],
+  "allMajorSilhouettesConnected": true,
+  "noClipping": true
+}

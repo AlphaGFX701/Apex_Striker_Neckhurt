@@ -1,0 +1,3 @@
+Nairan-derived ship and engine artwork: Baldur / Foozle, Void Fleet Pack2, CC0 1.0. https://creativecommons.org/publicdomain/zero/1.0/
+Muzzle flashes: selected adapted pixels from Space Shooter Asset Pack by Gustavo Vituri, https://gvituri.itch.io/space-shooter . Game integration and modification permitted; do not redistribute the source pack.
+No Thunder Strike asset or generative image is included. See credits.json and scripts/build-pixel-fleet-assets.py.

@@ -10,6 +10,7 @@ export interface ShipBuild {
 }
 export const BUILD_KEY = "gyro-loadout-v5";
 export const LEGACY_KEY = "gyro-loadout-v4";
+export const PIXEL_BUILD_KEY = "gyro-pixel-loadout-v1";
 export const DEFAULT_BUILD: Readonly<ShipBuild> = Object.freeze({
   hull: 0,
   wing: 0,
@@ -132,41 +133,84 @@ export class ShipBuildStore {
   }
 }
 
+/** The new fleet is stored separately; selecting a ship never rewrites the old modular save. */
+export class PixelShipStore {
+  private base: ShipBuild;
+  private persisted: PartIndex;
+  private editing: PartIndex;
+  constructor(private storage: StorageLike | undefined = browserStorage()) {
+    this.base = new ShipBuildStore(storage).saved;
+    const saved = object(readJSON(storage, PIXEL_BUILD_KEY));
+    this.persisted =
+      saved.version === 1 &&
+      (saved.ship === 0 || saved.ship === 1 || saved.ship === 2)
+        ? saved.ship
+        : this.base.hull;
+    this.editing = this.persisted;
+  }
+  get saved(): ShipBuild {
+    return { ...this.base, hull: this.persisted };
+  }
+  get draft(): ShipBuild {
+    return { ...this.base, hull: this.editing };
+  }
+  get dirty() {
+    return this.editing !== this.persisted;
+  }
+  select(slot: ShipSlot, index: number) {
+    if (slot === "hull" && (index === 0 || index === 1 || index === 2))
+      this.editing = index;
+  }
+  discard() {
+    this.editing = this.persisted;
+  }
+  save(): boolean {
+    this.persisted = this.editing;
+    try {
+      if (!this.storage) return false;
+      this.storage.setItem(
+        PIXEL_BUILD_KEY,
+        JSON.stringify({ version: 1, ship: this.persisted }),
+      );
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}
+
 export type ShipPartImages = Record<
   `${ShipSlot}-${PartIndex}`,
   CanvasImageSource
 > &
-  Partial<Record<`upgrade-${2 | 3}`, CanvasImageSource>>;
+  Partial<
+    Record<
+      `upgrade-${2 | 3}` | `pixel-${PartIndex}-${1 | 2 | 3}`,
+      CanvasImageSource
+    >
+  >;
 export async function loadShipParts(): Promise<ShipPartImages> {
+  const { SHIPS } = await import("./pixel-fleet");
   const entries = await Promise.all(
-    (["hull", "wing", "engine"] as const).flatMap((slot) =>
-      ([0, 1, 2] as const).map(async (index) => {
-        const key = `${slot}-${index}` as const,
-          img = new Image();
-        img.src = `/assets/modules/${slot === "wing" ? "wings" : slot}-${index}.png`;
+    SHIPS.flatMap((ship) =>
+      ([1, 2, 3] as const).map(async (level) => {
+        const img = new Image();
+        img.src = ship.levels[level].url;
         await new Promise<void>((resolve, reject) => {
           img.onload = () => resolve();
           img.onerror = () =>
-            reject(new Error(`Could not load ship module: ${key}`));
+            reject(
+              new Error(
+                `Could not load ${ship.name} Level ${level}. Check your connection and retry.`,
+              ),
+            );
           if (img.complete && img.naturalWidth) resolve();
         });
-        return [key, img] as const;
+        return [`pixel-${ship.id}-${level}`, img] as const;
       }),
     ),
   );
-  const upgrades = await Promise.all(
-    ([2, 3] as const).map(async (level) => {
-      const img = new Image();
-      img.src = `/assets/evolution/ship-upgrade-${level}.png`;
-      await new Promise<void>((resolve, reject) => {
-        img.onload = () => resolve();
-        img.onerror = () => reject(new Error("Ship evolution art unavailable"));
-        if (img.complete && img.naturalWidth) resolve();
-      });
-      return [`upgrade-${level}`, img] as const;
-    }),
-  );
-  return Object.fromEntries([...entries, ...upgrades]) as ShipPartImages;
+  return Object.fromEntries(entries) as ShipPartImages;
 }
 
 /** Part PNGs share a square transparent canvas and a common origin; x/y mark the ship center. */
@@ -183,6 +227,12 @@ export function drawShipBuild(
   try {
     const left = x - size / 2,
       top = y - size / 2;
+    const pixel = images[`pixel-${build.hull}-${level}`];
+    if (pixel) {
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(pixel, left, top, size, size);
+      return;
+    }
     ctx.drawImage(images[`engine-${build.engine}`], left, top, size, size);
     // Engines are the accent layer. Tint it before opaque metal layers are drawn.
     if (build.color !== 0) {

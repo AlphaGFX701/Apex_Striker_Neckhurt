@@ -194,7 +194,21 @@ describe("mobile onslaught contract", () => {
     m.practice = true;
     m.state.time = 119.99;
     tick(m, 0.02);
-    m.state.boss!.health = m.state.boss!.maxHealth * 0.25;
+    // Enter phase three through the authored hardpoint gates rather than
+    // assigning core HP, which no longer owns stage-one phase transitions.
+    for (let phase = 1; phase <= 2; phase++) {
+      const b = m.state.boss!;
+      for (const t of [...b.turrets!]) {
+        m.state.bullets = [
+          { x: b.x + t.x, y: b.y + t.y, radius: 2, speed: 0, damage: 1000 },
+        ];
+        tick(m, 0.01);
+      }
+      m.state.bullets = [{ x: b.x, y: b.y, radius: 2, speed: 0, damage: 1000 }];
+      tick(m, 0.01);
+      tick(m, 1.55);
+    }
+    expect(m.state.boss!.phase).toBe(3);
     tick(m, 2.5);
     expect(m.state.beams).toHaveLength(1);
     const x = m.state.beams[0].x;

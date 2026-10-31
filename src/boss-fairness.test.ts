@@ -32,6 +32,10 @@ describe("readable boss escape corridors", () => {
       m.update(0.02, { x: 0, y: 0 });
       for (const ratio of [1, 0.6, 0.25]) {
         m.state.boss!.health = m.state.boss!.maxHealth * ratio;
+        // These are attack-pattern fixtures. Stage-one phase is now explicit;
+        // actual gate transitions are covered by pixel-combat.test.ts.
+        if (m.state.boss!.state)
+          m.state.boss!.phase = ratio === 1 ? 1 : ratio === 0.6 ? 2 : 3;
         for (let i = 0; i < 1200; i++) {
           m.update(0.01, { x: 0, y: 0 });
           m.drainEvents();
