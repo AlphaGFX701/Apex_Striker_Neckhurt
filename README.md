@@ -1,10 +1,8 @@
-# Gyro Space Combat — Tactical Fleet
+# Gyro Space Combat — Dynamic Environment Edition
 
-English browser space shooter built with Phaser, TypeScript and Vite. Play three 90-second stages, customize 27 cosmetic ship builds, equip four combat systems, choose temporary upgrades and unlock Endless. All game data stays in your browser.
+English mobile-first gyro arcade shooter, built with Phaser, TypeScript and Vite. Three stages (up to 90 seconds), Endless, Practice, 27 cosmetic ship builds, three free main weapons, instant pickups, warp and EMP. No permanent equipment upgrades or purchases. Public game: https://gyro-space-lab-th.mjadsakul.chatgpt.site/
 
-Public game: https://gyro-space-lab-th.mjadsakul.chatgpt.site/
-
-## Run and build
+## Run
 
 ```sh
 npm ci
@@ -13,46 +11,41 @@ npm test
 npm run build
 ```
 
-Vite serves the local preview; `dist/` is the static deployment. Phone sensors require HTTPS (localhost is an exception only on the device running the server). Opening a computer's LAN address over HTTP does not enable phone sensors.
+`dist/` is the static publication. Phone motion needs HTTPS; a computer LAN address over HTTP does not enable phone sensors.
 
 ## Controls
 
-- Phone: enable sensors, hold comfortably, set center. Tilt to move, flick sideways to dodge, shake in repeated short alternating movements to deploy a charged EMP.
-- Touch: drag below the ship. Releasing the movement finger pauses flight. Other fingers may use the skill buttons without cancelling movement.
-- Keyboard: arrows / WASD, Q / E dodge, Space EMP.
-- Controller: pair in OS Bluetooth settings and press a button. Defaults: left stick / D-pad move, LB / RB dodge, bottom button EMP, Start pause. Remap in Controller Lab.
+Phone: Enable Sensors, hold comfortably and Calibrate. Tilt to move, flick left/right to warp, shake repeatedly to use a charged EMP. Touch drag and arrows/WASD are alternatives. Q/E or controller LB/RB warp, Space or the controller bottom button deploys EMP. Start pauses. Controller Lab supports device selection, remapping and visual input diagnostics; it does not claim standard Gamepad API provides raw controller gyroscope values.
 
-Controller Lab shows both stick positions, button numbers, trigger pressure, action lamps, selected device, observed checks and a mini flight test. Its raw inputs and exported observations describe browser data, not physical-device compatibility certification. Standard Gamepad API does not provide raw gyroscope data. Mapped tilt is enabled only after an observed trial and explicit user confirmation.
+App loss, unavailable phone input, orientation change or controller disconnection pauses the run and clears input. Resume has no countdown and grants short protection. Practice preserves lives and does not change records.
 
-## Combat and progression
+## Stage rhythm
 
-Asteroid Belt, Orbital Convoy and Citadel Assault each introduce a different boss, weakness and environment. Bosses appear at 60 seconds; defeat them before 90 seconds. Main weapons: Pulse, Plasma Spread and piercing Laser. Secondary: retargeting missiles. Armor: regenerating shield. Wingman: support drones. Equipment has three visible upgrade levels; cosmetic hull parts do not affect speed or collision.
+0–15 seconds: V/line formations. 15–35: armored zig-zag enemies, gapped rings and a magnetic storm. 35–60: warned mini-boss encounter; if alive at 60 it escapes without rewards. At 60 the final boss appears; its single HP pool has three phases at two-thirds and one-third. Clear before 90 seconds. Endless retains 30-second waves and a boss every three waves; defeat the boss to continue.
 
-Stage upgrades appear at 20 and 40 seconds. Endless has 30-second waves and a boss every third wave; boss fights stop wave advancement. Perk selection pauses simulation and resumes after a two-second countdown. Dodge grants 0.6 seconds invulnerability and starts with a shared three-second cooldown. EMP charges at 5%/second and on kills.
+Six pickup types apply instantly: Weapon Power (two steps per run), Missiles/Drone (12 seconds, extend to 24), Shield (one hit), Repair and EMP Cell. Magnet attraction starts at 150 logical units. Full hull/max weapon converts the pickup to EMP energy; the announcement reports the actual effect. Every run resets powers. Older progression data is retained; arcade score records use a separate save.
 
-Progression is local: regular enemies drop 2 credits, armored enemies 6; bosses award 30; clear bonuses are 50 plus 100 for a first clear. New systems cost 90; upgrades cost 60 then 120. Rewards settle once per completed/withdrawn run. Refreshing an unfinished run forfeits its unbanked salvage. Clearing stage one opens stage two and Endless; stage two opens stage three.
+## Runtime boundaries
 
-Practice opens all stages and lets you equip otherwise locked systems without buying them. The Practice equipment level selector chooses its level independently of purchases. Practice does not grant credits, unlocks or score records.
+- StageWaveManager: stage data and one-shot timeline events.
+- GameModel: collision, damage, hazards, mini/final bosses and PickupCollected events.
+- ParallaxEnvironment: three simulated-time layers at 10/20/30 units per second, feathered looping images and two-second theme crossfades.
+- AudioDirector: three music tracks, Music/SFX/Voice levels, bounded announcement queue, music ducking and pause cancellation.
+- Phaser scene: Canvas rendering with per-texture image pools. Canvas avoids transparent-atlas artifacts observed in the embedded WebGL browser.
 
-## Code boundaries
+Phone sensor/gesture modules and GamepadAdapter remain independent from combat. Installed English device voices supply speech, with synthesized cues and visible labels as fallback. Browser voice/autoplay behavior still requires physical-device validation.
 
-- `model.ts`: deterministic combat, waves, projectiles, pickup attraction, hitboxes, powers and results.
-- `equipment.ts` / `progress.ts`: shared weapon definitions, loadouts, weakness rules and local progression.
-- `game.ts`: Phaser rendering and input boundary. `screens.ts` holds screen markup; `main.ts` connects screen state and systems.
-- `sensor.ts` / `motion.ts`: permission-aware phone telemetry and time-based movement/gesture filters, independent of combat.
-- `controller-lab.ts` / `gamepad.ts`: visual diagnostics and polling adapter, including multiple devices and analog buttons.
+## Artist assets
 
-Legacy v4 control preferences and v5 cosmetic ships are preserved. The v6 progress save keeps old weapons available. Invalid or blocked storage falls back to a playable session.
-
-## Art and verification
-
-Read ASSET-CREDITS.md for artist provenance and derivative downloads. No generative image model is used. Rebuild the tactical art with Python + Pillow:
+No generative imagery. Feony Background 7 (space), Baldur/Foozle Void Fleet 1/2, Matt Walkden Lunar Lander, Wenrexa Laser2020, GrafxKid Mini Pixel Pack 3, Goose Ninja Space Music Pack, and the existing Skorpio player assembly. See ASSET-CREDITS.md for sources/terms. Restricted source ZIPs/WAV packs are not published.
 
 ```sh
-python scripts/build-tactical-assets.py
-python scripts/check-tactical-assets.py
+python -m pip install -r scripts/requirements-assets.txt
+python scripts/build-environment-assets.py
 ```
 
-The earlier PSD extraction script additionally requires psd-tools. TESTING.md records automated, browser and physical-device verification separately. FANTECH / iPhone hardware compatibility remains unverified until tested on the actual devices.
+The pipeline reads the user-supplied archives in Desktop/Space_combat and writes runtime images/MP3s. Existing player assembly rebuild scripts remain available.
 
-The retained Capacitor iOS project is optional future work; this delivery is a static web game, not a newly tested IPA.
+## Verification
+
+See ENVIRONMENT-TESTING.md and artifacts/environment-responsive.json. QA pages under qa/ are development-only and do not ship in the static build. Their simulated pilot/state fixtures are not physical sensor/controller tests. The retained Capacitor project is future app work; no IPA/APK was built in this update.

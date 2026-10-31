@@ -1,0 +1,195 @@
+{
+  "kind": "Real wall-clock 20-minute model soak; rendering and physical controls excluded",
+  "complete": true,
+  "samples": [
+    {
+      "wallSeconds": 0.03,
+      "simulationSeconds": 0.02,
+      "wave": 1,
+      "heapMB": 4.7,
+      "maxObjects": 0,
+      "maxStepMs": 1.65,
+      "ticks": 1
+    },
+    {
+      "wallSeconds": 60,
+      "simulationSeconds": 60,
+      "wave": 2,
+      "heapMB": 7.43,
+      "maxObjects": 146,
+      "maxStepMs": 41.383,
+      "ticks": 3600
+    },
+    {
+      "wallSeconds": 120.02,
+      "simulationSeconds": 120.02,
+      "wave": 4,
+      "heapMB": 7.64,
+      "maxObjects": 150,
+      "maxStepMs": 41.383,
+      "ticks": 7201
+    },
+    {
+      "wallSeconds": 180.02,
+      "simulationSeconds": 180.02,
+      "wave": 6,
+      "heapMB": 8.1,
+      "maxObjects": 164,
+      "maxStepMs": 67.176,
+      "ticks": 10801
+    },
+    {
+      "wallSeconds": 240.02,
+      "simulationSeconds": 240.02,
+      "wave": 8,
+      "heapMB": 9.97,
+      "maxObjects": 215,
+      "maxStepMs": 67.176,
+      "ticks": 14401
+    },
+    {
+      "wallSeconds": 300.09,
+      "simulationSeconds": 300.08,
+      "wave": 9,
+      "heapMB": 10.34,
+      "maxObjects": 215,
+      "maxStepMs": 67.176,
+      "ticks": 18005
+    },
+    {
+      "wallSeconds": 360.01,
+      "simulationSeconds": 360,
+      "wave": 11,
+      "heapMB": 10.56,
+      "maxObjects": 215,
+      "maxStepMs": 67.176,
+      "ticks": 21600
+    },
+    {
+      "wallSeconds": 420.01,
+      "simulationSeconds": 420,
+      "wave": 13,
+      "heapMB": 10.64,
+      "maxObjects": 215,
+      "maxStepMs": 67.176,
+      "ticks": 25200
+    },
+    {
+      "wallSeconds": 480.01,
+      "simulationSeconds": 480,
+      "wave": 15,
+      "heapMB": 11.74,
+      "maxObjects": 215,
+      "maxStepMs": 67.176,
+      "ticks": 28800
+    },
+    {
+      "wallSeconds": 540,
+      "simulationSeconds": 540,
+      "wave": 16,
+      "heapMB": 11.62,
+      "maxObjects": 215,
+      "maxStepMs": 67.176,
+      "ticks": 32400
+    },
+    {
+      "wallSeconds": 600.03,
+      "simulationSeconds": 600.02,
+      "wave": 18,
+      "heapMB": 11.13,
+      "maxObjects": 215,
+      "maxStepMs": 67.176,
+      "ticks": 36001
+    },
+    {
+      "wallSeconds": 660.02,
+      "simulationSeconds": 660.02,
+      "wave": 20,
+      "heapMB": 12.42,
+      "maxObjects": 215,
+      "maxStepMs": 67.176,
+      "ticks": 39601
+    },
+    {
+      "wallSeconds": 720.02,
+      "simulationSeconds": 720.02,
+      "wave": 21,
+      "heapMB": 11.07,
+      "maxObjects": 215,
+      "maxStepMs": 67.176,
+      "ticks": 43201
+    },
+    {
+      "wallSeconds": 780.01,
+      "simulationSeconds": 780,
+      "wave": 23,
+      "heapMB": 12.22,
+      "maxObjects": 216,
+      "maxStepMs": 67.176,
+      "ticks": 46800
+    },
+    {
+      "wallSeconds": 840.03,
+      "simulationSeconds": 840.02,
+      "wave": 24,
+      "heapMB": 11.32,
+      "maxObjects": 216,
+      "maxStepMs": 67.176,
+      "ticks": 50401
+    },
+    {
+      "wallSeconds": 900,
+      "simulationSeconds": 900,
+      "wave": 26,
+      "heapMB": 11.41,
+      "maxObjects": 216,
+      "maxStepMs": 67.176,
+      "ticks": 54000
+    },
+    {
+      "wallSeconds": 960.03,
+      "simulationSeconds": 960.02,
+      "wave": 27,
+      "heapMB": 11.94,
+      "maxObjects": 216,
+      "maxStepMs": 67.176,
+      "ticks": 57601
+    },
+    {
+      "wallSeconds": 1020.02,
+      "simulationSeconds": 1020.02,
+      "wave": 29,
+      "heapMB": 12.18,
+      "maxObjects": 219,
+      "maxStepMs": 67.176,
+      "ticks": 61201
+    },
+    {
+      "wallSeconds": 1080,
+      "simulationSeconds": 1080,
+      "wave": 31,
+      "heapMB": 5.62,
+      "maxObjects": 219,
+      "maxStepMs": 67.176,
+      "ticks": 64800
+    },
+    {
+      "wallSeconds": 1140.01,
+      "simulationSeconds": 1140,
+      "wave": 33,
+      "heapMB": 5.47,
+      "maxObjects": 219,
+      "maxStepMs": 67.176,
+      "ticks": 68400
+    },
+    {
+      "wallSeconds": 1200.01,
+      "simulationSeconds": 1200,
+      "wave": 34,
+      "heapMB": 6.12,
+      "maxObjects": 219,
+      "maxStepMs": 67.176,
+      "ticks": 72000
+    }
+  ]
+}

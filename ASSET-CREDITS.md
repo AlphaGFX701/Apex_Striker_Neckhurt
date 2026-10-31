@@ -48,3 +48,15 @@ Current derivative download: /assets/tactical-art-CC-BY-SA-3.0.zip. Rebuild with
 
 ## Arcade update
 Pickup icons in public/assets/arcade were drawn as original vector artwork for this project (CC0). Rajdhani and Barlow fonts are distributed under the SIL Open Font License; license texts are included in public/assets/fonts/.
+
+## Dynamic environment update
+
+- Feony Labs, Animated Pixel-Art Backgrounds Free, Background 7 (Bonus): https://feony-labs.itch.io/animated-pixel-art-backgrounds-free . Used as an in-game space backdrop, encoded WebP and animated at runtime. The author's page grants free personal/commercial project use and modification, prohibits resale; its metadata also labels CC BY-ND 4.0. This project credits the artist and does not distribute the original pack or offer the background as a standalone asset download.
+- Baldur / Foozle, Void Fleet Pack 1 and 2, CC0. Base, engine and destruction frames resized/aligned in environment atlas. Original license is retained locally in the supplied ZIPs.
+- Matt Walkden, Lunar Lander assets: https://mattwalkden.itch.io/ . CC0; asteroid/debris tiles used in the atlas.
+- Wenrexa, Laser2020: https://wenrexa.itch.io/laser2020 . CC0; transparent energy flare used for projectiles.
+- GrafxKid, Mini Pixel Pack 3, CC0. Power pickup/spark sprite frames.
+- Goose Ninja, Space Music Pack: https://gooseninja.itch.io/space-music-pack . Tracks menu, in-the-wreckage, battle. Author permits free/commercial project use and modification; prohibits redistributing/reselling the asset pack. Only compressed game soundtrack files ship; original WAV/ZIP pack is not published.
+- Pickup/ready/warning/victory synthesis: original Web Audio effects. Spoken phrases use the user's installed English device voices through SpeechSynthesis; no recorded celebrity or cloned voice is used.
+
+Rebuild runtime assets with scripts/build-environment-assets.py using Pillow and imageio-ffmpeg. The script reads local archives from Desktop/Space_combat; it does not copy restricted source ZIPs into public/.

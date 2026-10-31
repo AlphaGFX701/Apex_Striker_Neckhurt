@@ -9,7 +9,7 @@ import {
 import { GamepadAdapter, type PadFrame, type PadCommand } from "./gamepad";
 import { ControllerLab } from "./controller-lab";
 import { SensorController } from "./sensor";
-import { Feedback } from "./feedback";
+import { AudioDirector } from "./audio-director";
 import { createGame } from "./game";
 import { GameModel, type GameSnapshot } from "./model";
 import { ProgressStore } from "./progress";
@@ -25,6 +25,8 @@ import {
 import type { Action } from "./motion";
 import QRCode from "qrcode";
 import "./style.css";
+const qaPilot =
+  import.meta.env.DEV && new URLSearchParams(location.search).has("qa");
 const app = document.querySelector<HTMLElement>("#app")!;
 app.innerHTML = screens;
 const el = <T extends HTMLElement = HTMLElement>(id: string) =>
@@ -35,7 +37,7 @@ const progress = new ProgressStore(undefined, true),
   build = new ShipBuildStore(),
   sensor = new SensorController(),
   pad = new GamepadAdapter(),
-  feedback = new Feedback();
+  feedback = new AudioDirector();
 let source = matchMedia("(pointer: coarse)").matches ? "sensor" : "manual",
   view = "home",
   settingsReturn = "home",
@@ -47,9 +49,17 @@ let source = matchMedia("(pointer: coarse)").matches ? "sensor" : "manual",
   slot = "main";
 const returnRoutes: string[] = [];
 const legacyWeapon = new ProgressStore().state.equipment.main;
-let arcadeWeapon: "pulse" | "plasma" | "laser" = legacyWeapon === "laser" || legacyWeapon === "plasma" ? legacyWeapon : "pulse";
-try { const saved = localStorage.getItem("gyro-arcade-weapon"); if (saved === "pulse" || saved === "plasma" || saved === "laser") arcadeWeapon = saved; } catch {}
-let lastEnergy = 0, lastPickupCount = 0;
+let arcadeWeapon: "pulse" | "plasma" | "laser" =
+  legacyWeapon === "laser" || legacyWeapon === "plasma"
+    ? legacyWeapon
+    : "pulse";
+try {
+  const saved = localStorage.getItem("gyro-arcade-weapon");
+  if (saved === "pulse" || saved === "plasma" || saved === "laser")
+    arcadeWeapon = saved;
+} catch {}
+let lastEnergy = 0,
+  lastPickupCount = 0;
 let runId = "",
   settled = false,
   lastLives = 3,
@@ -151,17 +161,38 @@ const { scene } = createGame(el("game"), {
       pause("Paused from your controller.");
   },
   axes: (dt) =>
-    source === "sensor"
-      ? sensor.getAxes(dt)
-      : source === "pad" || source === "tilt"
-        ? padFrame?.axes || { x: 0, y: 0 }
-        : { x: 0, y: 0 },
+    qaPilot
+      ? {
+          x: Math.max(
+            -1,
+            Math.min(
+              1,
+              ((
+                scene.model.state.boss ||
+                scene.model.state.miniBoss ||
+                scene.model.state.pickups.find((p) => p.kind) || { x: 195 }
+              ).x -
+                scene.model.state.ship.x) /
+                25,
+            ),
+          ),
+          y: Math.max(-1, Math.min(1, (600 - scene.model.state.ship.y) / 25)),
+        }
+      : source === "sensor"
+        ? sensor.getAxes(dt)
+        : source === "pad" || source === "tilt"
+          ? padFrame?.axes || { x: 0, y: 0 }
+          : { x: 0, y: 0 },
   actions: () =>
-    source === "sensor"
-      ? sensor.consumeActions()
-      : source === "pad" || source === "tilt"
-        ? padFrame?.actions || []
-        : [],
+    qaPilot
+      ? scene.model.state.energy >= 100
+        ? ["emp"]
+        : []
+      : source === "sensor"
+        ? sensor.consumeActions()
+        : source === "pad" || source === "tilt"
+          ? padFrame?.actions || []
+          : [],
   onFire: (weapon) => feedback.play(weapon),
   onHud: updateHud,
   onAction: (action, accepted, reason) => {
@@ -170,13 +201,23 @@ const { scene } = createGame(el("game"), {
   },
   onRelease: () => pause("Touch released. Resume when you are ready."),
 });
+document.addEventListener("pointerdown", () => feedback.unlock(), {
+  once: true,
+});
+document.addEventListener("keydown", () => feedback.unlock(), { once: true });
 function clearInput() {
   scene.clearInput();
   pad.reset();
   sensor.resetTransient();
 }
-el<HTMLInputElement>("voice").onchange = () => { feedback.voiceEnabled = el<HTMLInputElement>("voice").checked; };
-el("test-sound").onclick = () => { feedback.unlock(); feedback.ready(); };
+el<HTMLInputElement>("voice").onchange = () => {
+  feedback.voiceEnabled = el<HTMLInputElement>("voice").checked;
+  if (!feedback.voiceEnabled) feedback.clearAnnouncements();
+};
+el("test-sound").onclick = () => {
+  feedback.unlock();
+  feedback.ready();
+};
 function balance() {
   el("balance").textContent = "";
   el("save-status").textContent = progress.persistent
@@ -186,6 +227,10 @@ function balance() {
 function setView(next: string) {
   if (next !== "controller") controller.cancelRemap();
   view = next;
+  if (next !== "battle") {
+    feedback.clearAnnouncements();
+    feedback.music("menu");
+  }
   document.body.dataset.view = next;
   document.querySelectorAll<HTMLElement>(".screen").forEach((s) => {
     s.hidden = s.id !== next;
@@ -417,14 +462,31 @@ function practice() {
   return el<HTMLInputElement>("practice-mode").checked;
 }
 function renderEquipment() {
-  el("hangar-status").textContent = "All weapons are available. Collect temporary power-ups during flight.";
+  el("hangar-status").textContent =
+    "All weapons are available. Collect temporary power-ups during flight.";
   el("equipment-slots").innerHTML = "";
-  el("equipment-catalog").innerHTML = EQUIPMENT.filter(e => e.slot === "main").map(e => `<button class="catalog-item ${arcadeWeapon === e.id ? "selected" : ""}" data-weapon="${e.id}" aria-pressed="${arcadeWeapon === e.id}">${icon(e.id)}<span><strong>${e.name}</strong><small>${e.description}</small></span><b>${arcadeWeapon === e.id ? "EQUIPPED" : "SELECT"}</b></button>`).join("");
-  el("equipment-catalog").querySelectorAll<HTMLButtonElement>("[data-weapon]").forEach(b => b.onclick = () => {
-    arcadeWeapon = b.dataset.weapon as typeof arcadeWeapon; selectedItem = arcadeWeapon;
-    try { localStorage.setItem("gyro-arcade-weapon", arcadeWeapon); } catch { toast("Weapon saved for this session."); }
-    previewDirty = true; renderEquipment();
-  });
+  el("equipment-catalog").innerHTML = EQUIPMENT.filter((e) => e.slot === "main")
+    .map(
+      (e) =>
+        `<button class="catalog-item ${arcadeWeapon === e.id ? "selected" : ""}" data-weapon="${e.id}" aria-pressed="${arcadeWeapon === e.id}">${icon(e.id)}<span><strong>${e.name}</strong><small>${e.description}</small></span><b>${arcadeWeapon === e.id ? "EQUIPPED" : "SELECT"}</b></button>`,
+    )
+    .join("");
+  el("equipment-catalog")
+    .querySelectorAll<HTMLButtonElement>("[data-weapon]")
+    .forEach(
+      (b) =>
+        (b.onclick = () => {
+          arcadeWeapon = b.dataset.weapon as typeof arcadeWeapon;
+          selectedItem = arcadeWeapon;
+          try {
+            localStorage.setItem("gyro-arcade-weapon", arcadeWeapon);
+          } catch {
+            toast("Weapon saved for this session.");
+          }
+          previewDirty = true;
+          renderEquipment();
+        }),
+    );
 }
 
 function openEquipment(id: EquipmentId) {
@@ -521,7 +583,7 @@ function renderStages() {
   el("stage-cards").innerHTML =
     STAGES.map((s, i) => {
       const locked = false;
-      return `<article class="stage-card stage-${i}"><span class="eyebrow">SECTOR 0${i + 1} · ${progress.state.cleared.includes(i) ? "CLEARED" : locked ? "LOCKED" : "AVAILABLE"}</span><img src="/assets/tactical/boss-${i}.png" alt="${s.boss}"><h2>${s.name}</h2><p>${s.description}</p><div class="stage-meta"><span>BOSS <b>${s.boss}</b></span><span>WEAKNESS <b>${s.weakness.toUpperCase()} ×1.25</b></span></div><button class="${locked ? "secondary" : "primary"}" data-stage="${i}" ${locked ? "disabled" : ""}>${locked ? "Clear the previous stage" : "Prepare mission →"}</button></article>`;
+      return `<article class="stage-card stage-${i}"><span class="eyebrow">SECTOR 0${i + 1} · ${progress.state.cleared.includes(i) ? "CLEARED" : locked ? "LOCKED" : "AVAILABLE"}</span><img src="/assets/environment/boss-preview-${i}.webp" alt="${s.boss}"><h2>${s.name}</h2><p>${s.description}</p><div class="stage-meta"><span>BOSS <b>${s.boss}</b></span><span>WEAKNESS <b>${s.weakness.toUpperCase()} ×1.25</b></span></div><button class="${locked ? "secondary" : "primary"}" data-stage="${i}" ${locked ? "disabled" : ""}>${locked ? "Clear the previous stage" : "Prepare mission →"}</button></article>`;
     }).join("") +
     `<article class="stage-card endless-card"><span class="eyebrow">SURVIVAL OPERATIONS</span><h2>Endless frontier.</h2><p>No time limit. Escalating waves, rotating threats and a boss every three waves.</p><button class="primary" id="endless-start" >Prepare endless run →</button></article>`;
   el("stage-cards")
@@ -546,7 +608,12 @@ function config(): RunConfig {
   c.mode = mode;
   c.stage = selectedStage;
   c.powerups = false;
-  c.equipment = { main: arcadeWeapon, secondary: null, armor: null, wingman: null };
+  c.equipment = {
+    main: arcadeWeapon,
+    secondary: null,
+    armor: null,
+    wingman: null,
+  };
   c.levels = { pulse: 1, plasma: 1, laser: 1, missile: 1, shield: 1, drone: 1 };
   return c;
 }
@@ -567,7 +634,15 @@ function renderPreflight() {
   el<HTMLSelectElement>("mission-weapon").value = arcadeWeapon;
   updateControlHelp();
 }
-el<HTMLSelectElement>("mission-weapon").onchange = () => { arcadeWeapon = el<HTMLSelectElement>("mission-weapon").value as typeof arcadeWeapon; selectedItem = arcadeWeapon; try { localStorage.setItem("gyro-arcade-weapon", arcadeWeapon); } catch {} renderPreflight(); };
+el<HTMLSelectElement>("mission-weapon").onchange = () => {
+  arcadeWeapon = el<HTMLSelectElement>("mission-weapon")
+    .value as typeof arcadeWeapon;
+  selectedItem = arcadeWeapon;
+  try {
+    localStorage.setItem("gyro-arcade-weapon", arcadeWeapon);
+  } catch {}
+  renderPreflight();
+};
 function updateControlHelp() {
   const copy: Record<string, string> = {
     sensor:
@@ -617,29 +692,33 @@ el("launch").onclick = () => {
     el("preflight-status").textContent = message;
     return;
   }
-  if (!parts) {
+  if (!parts || !scene.sys.isActive()) {
     toast("Ship artwork is still loading. Try again shortly.");
     return;
   }
   feedback.unlock();
+  feedback.clearAnnouncements();
   scene.model.configure(config());
   scene.setPractice(practice());
   scene.setShipCanvas(composeShip(build.saved, parts, 512));
   runId = crypto.randomUUID();
   settled = false;
   lastLives = 3;
-  lastEnergy = 0; lastPickupCount = 0;
+  lastEnergy = 0;
+  lastPickupCount = 0;
   renderedPower = false;
   clearInput();
   setView("battle");
   scene.start();
   sensor.setGestureActive(source === "sensor");
+  feedback.music("in-the-wreckage");
   el("practice-energy").hidden = !practice();
 };
 function pause(reason = "Take a breath. The frontier can wait.") {
   if (view !== "battle") return;
   countdownUntil = 0;
   scene.pause();
+  feedback.pauseAudio();
   clearInput();
   sensor.setGestureActive(false);
   el("pause-reason").textContent = reason;
@@ -658,6 +737,7 @@ function resume() {
   countdownUntil = 0;
   scene.model.state.invincible = Math.max(scene.model.state.invincible, 0.6);
   scene.resume();
+  feedback.resumeAudio();
   sensor.setGestureActive(source === "sensor");
   el("battle-hint").textContent = "";
 }
@@ -719,6 +799,7 @@ const perkNames: Record<string, [string, string]> = {
 function showPowers(s: GameSnapshot) {
   renderedPower = true;
   scene.pause();
+  feedback.pauseAudio();
   clearInput();
   sensor.setGestureActive(false);
   el("power-cards").innerHTML = s.powerChoices
@@ -749,26 +830,45 @@ function updateHud(s: GameSnapshot) {
   el("wave").textContent =
     scene.model.config.mode === "endless" ? `WAVE ${s.wave}` : "TIME LEFT";
   el("combo").textContent = s.combo > 1 ? `${s.combo} CHAIN` : "";
-  el("lives").textContent = "♥ ".repeat(Math.max(0, s.lives)) + "♡ ".repeat(Math.max(0, 3 - s.lives));
-  el("shield-status").textContent = s.shield
-    ? "SHIELD ONLINE" : "";
-  el("run-credits").textContent = s.powers.weapon ? `POWER ${s.powers.weapon + 1}` : "";
-  if (s.pickupCount > lastPickupCount) feedback.play("pickup");
+  el("lives").textContent =
+    "♥ ".repeat(Math.max(0, s.lives)) + "♡ ".repeat(Math.max(0, 3 - s.lives));
+  el("shield-status").textContent = s.shield ? "SHIELD ONLINE" : "";
+  el("run-credits").textContent = s.powers.weapon
+    ? `POWER ${s.powers.weapon + 1}`
+    : "";
+  for (const event of scene.model.drainEvents()) {
+    if (event.type === "pickup") feedback.pickup(event.data.effect);
+    else if (event.type === "warning") feedback.warning();
+  }
+  if (scene.isRunning) feedback.music(s.boss ? "battle" : "in-the-wreckage");
+  el("stage-warning").textContent = s.warning;
+  el("stage-warning").hidden = !s.warning;
+  el("segment-label").textContent = [
+    "WARM-UP",
+    "ELITE AMBUSH",
+    "MINI-BOSS RUSH",
+    "FINAL BOSS",
+  ][s.segment];
   lastPickupCount = s.pickupCount;
   if (s.energy >= 100 && lastEnergy < 100) feedback.ready();
   lastEnergy = s.energy;
   el("emp-state").textContent =
     s.energy >= 100 ? "READY" : `${Math.floor(s.energy)}%`;
   el("emp").classList.toggle("charged", s.energy >= 100);
-  el("dodge-state").textContent =
-    s.dodgeCooldown > 0 ? "RECHARGING" : "READY";
-  el("boss-hud").hidden = !s.boss;
-  if (s.boss) {
-    el("boss-name").textContent = STAGES[scene.model.config.stage].boss;
-    el("boss-phase").textContent = `PHASE ${s.boss.phase || 1}`;
+  el("dodge-state").textContent = s.dodgeCooldown > 0 ? "RECHARGING" : "READY";
+  const targetBoss = s.boss || s.miniBoss;
+  el("segment-label").hidden = !!targetBoss;
+  el("boss-hud").hidden = !targetBoss;
+  if (targetBoss) {
+    el("boss-hud").dataset.phase = String(targetBoss.phase || 1);
+    el("boss-name").textContent = s.boss
+      ? STAGES[scene.model.config.stage].boss
+      : "ELITE COMMANDER";
+    el("boss-phase").textContent =
+      `${Math.max(0, Math.ceil(targetBoss.health))} / ${targetBoss.maxHealth} · PHASE ${targetBoss.phase || 1}${s.boss ? "/3" : ""}`;
     el<HTMLProgressElement>("boss-health").value = Math.max(
       0,
-      s.boss.health / s.boss.maxHealth,
+      targetBoss.health / targetBoss.maxHealth,
     );
   }
   if (s.lives < lastLives) feedback.play("hit");
@@ -781,6 +881,7 @@ function completeRound() {
   if (settled) return;
   settled = true;
   scene.pause();
+  feedback.pauseAudio();
   clearInput();
   sensor.setGestureActive(false);
   dialog("pause-dialog").close();
@@ -823,12 +924,10 @@ function completeRound() {
     .map(([p, n]) => `<span>${perkNames[p][0]} ×${n}</span>`)
     .join("");
   el("next-stage").hidden =
-    c.mode !== "stage" ||
-    c.stage >= 2 ||
-    s.result !== "won";
+    c.mode !== "stage" || c.stage >= 2 || s.result !== "won";
   paint("result-ship");
   setView("results");
-  feedback.play("end");
+  feedback.victory();
 }
 el("retry").onclick = () => setView("preflight");
 el("next-stage").onclick = () => {
@@ -1102,7 +1201,22 @@ let previewDirty = true,
   preview = new GameModel(),
   previewArt: HTMLCanvasElement | undefined,
   lastFrame = performance.now();
+feedback.onAnnouncement = (text) => {
+  el("pickup-announcement").textContent = text.toUpperCase();
+  el("pickup-announcement").dataset.until = String(performance.now() + 1800);
+};
+for (const [id, key] of [
+  ["music-volume", "musicVolume"],
+  ["sfx-volume", "sfxVolume"],
+  ["voice-volume", "voiceVolume"],
+] as const)
+  el<HTMLInputElement>(id).oninput = () => {
+    feedback[key] = Number(el<HTMLInputElement>(id).value);
+  };
 function animate(now: number) {
+  feedback.update();
+  if (performance.now() > Number(el("pickup-announcement").dataset.until || 0))
+    el("pickup-announcement").textContent = "";
   const dt = Math.min(0.05, (now - lastFrame) / 1000);
   lastFrame = now;
   if (countdownUntil && view === "battle") {
@@ -1127,7 +1241,12 @@ function animate(now: number) {
     if (previewDirty) {
       previewDirty = false;
       const c = defaultRun();
-      c.equipment = { main: arcadeWeapon, secondary: null, armor: null, wingman: null };
+      c.equipment = {
+        main: arcadeWeapon,
+        secondary: null,
+        armor: null,
+        wingman: null,
+      };
       const item = EQUIPMENT.find((e) => e.id === arcadeWeapon)!;
       c.equipment.main = item.id;
       c.levels = {
@@ -1189,3 +1308,9 @@ requestAnimationFrame(animate);
 renderHangar();
 renderStages();
 setView("home");
+
+export { scene };
+
+export function captureGameAudio() {
+  return feedback.capture();
+}

@@ -1,0 +1,146 @@
+[
+  {
+    "fieldHeight": 693.328125,
+    "fieldWidth": 390,
+    "height": 844,
+    "scrollHeight": 844,
+    "scrollWidth": 390,
+    "stage": "WARM-UP",
+    "width": 390
+  },
+  {
+    "fieldHeight": 693.328125,
+    "fieldWidth": 390,
+    "height": 844,
+    "scrollHeight": 844,
+    "scrollWidth": 390,
+    "stage": "ELITE AMBUSH",
+    "width": 390
+  },
+  {
+    "fieldHeight": 693.328125,
+    "fieldWidth": 390,
+    "height": 844,
+    "scrollHeight": 844,
+    "scrollWidth": 390,
+    "stage": "MINI-BOSS RUSH",
+    "width": 390
+  },
+  {
+    "fieldHeight": 693.328125,
+    "fieldWidth": 390,
+    "height": 844,
+    "scrollHeight": 844,
+    "scrollWidth": 390,
+    "stage": "FINAL BOSS",
+    "width": 390
+  },
+  {
+    "fieldHeight": 486,
+    "fieldWidth": 273.375,
+    "height": 568,
+    "scrollHeight": 568,
+    "scrollWidth": 320,
+    "stage": "WARM-UP",
+    "width": 320
+  },
+  {
+    "fieldHeight": 486,
+    "fieldWidth": 273.375,
+    "height": 568,
+    "scrollHeight": 568,
+    "scrollWidth": 320,
+    "stage": "ELITE AMBUSH",
+    "width": 320
+  },
+  {
+    "fieldHeight": 486,
+    "fieldWidth": 273.375,
+    "height": 568,
+    "scrollHeight": 568,
+    "scrollWidth": 320,
+    "stage": "MINI-BOSS RUSH",
+    "width": 320
+  },
+  {
+    "fieldHeight": 486,
+    "fieldWidth": 273.375,
+    "height": 568,
+    "scrollHeight": 568,
+    "scrollWidth": 320,
+    "stage": "FINAL BOSS",
+    "width": 320
+  },
+  {
+    "fieldHeight": 308,
+    "fieldWidth": 173.25,
+    "height": 390,
+    "scrollHeight": 390,
+    "scrollWidth": 844,
+    "stage": "WARM-UP",
+    "width": 844
+  },
+  {
+    "fieldHeight": 308,
+    "fieldWidth": 173.25,
+    "height": 390,
+    "scrollHeight": 390,
+    "scrollWidth": 844,
+    "stage": "ELITE AMBUSH",
+    "width": 844
+  },
+  {
+    "fieldHeight": 308,
+    "fieldWidth": 173.25,
+    "height": 390,
+    "scrollHeight": 390,
+    "scrollWidth": 844,
+    "stage": "MINI-BOSS RUSH",
+    "width": 844
+  },
+  {
+    "fieldHeight": 308,
+    "fieldWidth": 173.25,
+    "height": 390,
+    "scrollHeight": 390,
+    "scrollWidth": 844,
+    "stage": "FINAL BOSS",
+    "width": 844
+  },
+  {
+    "fieldHeight": 818,
+    "fieldWidth": 460.125,
+    "height": 900,
+    "scrollHeight": 900,
+    "scrollWidth": 1280,
+    "stage": "WARM-UP",
+    "width": 1280
+  },
+  {
+    "fieldHeight": 818,
+    "fieldWidth": 460.125,
+    "height": 900,
+    "scrollHeight": 900,
+    "scrollWidth": 1280,
+    "stage": "ELITE AMBUSH",
+    "width": 1280
+  },
+  {
+    "fieldHeight": 818,
+    "fieldWidth": 460.125,
+    "height": 900,
+    "scrollHeight": 900,
+    "scrollWidth": 1280,
+    "stage": "MINI-BOSS RUSH",
+    "width": 1280
+  },
+  {
+    "fieldHeight": 818,
+    "fieldWidth": 460.125,
+    "height": 900,
+    "scrollHeight": 900,
+    "scrollWidth": 1280,
+    "stage": "FINAL BOSS",
+    "width": 1280
+  }
+]

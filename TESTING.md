@@ -1,3 +1,5 @@
+Current environment update: see [ENVIRONMENT-TESTING.md](ENVIRONMENT-TESTING.md). The material below describes the earlier Tactical Fleet release.
+
 # Verification — Tactical Fleet / English Edition
 
 Date: 31 October 2026 (Asia/Bangkok). Source update from the previous public v5 game.

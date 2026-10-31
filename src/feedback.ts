@@ -1,7 +1,9 @@
 /** Synthesized effects only; AudioContext is unlocked by a user button. */
 export class Feedback {
-  private context: AudioContext | null = null;
+  protected context: AudioContext | null = null;
+  protected recording: MediaStreamAudioDestinationNode | null = null;
   enabled = true;
+  sfxVolume = 0.75;
   voiceEnabled = true;
   haptics = false;
   ready() {
@@ -11,7 +13,9 @@ export class Feedback {
         const utterance = new SpeechSynthesisUtterance("EMP ready");
         utterance.lang = "en-US";
         window.speechSynthesis.speak(utterance);
-      } catch { /* The ready chime remains available. */ }
+      } catch {
+        /* The ready chime remains available. */
+      }
     }
   }
   unlock() {
@@ -22,13 +26,26 @@ export class Feedback {
       /* Audio optional. */
     }
   }
-  play(kind: "dodge" | "emp" | "hit" | "end" | "pulse" | "plasma" | "laser" | "pickup" | "ready") {
+  play(
+    kind:
+      | "dodge"
+      | "emp"
+      | "hit"
+      | "end"
+      | "pulse"
+      | "plasma"
+      | "laser"
+      | "pickup"
+      | "ready"
+      | "warning",
+  ) {
     if (this.enabled && this.context?.state === "running") {
       const ctx = this.context,
         osc = ctx.createOscillator(),
         gain = ctx.createGain();
       const firing = ["pulse", "plasma", "laser"].includes(kind);
-      const length = firing ? 0.045 : kind === "emp" ? 0.5 : 0.16;
+      const length =
+        kind === "warning" ? 0.5 : firing ? 0.045 : kind === "emp" ? 0.5 : 0.16;
       osc.type =
         kind === "plasma"
           ? "triangle"
@@ -38,19 +55,25 @@ export class Feedback {
               ? "triangle"
               : "sine";
       osc.frequency.setValueAtTime(
-        kind === "pulse"
-          ? 1100
-          : kind === "plasma"
-            ? 380
-            : kind === "laser"
-              ? 1500
-              : kind === "emp"
-                ? 170
-                : kind === "hit"
-                  ? 95
-                  : kind === "end"
-                    ? 620
-                    : 420,
+        kind === "warning"
+          ? 740
+          : kind === "pickup"
+            ? 1350
+            : kind === "ready"
+              ? 680
+              : kind === "pulse"
+                ? 1100
+                : kind === "plasma"
+                  ? 380
+                  : kind === "laser"
+                    ? 1500
+                    : kind === "emp"
+                      ? 170
+                      : kind === "hit"
+                        ? 95
+                        : kind === "end"
+                          ? 620
+                          : 420,
         ctx.currentTime,
       );
       osc.frequency.exponentialRampToValueAtTime(
@@ -59,12 +82,13 @@ export class Feedback {
       );
       gain.gain.setValueAtTime(0.0001, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(
-        firing ? 0.014 : 0.1,
+        Math.max(0.0001, (firing ? 0.014 : 0.1) * this.sfxVolume),
         ctx.currentTime + 0.01,
       );
       gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + length);
       osc.connect(gain);
       gain.connect(ctx.destination);
+      if (this.recording) gain.connect(this.recording);
       osc.start();
       osc.stop(ctx.currentTime + length);
       osc.onended = () => {
