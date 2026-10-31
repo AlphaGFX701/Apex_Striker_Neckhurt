@@ -1,0 +1,47 @@
+{
+  "status": "source-content-mismatch",
+  "source": "Weapon enhanced.wav",
+  "sha256": "6c234f728641de498c339ee3a4a49b8609fb4b71d5c9876b828954ac0db04452",
+  "durationSeconds": 42.56,
+  "verification": "Local faster-whisper tiny.en CPU transcription; not a human listening test.",
+  "detectedContent": "Hold, traveler! Not another step! The northern pass is sealed by order of the High Council ... You need to run. Now!",
+  "reason": "All seven user-supplied WAV names contain identical fantasy NPC dialogue, not the seven requested game announcements. No misleading phrase cuts were produced.",
+  "fallback": "English device SpeechSynthesis plus distinct SFX and visible text.",
+  "phrases": [
+    {
+      "key": "weapon",
+      "text": "Weapon enhanced",
+      "recordedUrl": null
+    },
+    {
+      "key": "missile",
+      "text": "Missiles online",
+      "recordedUrl": null
+    },
+    {
+      "key": "drone",
+      "text": "Drone deployed",
+      "recordedUrl": null
+    },
+    {
+      "key": "shield",
+      "text": "Shield online",
+      "recordedUrl": null
+    },
+    {
+      "key": "repair",
+      "text": "Hull repaired",
+      "recordedUrl": null
+    },
+    {
+      "key": "energy",
+      "text": "EMP charging",
+      "recordedUrl": null
+    },
+    {
+      "key": "ready",
+      "text": "EMP ready",
+      "recordedUrl": null
+    }
+  ]
+}

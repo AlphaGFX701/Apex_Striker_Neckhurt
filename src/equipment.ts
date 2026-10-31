@@ -1,11 +1,6 @@
 export type DamageType = "pulse" | "plasma" | "laser" | "missile";
 export type EquipmentId =
-  | "pulse"
-  | "plasma"
-  | "laser"
-  | "missile"
-  | "shield"
-  | "drone";
+  "pulse" | "plasma" | "laser" | "missile" | "shield" | "drone";
 export type Slot = "main" | "secondary" | "armor" | "wingman";
 export interface EquipmentLoadout {
   main: EquipmentId;
@@ -66,19 +61,19 @@ export const EQUIPMENT: {
 export const STAGES = [
   {
     name: "Asteroid Belt",
-    boss: "Armored Carrier",
+    boss: "Kla’ed Siegebreaker",
     weakness: "plasma" as DamageType,
     description: "Break the blockade through an ancient debris field.",
     color: "#60d8ff",
-    hp: 70,
+    hp: 900,
   },
   {
     name: "Orbital Convoy",
-    boss: "Reactor Frigate",
+    boss: "Nairan Interdictor",
     weakness: "laser" as DamageType,
     description: "Intercept the convoy. Watch for reactor beam warnings.",
     color: "#b5a2ff",
-    hp: 95,
+    hp: 1200,
   },
   {
     name: "Citadel Assault",
@@ -86,10 +81,11 @@ export const STAGES = [
     weakness: "missile" as DamageType,
     description: "Breach the citadel and defeat its command fleet.",
     color: "#f0bc74",
-    hp: 120,
+    hp: 1500,
   },
 ];
 export interface RunConfig {
+  seed?: number;
   mode: "stage" | "endless";
   stage: number;
   equipment: EquipmentLoadout;
@@ -134,7 +130,10 @@ export function weaponVolley(type: EquipmentId, level: number) {
   const count = type === "plasma" ? l * 2 + 1 : l;
   const total = (type === "plasma" ? 1.5 : 1) * (1 + (l - 1) * 0.2);
   return Array.from({ length: count }, (_, i) => ({
-    angle: type === "plasma" ? (i - (count - 1) / 2) * (l === 1 ? 12 : 6) : 0,
+    angle:
+      type === "plasma"
+        ? (i - (count - 1) / 2) * ((8 + (l - 1) * 2) / ((count - 1) / 2))
+        : 0,
     offset: type === "plasma" ? 0 : (i - (count - 1) / 2) * 11,
     damage: total / count,
   }));

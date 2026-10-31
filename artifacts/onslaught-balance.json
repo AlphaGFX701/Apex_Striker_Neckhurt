@@ -1,0 +1,186 @@
+{
+  "kind": "deterministic-DPS-reference-not-human-playtest",
+  "midTrackingDutyCycle": 0.65,
+  "runs": [
+    {
+      "stage": 1,
+      "weapon": "pulse",
+      "loadout": "base",
+      "result": "practice",
+      "flightSeconds": 219.5,
+      "bossSeconds": 99.45,
+      "hp": 900,
+      "seed": 743
+    },
+    {
+      "stage": 1,
+      "weapon": "pulse",
+      "loadout": "mid",
+      "result": "practice",
+      "flightSeconds": 226.75,
+      "bossSeconds": 106.7,
+      "hp": 900,
+      "seed": 743
+    },
+    {
+      "stage": 1,
+      "weapon": "plasma",
+      "loadout": "base",
+      "result": "practice",
+      "flightSeconds": 231.25,
+      "bossSeconds": 111.2,
+      "hp": 900,
+      "seed": 743
+    },
+    {
+      "stage": 1,
+      "weapon": "plasma",
+      "loadout": "mid",
+      "result": "practice",
+      "flightSeconds": 219.35,
+      "bossSeconds": 99.3,
+      "hp": 900,
+      "seed": 743
+    },
+    {
+      "stage": 1,
+      "weapon": "laser",
+      "loadout": "base",
+      "result": "practice",
+      "flightSeconds": 212.8,
+      "bossSeconds": 92.75,
+      "hp": 900,
+      "seed": 743
+    },
+    {
+      "stage": 1,
+      "weapon": "laser",
+      "loadout": "mid",
+      "result": "practice",
+      "flightSeconds": 213.3,
+      "bossSeconds": 93.25,
+      "hp": 900,
+      "seed": 743
+    },
+    {
+      "stage": 2,
+      "weapon": "pulse",
+      "loadout": "base",
+      "result": "practice",
+      "flightSeconds": 257.45,
+      "bossSeconds": 137.4,
+      "hp": 1200,
+      "seed": 743
+    },
+    {
+      "stage": 2,
+      "weapon": "pulse",
+      "loadout": "mid",
+      "result": "practice",
+      "flightSeconds": 264.9,
+      "bossSeconds": 144.85,
+      "hp": 1200,
+      "seed": 743
+    },
+    {
+      "stage": 2,
+      "weapon": "plasma",
+      "loadout": "base",
+      "result": "practice",
+      "flightSeconds": 280.95,
+      "bossSeconds": 160.9,
+      "hp": 1200,
+      "seed": 743
+    },
+    {
+      "stage": 2,
+      "weapon": "plasma",
+      "loadout": "mid",
+      "result": "practice",
+      "flightSeconds": 281.25,
+      "bossSeconds": 161.2,
+      "hp": 1200,
+      "seed": 743
+    },
+    {
+      "stage": 2,
+      "weapon": "laser",
+      "loadout": "base",
+      "result": "practice",
+      "flightSeconds": 219,
+      "bossSeconds": 98.95,
+      "hp": 1200,
+      "seed": 743
+    },
+    {
+      "stage": 2,
+      "weapon": "laser",
+      "loadout": "mid",
+      "result": "practice",
+      "flightSeconds": 218.4,
+      "bossSeconds": 98.35,
+      "hp": 1200,
+      "seed": 743
+    },
+    {
+      "stage": 3,
+      "weapon": "pulse",
+      "loadout": "base",
+      "result": "practice",
+      "flightSeconds": 313.85,
+      "bossSeconds": 193.8,
+      "hp": 1500,
+      "seed": 743
+    },
+    {
+      "stage": 3,
+      "weapon": "pulse",
+      "loadout": "mid",
+      "result": "practice",
+      "flightSeconds": 312.9,
+      "bossSeconds": 192.85,
+      "hp": 1500,
+      "seed": 743
+    },
+    {
+      "stage": 3,
+      "weapon": "plasma",
+      "loadout": "base",
+      "result": "practice",
+      "flightSeconds": 323.8,
+      "bossSeconds": 203.75,
+      "hp": 1500,
+      "seed": 743
+    },
+    {
+      "stage": 3,
+      "weapon": "plasma",
+      "loadout": "mid",
+      "result": "practice",
+      "flightSeconds": 315.7,
+      "bossSeconds": 195.65,
+      "hp": 1500,
+      "seed": 743
+    },
+    {
+      "stage": 3,
+      "weapon": "laser",
+      "loadout": "base",
+      "result": "practice",
+      "flightSeconds": 274.7,
+      "bossSeconds": 154.65,
+      "hp": 1500,
+      "seed": 743
+    },
+    {
+      "stage": 3,
+      "weapon": "laser",
+      "loadout": "mid",
+      "result": "practice",
+      "flightSeconds": 275.6,
+      "bossSeconds": 155.55,
+      "hp": 1500,
+      "seed": 743
+    }
+  ]
+}

@@ -26,7 +26,12 @@ export class ParallaxEnvironment {
     );
     this.mist = scene.add.graphics().setDepth(-2);
   }
-  update(s: GameSnapshot, reduced: boolean) {
+  update(s: GameSnapshot, reduced: boolean, stage = 0) {
+    const theme = [
+      [0, 0, 1, 1],
+      [1, 1, 2, 2],
+      [2, 2, 3, 3],
+    ][stage][s.segment];
     const time = s.time,
       period = WORLD.height + 80;
     if (time < this.lastTime || time === 0) {
@@ -35,16 +40,16 @@ export class ParallaxEnvironment {
       this.currentColor = this.fromColor = COLORS[0];
       this.changedAt = 0;
     }
-    if (s.segment !== this.lastSegment) {
+    if (theme !== this.lastSegment) {
       this.previousTheme = this.lastSegment;
       this.fromColor = this.currentColor;
       this.changedAt = time;
-      this.lastSegment = s.segment;
+      this.lastSegment = theme;
     }
     this.lastTime = time;
     const blend = Math.min(1, Math.max(0, (time - this.changedAt) / 2));
     const a = Phaser.Display.Color.IntegerToColor(this.fromColor),
-      b = Phaser.Display.Color.IntegerToColor(COLORS[s.segment]);
+      b = Phaser.Display.Color.IntegerToColor(COLORS[theme]);
     const c = Phaser.Display.Color.Interpolate.ColorWithColor(a, b, 1, blend);
     const tint = (this.currentColor = Phaser.Display.Color.GetColor(
       c.r,
@@ -53,9 +58,7 @@ export class ParallaxEnvironment {
     ));
     this.backgrounds.forEach((image, i) => {
       const height = period + 100;
-      image.setTexture(
-        `feony-scroll-${i < 2 ? this.previousTheme : s.segment}`,
-      );
+      image.setTexture(`feony-scroll-${i < 2 ? this.previousTheme : theme}`);
       image.setScale(Math.max(390 / image.width, height / image.height));
       image.setPosition(
         195,

@@ -1,0 +1,256 @@
+{
+  "kind": "real-wall-clock-model-soak",
+  "rendererTest": false,
+  "durationTarget": 1200,
+  "samples": [
+    {
+      "wallSeconds": 30.012846,
+      "simulationSeconds": 29.999999999999577,
+      "wave": 1,
+      "heapMB": 17.460182189941406
+    },
+    {
+      "wallSeconds": 60.00724159999999,
+      "simulationSeconds": 59.999999999997875,
+      "wave": 2,
+      "heapMB": 18.800125122070312
+    },
+    {
+      "wallSeconds": 90.0067065,
+      "simulationSeconds": 89.99999999999618,
+      "wave": 3,
+      "heapMB": 19.5653076171875
+    },
+    {
+      "wallSeconds": 120.00580190000001,
+      "simulationSeconds": 119.99999999999447,
+      "wave": 3,
+      "heapMB": 22.10149383544922
+    },
+    {
+      "wallSeconds": 150.010076,
+      "simulationSeconds": 150.0000000000115,
+      "wave": 3,
+      "heapMB": 21.468955993652344
+    },
+    {
+      "wallSeconds": 180.00137170000002,
+      "simulationSeconds": 180.00000000003539,
+      "wave": 3,
+      "heapMB": 21.925521850585938
+    },
+    {
+      "wallSeconds": 210.0139824,
+      "simulationSeconds": 210.00000000005926,
+      "wave": 4,
+      "heapMB": 22.346206665039062
+    },
+    {
+      "wallSeconds": 240.01158379999998,
+      "simulationSeconds": 240.00000000008313,
+      "wave": 5,
+      "heapMB": 21.88597869873047
+    },
+    {
+      "wallSeconds": 270.00808129999996,
+      "simulationSeconds": 270.0000000000831,
+      "wave": 6,
+      "heapMB": 23.503997802734375
+    },
+    {
+      "wallSeconds": 300.0058664,
+      "simulationSeconds": 300.0000000000558,
+      "wave": 6,
+      "heapMB": 22.577919006347656
+    },
+    {
+      "wallSeconds": 330.01277509999994,
+      "simulationSeconds": 330.00000000002854,
+      "wave": 6,
+      "heapMB": 22.27875518798828
+    },
+    {
+      "wallSeconds": 360.0089796,
+      "simulationSeconds": 360.00000000000125,
+      "wave": 6,
+      "heapMB": 25.648452758789062
+    },
+    {
+      "wallSeconds": 390.0131821,
+      "simulationSeconds": 389.99999999997397,
+      "wave": 6,
+      "heapMB": 25.154296875
+    },
+    {
+      "wallSeconds": 420.01029429999994,
+      "simulationSeconds": 419.9999999999467,
+      "wave": 6,
+      "heapMB": 24.051284790039062
+    },
+    {
+      "wallSeconds": 450.0038527,
+      "simulationSeconds": 449.9999999999194,
+      "wave": 7,
+      "heapMB": 21.700523376464844
+    },
+    {
+      "wallSeconds": 480.0036407,
+      "simulationSeconds": 479.9999999998921,
+      "wave": 8,
+      "heapMB": 23.585311889648438
+    },
+    {
+      "wallSeconds": 510.00115829999993,
+      "simulationSeconds": 509.9999999998648,
+      "wave": 9,
+      "heapMB": 23.129051208496094
+    },
+    {
+      "wallSeconds": 540.0077302,
+      "simulationSeconds": 539.9999999998375,
+      "wave": 9,
+      "heapMB": 24.760032653808594
+    },
+    {
+      "wallSeconds": 570.0144574000001,
+      "simulationSeconds": 569.9999999998103,
+      "wave": 9,
+      "heapMB": 23.50164794921875
+    },
+    {
+      "wallSeconds": 600.0125959000001,
+      "simulationSeconds": 599.999999999783,
+      "wave": 9,
+      "heapMB": 23.608970642089844
+    },
+    {
+      "wallSeconds": 630.0104873,
+      "simulationSeconds": 629.9999999997557,
+      "wave": 9,
+      "heapMB": 22.12305450439453
+    },
+    {
+      "wallSeconds": 660.0025247000001,
+      "simulationSeconds": 659.9999999997284,
+      "wave": 9,
+      "heapMB": 26.40119171142578
+    },
+    {
+      "wallSeconds": 690.0123789,
+      "simulationSeconds": 689.9999999997011,
+      "wave": 9,
+      "heapMB": 22.263404846191406
+    },
+    {
+      "wallSeconds": 720.0065314,
+      "simulationSeconds": 719.9999999996738,
+      "wave": 10,
+      "heapMB": 24.082000732421875
+    },
+    {
+      "wallSeconds": 750.0034747,
+      "simulationSeconds": 749.9999999996465,
+      "wave": 11,
+      "heapMB": 24.077919006347656
+    },
+    {
+      "wallSeconds": 780.0024183,
+      "simulationSeconds": 779.9999999996193,
+      "wave": 12,
+      "heapMB": 26.53240966796875
+    },
+    {
+      "wallSeconds": 810.0135007000001,
+      "simulationSeconds": 809.999999999592,
+      "wave": 12,
+      "heapMB": 25.685836791992188
+    },
+    {
+      "wallSeconds": 840.012646,
+      "simulationSeconds": 839.9999999995647,
+      "wave": 12,
+      "heapMB": 22.77661895751953
+    },
+    {
+      "wallSeconds": 870.0099349,
+      "simulationSeconds": 869.9999999995374,
+      "wave": 12,
+      "heapMB": 26.13506317138672
+    },
+    {
+      "wallSeconds": 900.0003029000001,
+      "simulationSeconds": 899.9999999995101,
+      "wave": 12,
+      "heapMB": 22.67188262939453
+    },
+    {
+      "wallSeconds": 930.0101219000001,
+      "simulationSeconds": 929.9999999994828,
+      "wave": 13,
+      "heapMB": 26.57598114013672
+    },
+    {
+      "wallSeconds": 960.0142639000001,
+      "simulationSeconds": 959.9999999994556,
+      "wave": 14,
+      "heapMB": 22.856826782226562
+    },
+    {
+      "wallSeconds": 990.0093837000001,
+      "simulationSeconds": 989.9999999994283,
+      "wave": 15,
+      "heapMB": 18.611373901367188
+    },
+    {
+      "wallSeconds": 1020.0062473,
+      "simulationSeconds": 1019.999999999401,
+      "wave": 15,
+      "heapMB": 23.45970916748047
+    },
+    {
+      "wallSeconds": 1050.0135627000002,
+      "simulationSeconds": 1049.9999999993738,
+      "wave": 15,
+      "heapMB": 25.437515258789062
+    },
+    {
+      "wallSeconds": 1080.0137708,
+      "simulationSeconds": 1079.9999999993465,
+      "wave": 15,
+      "heapMB": 23.27178955078125
+    },
+    {
+      "wallSeconds": 1110.0077863000001,
+      "simulationSeconds": 1109.9999999993192,
+      "wave": 15,
+      "heapMB": 20.135330200195312
+    },
+    {
+      "wallSeconds": 1140.0070397000002,
+      "simulationSeconds": 1139.999999999292,
+      "wave": 15,
+      "heapMB": 23.657127380371094
+    },
+    {
+      "wallSeconds": 1170.0037203,
+      "simulationSeconds": 1169.9999999992647,
+      "wave": 15,
+      "heapMB": 22.314743041992188
+    }
+  ],
+  "max": {
+    "enemies": 32,
+    "playerBullets": 95,
+    "enemyBullets": 289,
+    "pickups": 6,
+    "effects": 41
+  },
+  "steps": 71999,
+  "worstStepMs": 18.339100000011967,
+  "status": "complete",
+  "startedAt": "2026-10-31T09:59:51.646Z",
+  "modelSha256": "1bd0b51fe36738f7fa3cea34490f93842578ed34940ca8f4e596d0be2693ba02",
+  "wallSeconds": 1200.0123587,
+  "simulationSeconds": 1199.9833333325707,
+  "wave": 16
+}

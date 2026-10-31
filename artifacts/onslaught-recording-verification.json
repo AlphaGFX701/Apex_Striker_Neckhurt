@@ -1,0 +1,14 @@
+{
+  "recording": "onslaught-boss-canvas.mp4",
+  "kind": "current-build-browser-canvas-with-Web-Audio",
+  "humanListeningTest": false,
+  "verification": "FFmpeg decode and volume analysis; UI showed Nairan Interdictor phase1 during capture. SpeechSynthesis is outside this recording path.",
+  "sha256": "661659e2c4439a4d14146ad748ec4f5936301f52a2d2692a8b6df5c8885009f7",
+  "bytes": 1018751,
+  "duration": "00:00:12.02",
+  "meanVolumeDb": -27.2,
+  "peakVolumeDb": -13.1,
+  "decodeExitCode": 0,
+  "source": "onslaught-boss-canvas.webm",
+  "productionQaIncluded": false
+}

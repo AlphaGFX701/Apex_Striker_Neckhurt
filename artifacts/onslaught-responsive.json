@@ -1,0 +1,162 @@
+[
+  {
+    "bossBars": 1,
+    "buttons": [
+      {
+        "h": 44,
+        "id": "pause",
+        "w": 44
+      },
+      {
+        "h": 64,
+        "id": "dodge-left",
+        "w": 85.203125
+      },
+      {
+        "h": 64,
+        "id": "emp",
+        "w": 85.203125
+      },
+      {
+        "h": 64,
+        "id": "dodge-right",
+        "w": 85.21875
+      }
+    ],
+    "field": {
+      "bottom": 494,
+      "height": 490,
+      "left": 22.1875,
+      "right": 297.8125,
+      "top": 4,
+      "width": 275.625,
+      "x": 22.1875,
+      "y": 4
+    },
+    "height": 568,
+    "horizontalOverflow": false,
+    "verticalOverflow": false,
+    "view": "battle",
+    "width": 320
+  },
+  {
+    "bossBars": 1,
+    "buttons": [
+      {
+        "h": 44,
+        "id": "pause",
+        "w": 44
+      },
+      {
+        "h": 64,
+        "id": "dodge-left",
+        "w": 123.328125
+      },
+      {
+        "h": 64,
+        "id": "emp",
+        "w": 123.328125
+      },
+      {
+        "h": 64,
+        "id": "dodge-right",
+        "w": 123.34375
+      }
+    ],
+    "field": {
+      "bottom": 733.65625,
+      "height": 693.328125,
+      "left": 0,
+      "right": 390,
+      "top": 40.328125,
+      "width": 390,
+      "x": 0,
+      "y": 40.328125
+    },
+    "height": 844,
+    "horizontalOverflow": false,
+    "verticalOverflow": false,
+    "view": "battle",
+    "width": 390
+  },
+  {
+    "bossBars": 1,
+    "buttons": [
+      {
+        "h": 44,
+        "id": "pause",
+        "w": 44
+      },
+      {
+        "h": 64,
+        "id": "dodge-left",
+        "w": 136.65625
+      },
+      {
+        "h": 64,
+        "id": "emp",
+        "w": 136.671875
+      },
+      {
+        "h": 64,
+        "id": "dodge-right",
+        "w": 136.671875
+      }
+    ],
+    "field": {
+      "bottom": 813.21875,
+      "height": 764.4375,
+      "left": 0,
+      "right": 430,
+      "top": 48.78125,
+      "width": 430,
+      "x": 0,
+      "y": 48.78125
+    },
+    "height": 932,
+    "horizontalOverflow": false,
+    "verticalOverflow": false,
+    "view": "battle",
+    "width": 430
+  },
+  {
+    "bossBars": 1,
+    "buttons": [
+      {
+        "h": 44,
+        "id": "pause",
+        "w": 44
+      },
+      {
+        "h": 64,
+        "id": "dodge-left",
+        "w": 51.828125
+      },
+      {
+        "h": 64,
+        "id": "emp",
+        "w": 51.828125
+      },
+      {
+        "h": 64,
+        "id": "dodge-right",
+        "w": 51.828125
+      }
+    ],
+    "field": {
+      "bottom": 316,
+      "height": 312,
+      "left": 334.25,
+      "right": 509.75,
+      "top": 4,
+      "width": 175.5,
+      "x": 334.25,
+      "y": 4
+    },
+    "height": 390,
+    "horizontalOverflow": false,
+    "verticalOverflow": false,
+    "view": "battle",
+    "width": 844
+  }
+]

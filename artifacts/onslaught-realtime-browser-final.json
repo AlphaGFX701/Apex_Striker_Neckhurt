@@ -1,0 +1,28 @@
+[
+  {
+    "stage": 1,
+    "weapon": "plasma",
+    "startedAt": "2026-10-31T10:07:26.998Z",
+    "kind": "real-time-browser-with-simulated-pilot",
+    "result": "Score\n18,054\nFlight time\n206.5s\nDodges\n0\nEMP uses\n5\nShots intercepted\n905\nPower-ups\n59",
+    "completedAt": "2026-10-31T10:12:57.078Z"
+  },
+  {
+    "stage": 2,
+    "weapon": "laser",
+    "startedAt": "2026-10-31T10:13:06.247Z",
+    "kind": "real-time-browser-with-simulated-pilot",
+    "result": "Score\n7,270\nFlight time\n190.1s\nDodges\n1\nEMP uses\n4\nShots intercepted\n535\nPower-ups\n23",
+    "completedAt": "2026-10-31T10:16:44.370Z",
+    "metrics": "{\"time\":190.10142000000118,\"frameP95\":7.099999999976717,\"frames\":1800,\"enemies\":3,\"enemyBullets\":0}"
+  },
+  {
+    "stage": 3,
+    "weapon": "laser",
+    "startedAt": "2026-10-31T10:16:49.777Z",
+    "kind": "real-time-browser-with-simulated-pilot",
+    "result": "Score\n13,583\nFlight time\n222.0s\nDodges\n0\nEMP uses\n5\nShots intercepted\n1500\nPower-ups\n54",
+    "completedAt": "2026-10-31T10:20:41.047Z",
+    "metrics": "{\"time\":222.0042600000162,\"frameP95\":7.100000000093132,\"frames\":1800,\"enemies\":2,\"enemyBullets\":0}"
+  }
+]

@@ -1,0 +1,22 @@
+[
+  {
+    "file": "orbital-bombardment.mp3",
+    "codec": "mp3float",
+    "sampleRate": 44100,
+    "channels": 2,
+    "durationSeconds": 163.585,
+    "bytes": 2332044,
+    "decodedPeak": 0.79119,
+    "decodedRMS": 0.18614
+  },
+  {
+    "file": "terminal-dash.mp3",
+    "codec": "mp3float",
+    "sampleRate": 44100,
+    "channels": 2,
+    "durationSeconds": 170.135,
+    "bytes": 4090378,
+    "decodedPeak": 1.01187,
+    "decodedRMS": 0.19377
+  }
+]

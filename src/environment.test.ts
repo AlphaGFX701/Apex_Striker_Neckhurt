@@ -12,26 +12,26 @@ describe("stage events", () => {
   it("crosses every boundary once, including a large time jump, and resets", () => {
     const d = new StageWaveManager();
     expect(d.advance(0).map((e) => e.kind)).toEqual(["wave"]);
-    const events = d.advance(90);
+    const events = d.advance(180);
     expect(new Set(events.map((e) => e.id)).size).toBe(events.length);
     expect(events.filter((e) => e.kind === "mini-spawn")).toHaveLength(1);
     expect(events.filter((e) => e.kind === "boss-spawn")).toHaveLength(1);
-    expect(d.advance(90)).toEqual([]);
-    expect([0, 15, 35, 60, 90].map(waveAt)).toEqual([0, 1, 2, 3, 3]);
+    expect(d.advance(180)).toEqual([]);
+    expect([0, 30, 75, 120, 180].map(waveAt)).toEqual([0, 1, 2, 3, 3]);
     d.reset();
     expect(d.advance(0)).toHaveLength(1);
   });
   it("spawns and withdraws the mini-boss before the final boss", () => {
     const m = new GameModel(() => 0.9);
     m.practice = true;
-    m.state.time = 34.99;
+    m.state.time = 89.99;
     advance(m, 1.55);
     expect(m.state.miniBoss).not.toBeNull();
-    m.state.time = 59.99;
+    m.state.time = 119.99;
     advance(m, 0.02);
     expect(m.state.miniBoss).toBeNull();
     expect(m.state.boss).not.toBeNull();
-    expect(m.state.warning).toBe("TARGET ESCAPED");
+    expect(m.state.warning).toBe("WARNING · CAPITAL SHIP");
     expect(m.state.pickups.filter((p) => p.kind)).toHaveLength(0);
   });
   it("rewards mini-boss death once without ending the run", () => {
@@ -44,8 +44,8 @@ describe("stage events", () => {
       maxHealth: 18,
       shot: 10,
     };
-    m.state.energy = 100;
-    m.action("emp");
+    m.state.miniBoss.health = 0;
+    advance(m, 0.01);
     expect(m.state.miniBoss).toBeNull();
     expect(m.state.pickups.filter((p) => p.kind)).toHaveLength(2);
     expect(m.state.gameOver).toBe(false);
@@ -95,7 +95,8 @@ describe("stage events", () => {
     m.state.pickups.push({ x: 195, y: 610, value: 0, age: 0, kind: "weapon" });
     advance(m, 0.01);
     const event = m.drainEvents().find((e) => e.type === "pickup");
-    expect(event?.type === "pickup" && event.data.effect).toBe("energy");
+    expect(event?.type === "pickup" && event.data.effect).toBe("weapon");
+    expect(m.state.powers.overdrive).toBe(25);
     advance(m, 0.01);
     expect(m.drainEvents().filter((e) => e.type === "pickup")).toHaveLength(0);
   });

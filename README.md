@@ -1,8 +1,10 @@
-# Gyro Space Combat — Dynamic Environment Edition
+# Gyro Space Combat — Mobile Onslaught
 
-English mobile-first gyro arcade shooter, built with Phaser, TypeScript and Vite. Three stages (up to 90 seconds), Endless, Practice, 27 cosmetic ship builds, three free main weapons, instant pickups, warp and EMP. No permanent equipment upgrades or purchases. Public game: https://gyro-space-lab-th.mjadsakul.chatgpt.site/
+Mobile gyro arcade shooter built with Phaser, TypeScript and Vite. Tilt to fly, flick to warp and shake for a defensive EMP. Three open stages, Endless, Practice, 27 cosmetic builds and three free weapons. No permanent strength, purchases or accounts.
 
-## Run
+Public game: https://gyro-space-lab-th.mjadsakul.chatgpt.site/
+
+## Run and build
 
 ```sh
 npm ci
@@ -11,41 +13,53 @@ npm test
 npm run build
 ```
 
-`dist/` is the static publication. Phone motion needs HTTPS; a computer LAN address over HTTP does not enable phone sensors.
+Publish dist/ as static files. Phone sensors need HTTPS; HTTP LAN previews support manual/controller testing but cannot establish physical gyro compatibility. Existing Capacitor files are retained; this update does not build IPA/APK.
 
-## Controls
+## Combat
 
-Phone: Enable Sensors, hold comfortably and Calibrate. Tilt to move, flick left/right to warp, shake repeatedly to use a charged EMP. Touch drag and arrows/WASD are alternatives. Q/E or controller LB/RB warp, Space or the controller bottom button deploys EMP. Start pauses. Controller Lab supports device selection, remapping and visual input diagnostics; it does not claim standard Gamepad API provides raw controller gyroscope values.
+Stages have a two-minute assault (warm-up0–30, pressure30–75, assault75–120). Existing commanders appear as mini-bosses at90 and retreat without rewards at120 if still alive. Capital ships have900/1200/1500 core HP, separately damageable turrets, three phases and no timeout. Their music plays continuously across phases. A stationary zone is locked before a giant beam; use motion or warp to escape.
 
-App loss, unavailable phone input, orientation change or controller disconnection pauses the run and clears input. Resume has no countdown and grants short protection. Practice preserves lives and does not change records.
+Twelve seeded formations vary between runs and stages. Endless uses30-second waves and a capital ship every third wave; defeat it before continuing. Object caps are32 enemies,360 player shots,360 hostile shots,60 pickups and at most160 effects (the renderer currently uses a smaller48-effect budget).
 
-## Stage rhythm
+EMP clears bullets only within180 units, briefly stuns escorts and does not damage bosses, remove rocks or cancel beams. Passive recharge takes45 seconds; a cell adds10%. It never refunds kill energy.
 
-0–15 seconds: V/line formations. 15–35: armored zig-zag enemies, gapped rings and a magnetic storm. 35–60: warned mini-boss encounter; if alive at 60 it escapes without rewards. At 60 the final boss appears; its single HP pool has three phases at two-thirds and one-third. Clear before 90 seconds. Endless retains 30-second waves and a boss every three waves; defeat the boss to continue.
+Six colored pickups apply instantly without choices or countdowns. Weapon Power adds up to two side-shot steps for the run and activates Red Overdrive for25 seconds. Another Weapon Power refreshes the timer to25 seconds, including at maximum power. Red main shots destroy ordinary hostile bullets on contact; missiles and drones do not gain this property. The red laser has a bounded interception budget. Giant boss lasers must still be dodged. Missiles last12 seconds and extend to24, shield absorbs one hit, Repair restores one of three hull segments. Other overflow becomes score. Magnet radius is150 units.
 
-Six pickup types apply instantly: Weapon Power (two steps per run), Missiles/Drone (12 seconds, extend to 24), Shield (one hit), Repair and EMP Cell. Magnet attraction starts at 150 logical units. Full hull/max weapon converts the pickup to EMP energy; the announcement reports the actual effect. Every run resets powers. Older progression data is retained; arcade score records use a separate save.
+Boss and escort barrages preserve a104-unit lower escape corridor. Fans alternate with rings, with pauses between attacks and during giant-laser warnings. Boss HP and multi-phase endurance remain; the difficulty comes from repositioning and managing protection rather than unavoidable overlapping barrages.
 
-## Runtime boundaries
+First drone pickup gives two escorts; later pickups add left first, alternating to six. Drones persist until sacrificed. Protection order is invulnerability → shield → one drone for bullets → hull. A drone interception or hull hit grants1.5 seconds; drones do not block collisions or giant beams. All powers reset each run.
 
-- StageWaveManager: stage data and one-shot timeline events.
-- GameModel: collision, damage, hazards, mini/final bosses and PickupCollected events.
-- ParallaxEnvironment: three simulated-time layers at 10/20/30 units per second, feathered looping images and two-second theme crossfades.
-- AudioDirector: three music tracks, Music/SFX/Voice levels, bounded announcement queue, music ducking and pause cancellation.
-- Phaser scene: Canvas rendering with per-texture image pools. Canvas avoids transparent-atlas artifacts observed in the embedded WebGL browser.
+## Controls and safety
 
-Phone sensor/gesture modules and GamepadAdapter remain independent from combat. Installed English device voices supply speech, with synthesized cues and visible labels as fallback. Browser voice/autoplay behavior still requires physical-device validation.
+Phone: Enable sensors → Calibrate → test tilt → Launch. Touch drag, keyboard arrows/WASD and controllers are optional. Q/E or LB/RB warp, Space or the bottom gamepad button uses EMP, Start pauses. Controller Lab inspects/remaps actual browser inputs and does not claim standard raw controller gyro access.
 
-## Artist assets
+App loss, stale sensor input, orientation change and controller disconnect pause and clear input. Orientation changes require calibration. Resume has no countdown and grants0.6 seconds of protection. Touch Smart Pause reacts only to releasing the movement finger. Practice does not save records. Onslaught scores use a separate key; existing appearance, input preferences and older records remain stored.
 
-No generative imagery. Feony Background 7 (space), Baldur/Foozle Void Fleet 1/2, Matt Walkden Lunar Lander, Wenrexa Laser2020, GrafxKid Mini Pixel Pack 3, Goose Ninja Space Music Pack, and the existing Skorpio player assembly. See ASSET-CREDITS.md for sources/terms. Restricted source ZIPs/WAV packs are not published.
+## Art and audio
+
+No generated imagery. Artist-derived bosses, escort fleets, engine/destruction animation, semantic pickup badges, shield lattice, hull segments and Wenrexa frames have provenance in public/assets/onslaught/credits.json and ASSET-CREDITS.md.
+
+Stage music: Terminal_Dash.mp3. Capital ship music: ORBITAL BOMBARDMENT Epic Sci-Fi Battle Music Space Fleet Invasion Soundtrack.mp3. Both are supplied by the user, copied under stable runtime names, crossfaded and looped.
+
+The supplied WAV filenames contain the same unrelated NPC recording. Correct item recordings are still needed; the game uses correct English device speech plus distinct SFX and visible labels. Seven preview buttons and the source status are in Settings. See AUDIO-PROVENANCE.md.
 
 ```sh
 python -m pip install -r scripts/requirements-assets.txt
-python scripts/build-environment-assets.py
+python scripts/build-onslaught-assets.py
+python scripts/prepare-onslaught-audio.py
 ```
 
-The pipeline reads the user-supplied archives in Desktop/Space_combat and writes runtime images/MP3s. Existing player assembly rebuild scripts remain available.
+These scripts read Desktop/Space_combat by default and ship runtime derivatives only, not source archives.
 
 ## Verification
 
-See ENVIRONMENT-TESTING.md and artifacts/environment-responsive.json. QA pages under qa/ are development-only and do not ship in the static build. Their simulated pilot/state fixtures are not physical sensor/controller tests. The retained Capacitor project is future app work; no IPA/APK was built in this update.
+See ONSLAUGHT-TESTING.md, artifacts/onslaught-balance.json and the onslaught screenshots/video. Browser fixtures and the simulated pilot require a Vite development build with ?qa=1; they are removed from production. They are not physical gyro/controller tests.
+
+Reference checks:
+
+```sh
+node scripts/onslaught-balance.mjs
+node scripts/onslaught-soak.mjs 1200
+```
+
+The latter is a real-wall-clock model soak, not a renderer FPS test. Browser rendering and real-device measurements are reported separately.

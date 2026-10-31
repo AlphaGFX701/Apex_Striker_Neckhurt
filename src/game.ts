@@ -1,8 +1,10 @@
 import { ParallaxEnvironment } from "./parallax";
+import { BOSS_ART, ONSLAUGHT_IMAGES } from "./onslaught-assets";
 import Phaser from "phaser";
-import { GameModel, WORLD, type GameSnapshot } from "./model";
+import { GameModel, WORLD, dronePosition, type GameSnapshot } from "./model";
 import type { Axes } from "./sensor";
 import type { Action } from "./motion";
+const LIMIT_EFFECTS = 48;
 export interface GameControl {
   reducedEffects?: () => boolean;
   manual?: () => boolean;
@@ -40,15 +42,8 @@ export class SpaceScene extends Phaser.Scene {
         `/assets/environment/feony-scroll-${i}.webp`,
       );
     this.load.atlas("fleet", "/assets/atlas.png", "/assets/atlas.json");
-    for (const kind of [
-      "weapon",
-      "missile",
-      "drone",
-      "shield",
-      "repair",
-      "energy",
-    ])
-      this.load.image(`pickup-${kind}`, `/assets/arcade/${kind}.svg`);
+    for (const key of ONSLAUGHT_IMAGES)
+      this.load.image(key, `/assets/onslaught/${key}.png`);
     this.load.image("drone", "/assets/tactical/drone.png");
   }
   private imagePools = new Map<
@@ -64,15 +59,11 @@ export class SpaceScene extends Phaser.Scene {
     alpha = 1,
     scaleX = 1,
   ) {
+    const standalone = this.textures.exists(frame);
     const environment = /^(void-|meteor-|laser-|power-item-|spark-)/.test(
       frame,
     );
-    const standalone =
-      frame.startsWith("boss-") ||
-      frame.startsWith("pickup-") ||
-      frame === "drone" ||
-      frame === "player-custom";
-    const texture = environment ? "environment" : standalone ? frame : "fleet";
+    const texture = standalone ? frame : environment ? "environment" : "fleet";
     let pool = this.imagePools.get(texture);
     if (!pool) {
       pool = { images: [], used: 0 };
@@ -92,7 +83,8 @@ export class SpaceScene extends Phaser.Scene {
       .setRotation(rotation)
       .setAlpha(alpha)
       .setVisible(true)
-      .clearTint();
+      .clearTint()
+      .setDepth(/-hit$|^shield-|^spark-|^drone-burst-/.test(frame) ? 2 : 1);
     image.setScale((width / image.width) * scaleX, width / image.width);
   }
   private environment!: ParallaxEnvironment;
@@ -249,278 +241,342 @@ export class SpaceScene extends Phaser.Scene {
     }
     this.draw(dt);
   }
-  private draw(dt: number) {
+  private draw(_dt: number) {
     const g = this.art,
-      s = this.model.state;
-    this.environment.update(s, !!this.control.reducedEffects?.());
+      s = this.model.state,
+      stage = this.model.config.stage,
+      reduced = !!this.control.reducedEffects?.();
+    this.environment.update(s, reduced, stage);
     g.clear();
     for (const image of this.sprites) image.setVisible(false);
     for (const pool of this.imagePools.values()) pool.used = 0;
-
     for (const [index, star] of this.stars.entries()) {
-      if (this.control.reducedEffects?.() && star.size < 1.2) continue;
+      if (reduced && star.size < 1.2) continue;
       star.y = (index * 83 + s.time * 10) % WORLD.height;
-      g.fillStyle(0xc2dcff, 0.25 + star.size / 3);
+      g.fillStyle(0xc2dcff, 0.2 + star.size / 4);
       g.fillCircle(star.x, star.y, star.size);
     }
     for (const b of s.bullets) {
-      this.sprite("laser-1", b.x, b.y, 19, -Math.PI / 2, 0.65);
+      this.sprite(
+        b.interceptor ? "red-shot" : "laser-1",
+        b.x,
+        b.y,
+        b.interceptor ? 14 : b.missile ? 23 : 19,
+        b.interceptor ? Math.atan2(b.vx ?? 0, b.speed) : -Math.PI / 2,
+        0.9,
+      );
       g.fillStyle(
-        b.missile ? 0xffcb7c : b.type === "plasma" ? 0xb5a2ff : 0x60d8ff,
-        0.2,
+        b.interceptor
+          ? 0xff3657
+          : b.missile
+            ? 0xffcb7c
+            : b.type === "plasma"
+              ? 0xc8aaff
+              : 0x8cecff,
+        0.3,
       );
-      g.fillEllipse(b.x, b.y, 12, b.missile ? 30 : 22);
-      g.fillStyle(
-        b.missile ? 0xffdd99 : b.type === "plasma" ? 0xe0baff : 0xe0faff,
-      );
-      g.fillRoundedRect(
-        b.x - 2,
-        b.y - 9,
-        b.missile ? 5 : 3,
-        b.missile ? 18 : 14,
-        2,
-      );
+      g.fillEllipse(b.x, b.y, 9, 22);
+      g.fillStyle(b.interceptor ? 0xffc4cc : b.missile ? 0xffe6b3 : 0xeaffff);
+      g.fillRoundedRect(b.x - 1.5, b.y - 8, 3, b.missile ? 17 : 12, 1);
     }
-    for (const r of s.rocks)
+    for (const r of s.rocks) {
+      g.lineStyle(2, 0xffc88c, 0.55);
+      g.strokeCircle(r.x, r.y, r.radius + 3);
       this.sprite(
         `meteor-${Math.floor(r.radius) % 4}`,
         r.x,
         r.y,
-        r.radius * 3.5,
+        r.radius * 3.1,
         r.phase,
       );
-    for (const e of s.enemies)
-      this.sprite(`void-1-${e.kind ?? 0}`, e.x, e.y, e.kind === 2 ? 80 : 65);
-    for (const e of s.enemies)
+      g.fillStyle(0xffda9d, 0.85);
+      g.fillCircle(r.x - r.radius * 0.4, r.y - r.radius * 0.4, 2);
+    }
+    for (const e of s.enemies) {
+      const key = `enemy-${e.faction ?? stage}-${e.kind ?? 0}`,
+        width = e.kind === 2 ? 72 : 58;
+      this.sprite(key, e.x, e.y, width);
       this.sprite(
-        `void-1-${e.kind ?? 0}-engine-${Math.floor(s.time * 12) % 10}`,
+        `${key}-engine-${Math.floor(s.time * 12) % 8}`,
         e.x,
         e.y,
-        e.kind === 2 ? 80 : 65,
+        width,
       );
+      if (e.flash)
+        this.sprite(
+          `${key}-hit`,
+          e.x,
+          e.y,
+          width,
+          0,
+          Math.min(0.8, e.flash / 0.07),
+        );
+      if (e.stun) {
+        g.lineStyle(1, 0x7afff0, 0.7);
+        g.strokeCircle(e.x, e.y, e.radius + 5);
+      }
+      if (e.leader) {
+        g.fillStyle(0xffc76a);
+        g.fillTriangle(e.x - 5, e.y - 30, e.x + 5, e.y - 30, e.x, e.y - 36);
+      }
+    }
     if (s.miniBoss) {
       const m = s.miniBoss;
-      this.sprite("void-2-3", m.x, m.y, 115);
+      this.sprite(`void-2-${stage}`, m.x, m.y, 112);
       this.sprite(
-        `void-2-3-engine-${Math.floor(s.time * 12) % 8}`,
+        `void-2-${stage}-engine-${Math.floor(s.time * 12) % 8}`,
         m.x,
         m.y,
-        115,
+        112,
       );
-    }
-    for (const e of s.enemies)
-      if (e.flash) {
-        g.fillStyle(0xffffff, Math.min(0.7, e.flash * 10));
-        g.fillCircle(e.x, e.y, e.radius);
+      if (m.flash) {
+        g.lineStyle(3, 0xffe8c5, 0.8);
+        g.strokeCircle(m.x, m.y, m.radius);
       }
+    }
     if (s.boss) {
-      const b = s.boss;
-      this.sprite(`void-2-${this.model.config.stage}`, b.x, b.y, 180);
+      const b = s.boss,
+        art = BOSS_ART[stage];
+      this.sprite(art.key, b.x, b.y, art.width);
       this.sprite(
-        `void-2-${this.model.config.stage}-engine-${Math.floor(s.time * 12) % 8}`,
+        `${art.key}-engine-${Math.floor(s.time * 12) % 8}`,
         b.x,
         b.y,
-        180,
+        art.width,
       );
-      g.fillStyle(0x303b48);
-      g.fillRect(75, 87, 240, 5);
-      g.fillStyle(0xef6655);
-      g.fillRect(75, 87, 240 * Math.max(0, b.health / b.maxHealth), 5);
+      if (b.flash && Math.floor(s.time * 15) % 4 === 0)
+        this.sprite(
+          `${art.key}-hit`,
+          b.x,
+          b.y,
+          art.width,
+          0,
+          Math.min(0.45, (b.flash / 0.07) * 0.45),
+        );
+      for (const t of b.turrets ?? []) {
+        if (t.health <= 0) {
+          g.fillStyle(0x130e16, 0.85);
+          g.fillCircle(b.x + t.x, b.y + t.y, 8);
+          continue;
+        }
+        this.sprite(`turret-${stage}`, b.x + t.x, b.y + t.y, 20 + stage * 3);
+        if (t.flash)
+          this.sprite(
+            `turret-${stage}-hit`,
+            b.x + t.x,
+            b.y + t.y,
+            20 + stage * 3,
+            0,
+            0.9,
+          );
+        g.fillStyle(0x351b28);
+        g.fillRect(b.x + t.x - 10, b.y + t.y - 23, 20, 2);
+        g.fillStyle(0xffa779);
+        g.fillRect(
+          b.x + t.x - 10,
+          b.y + t.y - 23,
+          (20 * t.health) / t.maxHealth,
+          2,
+        );
+      }
     }
     for (const b of s.enemyBullets) {
-      g.fillStyle(0xff7b76, 0.18);
-      g.fillCircle(b.x, b.y, 10);
-      g.fillStyle(0xffc089);
-      g.fillCircle(b.x, b.y, 5);
-      g.fillStyle(0xfff1d2);
-      g.fillCircle(b.x, b.y, 2);
+      g.fillStyle(0xff855a, 0.18);
+      g.fillCircle(b.x, b.y, 8);
+      g.fillStyle(0xffb56f);
+      g.fillCircle(b.x, b.y, b.radius + 0.5);
+      g.fillStyle(0xfff5d9);
+      g.fillCircle(b.x, b.y, 1.8);
     }
-    for (const p of s.pickups) {
-      if (!p.kind) continue;
-      this.sprite(
-        p.kind === "weapon"
-          ? `power-item-${Math.floor(s.time * 6) % 2}`
-          : `pickup-${p.kind}`,
-        p.x,
-        p.y,
-        30,
-      );
-    }
+    for (const p of s.pickups)
+      if (p.kind) {
+        this.sprite(
+          `pickup-${p.kind}`,
+          p.x,
+          p.y,
+          34,
+          0,
+          0.92 + Math.sin(s.time * 5 + p.x) * 0.08,
+        );
+      }
+    let particles = 0;
     for (const e of s.explosions) {
-      const progress = e.age / 0.5;
+      if (reduced && e.spark) continue;
+      if (particles++ > LIMIT_EFFECTS) break;
+      const progress = e.age / (e.spark ? 0.24 : 0.65);
+      const frame = e.spark
+        ? `spark-${Math.min(5, Math.floor(progress * 6))}`
+        : e.art?.startsWith("enemy-")
+          ? `${e.art}-destroy-${Math.min(7, Math.floor(progress * 8))}`
+          : e.art
+            ? `${e.art}-destroy-${Math.min(11, Math.floor(progress * 12))}`
+            : `explosion-${Math.min(7, Math.floor(progress * 8))}`;
       this.sprite(
-        e.art
-          ? `${e.art}-destroy-${Math.min(11, Math.floor(progress * 12))}`
-          : `explosion-${Math.min(7, Math.floor(progress * 8))}`,
+        frame,
         e.x,
         e.y,
-        35 + progress * 45,
+        (e.size ?? 65) * (e.spark ? 1 : 0.7 + progress * 0.5),
         0,
-        1 - progress,
+        1 - progress * 0.5,
       );
     }
     if (s.storm) {
-      const storm = s.storm,
-        active = storm.age >= 1.2;
-      g.fillStyle(0xb18cff, active ? 0.12 : 0.035);
-      g.fillRect(storm.x, 100, storm.width, WORLD.height - 100);
-      g.lineStyle(2, 0xbda1ff, 0.65);
-      g.strokeRect(storm.x, 100, storm.width, WORLD.height - 100);
-      for (let i = 0; i < 6; i++)
-        g.lineBetween(
-          storm.x,
-          140 + i * 90 + Math.sin(s.time * 5) * 8,
-          storm.x + storm.width,
-          110 + i * 90,
-        );
-    }
-    if (s.meteors && s.meteors.age < 1) {
-      g.fillStyle(0xffaa66, 0.08);
-      for (let x = 35; x < 390; x += 64)
-        if (Math.abs(x - s.meteors.safeX) > 65)
-          g.fillRect(x - 18, 100, 36, WORLD.height - 100);
+      const h = s.storm;
+      g.fillStyle(0xb18cff, h.age >= 1.2 ? 0.08 : 0.025);
+      g.fillRect(h.x, 100, h.width, WORLD.height - 100);
+      // Only actual hazard bounds; no forecast lanes or diagonal decorative lines.
+      g.lineStyle(1, 0xbda1ff, 0.28);
+      g.strokeRect(h.x, 100, h.width, WORLD.height - 100);
     }
     for (const beam of s.beams) {
-      const firing = beam.age >= 1.2;
-      g.lineStyle(
-        firing ? 24 : 2,
-        0xf16d65,
-        firing ? 0.7 : 0.25 + Math.sin(beam.age * 24) * 0.2,
-      );
-      g.lineBetween(beam.x, 170, beam.x, WORLD.height);
-      if (firing) {
-        g.lineStyle(6, 0xfff4d0);
-        g.lineBetween(beam.x, 170, beam.x, WORLD.height);
+      const firing = beam.age >= 1.2,
+        alpha = 0.35 + Math.sin(beam.age * 24) * 0.15;
+      if (!firing) {
+        g.fillStyle(0xf16d65, 0.08);
+        g.fillRect(beam.x - 22, 170, 44, WORLD.height - 170);
+        g.lineStyle(2, 0xff9b69, alpha + 0.3);
+        g.strokeCircle(beam.x, Math.min(630, beam.y ?? s.ship.y), 24);
+        g.lineBetween(
+          beam.x - 32,
+          beam.y ?? s.ship.y,
+          beam.x - 15,
+          beam.y ?? s.ship.y,
+        );
+        g.lineBetween(
+          beam.x + 15,
+          beam.y ?? s.ship.y,
+          beam.x + 32,
+          beam.y ?? s.ship.y,
+        );
+      } else {
+        g.fillStyle(0xff3429, 0.16);
+        g.fillRect(beam.x - 34, 170, 68, WORLD.height - 170);
+        g.fillStyle(0xff5b45, 0.65);
+        g.fillRect(beam.x - 22, 170, 44, WORLD.height - 170);
+        g.fillStyle(0xffd68c, 0.9);
+        g.fillRect(beam.x - 12, 170, 24, WORLD.height - 170);
+        g.fillStyle(0xffffe9);
+        g.fillRect(beam.x - 4, 170, 8, WORLD.height - 170);
+        this.sprite(`spark-${Math.floor(s.time * 20) % 6}`, beam.x, 181, 55);
       }
     }
     const ship = s.ship,
-      roll = s.dodgeTime > 0;
-    if (roll) {
-      g.lineStyle(5, 0x60d8ff, Math.min(0.45, s.dodgeTime));
-      g.lineBetween(s.warpOrigin.x, s.warpOrigin.y, ship.x, ship.y);
+      warp = s.dodgeTime > 0,
+      shipKey = this.customShip ? "player-custom" : `player-${this.shipStyle}`,
+      shipWidth = this.customShip ? 95 : 65;
+    if (warp) {
+      const alpha = s.dodgeTime / 0.6;
       this.sprite(
-        "player-0",
+        shipKey,
         s.warpOrigin.x,
         s.warpOrigin.y,
-        60,
+        shipWidth,
         0,
-        Math.min(0.35, s.dodgeTime),
+        alpha * 0.3,
       );
-      for (let i = 1; i <= 4; i++) {
-        g.lineStyle(2, 0x86f7ef, 0.35 / i);
-        g.strokeEllipse(ship.x - i * s.dodgeDirection * 12, ship.y, 36, 55);
-      }
-      g.lineStyle(2, 0x9cfff4, 0.8);
-      g.strokeEllipse(ship.x, ship.y, 48, 57);
-    }
-    if (roll || s.invincible === 0 || Math.floor(s.time * 12) % 2 === 0) {
-      const squash = roll
-        ? 0.25 + Math.abs(Math.cos(s.dodgeTime * 10)) * 0.75
-        : 1;
-      this.sprite(
-        "thruster",
-        ship.x - 10,
-        ship.y + 49,
-        25,
-        0,
-        0.8 + Math.sin(s.time * 35) * 0.15,
-        0.4,
-      );
-      this.sprite(
-        "thruster",
-        ship.x + 10,
-        ship.y + 49,
-        25,
-        0,
-        0.8 + Math.cos(s.time * 35) * 0.15,
-        0.4,
-      );
-      if (this.customShip) {
-        this.sprite("player-custom", ship.x, ship.y, 110, 0, 1, squash);
-      } else
+      g.lineStyle(3, 0x92faff, alpha * 0.5);
+      g.lineBetween(s.warpOrigin.x, s.warpOrigin.y, ship.x, ship.y);
+      for (let i = 1; i <= 3; i++)
         this.sprite(
-          `player-${this.shipStyle}`,
-          ship.x,
+          shipKey,
+          ship.x - i * s.dodgeDirection * 15,
           ship.y,
-          65,
+          shipWidth,
           0,
-          1,
-          squash,
+          (alpha * 0.15) / i,
         );
     }
+    if (warp || s.invincible === 0 || Math.floor(s.time * 14) % 2 === 0) {
+      for (const side of [-1, 1])
+        this.sprite(
+          "thruster",
+          ship.x + side * 9,
+          ship.y + 39,
+          21,
+          0,
+          0.8 + Math.sin(s.time * 35) * 0.15,
+          0.5,
+        );
+      this.sprite(shipKey, ship.x, ship.y, shipWidth);
+    }
     if (s.laser > 0) {
-      const l = 1 + s.powers.weapon;
-      g.lineStyle(6 + (l - 1) * 4, 0x60d8ff, 0.35);
+      const width = 7 + s.powers.weapon * 4,
+        red = s.powers.overdrive > 0,
+        beamColor = red ? 0xff3657 : 0x60d8ff;
+      g.lineStyle(width + 8, beamColor, 0.18);
       g.lineBetween(ship.x, ship.y - 25, ship.x, 0);
-      g.lineStyle(2 + l, 0xeaffff, 0.9);
+      g.lineStyle(width, beamColor, 0.55);
+      g.lineBetween(ship.x, ship.y - 25, ship.x, 0);
+      g.lineStyle(2 + s.powers.weapon, red ? 0xffe8ed : 0xebffff, 0.95);
       g.lineBetween(ship.x, ship.y - 25, ship.x, 0);
       for (let i = 1; i <= s.powers.weapon; i++)
-        for (const direction of [-1, 1]) {
-          g.lineStyle(2, 0xa3efff, 0.7);
+        for (const side of [-1, 1]) {
+          g.lineStyle(2, red ? 0xffa6b8 : 0xa3efff, 0.7);
           g.lineBetween(
-            ship.x + direction * i * 14,
+            ship.x + side * i * 14,
             ship.y - 25,
-            ship.x + direction * i * 14,
+            ship.x + side * i * 14,
             0,
           );
         }
     }
-    if (s.powers.drone > 0) {
-      const l = this.model.config.levels.drone || 1;
-      this.sprite("drone", ship.x - 44, ship.y + 8, 24);
-      if (l > 1) this.sprite("drone", ship.x + 44, ship.y + 8, 24);
+    for (const drone of s.drones) {
+      const p = dronePosition(ship, drone);
+      this.sprite("drone", p.x, p.y, 23);
+      g.fillStyle(0x81eaff, 0.8);
+      g.fillEllipse(p.x, p.y + 13, 4, 9);
     }
-    g.lineStyle(1, 0xffffff, 0.95);
-    g.strokeCircle(ship.x, ship.y, ship.radius);
-    g.fillStyle(0x60d8ff);
-    g.fillCircle(ship.x, ship.y, 2);
-    if (s.shield) {
-      g.lineStyle(1, 0x60d8ff, 0.65);
-      g.strokeEllipse(ship.x, ship.y, 64, 80);
+    for (const hit of s.interceptions) {
+      const t = Math.min(1, hit.age / 0.12),
+        x = Phaser.Math.Linear(hit.fromX, hit.x, t),
+        y = Phaser.Math.Linear(hit.fromY, hit.y, t);
+      if (t < 1) {
+        this.sprite("drone", x, y, 25);
+        g.lineStyle(2, 0xc4b1ff, 0.65);
+        g.lineBetween(hit.fromX, hit.fromY, x, y);
+      } else
+        this.sprite(
+          `drone-burst-${Math.min(7, Math.floor(((hit.age - 0.12) / 0.53) * 8))}`,
+          hit.x,
+          hit.y,
+          82,
+        );
     }
-    if (s.invincible > 0) this.sprite("shield", ship.x, ship.y, 68, 0, 0.4);
-    if (s.hitEffect > 0)
+    if (s.shield)
+      this.sprite(`shield-${Math.floor(s.time * 12) % 8}`, ship.x, ship.y, 90);
+    if (s.hitEffect > 0 && s.damageKind === "shield")
       this.sprite(
-        `explosion-${Math.min(7, Math.floor(((0.3 - s.hitEffect) / 0.3) * 8))}`,
+        `shield-${Math.floor(s.time * 20) % 8}`,
         ship.x,
         ship.y,
-        90,
+        110,
+        0,
+        s.hitEffect / 0.3,
       );
-
+    g.lineStyle(1, 0xffffff, 0.95);
+    g.strokeCircle(ship.x, ship.y, ship.radius);
+    g.fillStyle(0x8dfbff);
+    g.fillCircle(ship.x, ship.y, 2);
     if (s.empEffect > 0) {
-      const progress = 1 - s.empEffect / 0.75;
-      g.lineStyle(7 * (1 - progress) + 1, 0x83fff1, 1 - progress);
-      g.strokeCircle(s.empOrigin.x, s.empOrigin.y, progress * 900);
-      g.lineStyle(2, 0xcafffa, (1 - progress) * 0.6);
-      g.strokeCircle(s.empOrigin.x, s.empOrigin.y, progress * 800);
+      const p = 1 - s.empEffect / 0.75;
+      g.lineStyle(7 * (1 - p) + 1, 0x83fff1, 1 - p);
+      g.strokeCircle(s.empOrigin.x, s.empOrigin.y, Math.min(180, p * 270));
+      g.lineStyle(2, 0xcafffa, (1 - p) * 0.6);
+      g.strokeCircle(s.empOrigin.x, s.empOrigin.y, Math.min(180, p * 240));
     }
-
     const burst = s.explosions.find(
-      (e) => e.art === "void-2-3" && e.age < 0.08,
+      (e) => e.art?.startsWith("void-2-") && e.age < 0.08,
     );
     if (burst && s.time - this.lastMiniBurst > 0.5) {
       this.lastMiniBurst = s.time;
-      if (!this.control.reducedEffects?.()) {
+      if (!reduced) {
         this.cameras.main.shake(180, 0.008);
-        this.cameras.main.flash(100, 180, 220, 255);
+        this.cameras.main.flash(80, 150, 200, 255);
       }
     }
-    if (
-      s.hitEffect > 0 &&
-      s.damageKind === "hull" &&
-      !this.wasHit &&
-      !this.control.reducedEffects?.()
-    )
+    if (s.hitEffect > 0 && s.damageKind === "hull" && !this.wasHit && !reduced)
       this.cameras.main.shake(100, 0.004);
     this.wasHit = s.hitEffect > 0;
-    if (s.hitEffect > 0) {
-      g.lineStyle(
-        5,
-        s.damageKind === "shield" ? 0x60d8ff : 0xff6d93,
-        s.hitEffect * 2,
-      );
-      g.strokeRoundedRect(3, 3, 384, 714, 12);
-    }
   }
 }
 export function createGame(parent: HTMLElement, control: GameControl) {

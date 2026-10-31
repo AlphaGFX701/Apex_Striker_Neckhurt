@@ -6,3 +6,5 @@ coverage/
 build/
 ios/App/Pods/
 ios/App/DerivedData/
+artifacts/*-server*.log
+artifacts/onslaught-soak*.log

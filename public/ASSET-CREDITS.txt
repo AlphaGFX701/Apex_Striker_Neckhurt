@@ -60,3 +60,5 @@ Pickup icons in public/assets/arcade were drawn as original vector artwork for t
 - Pickup/ready/warning/victory synthesis: original Web Audio effects. Spoken phrases use the user's installed English device voices through SpeechSynthesis; no recorded celebrity or cloned voice is used.
 
 Rebuild runtime assets with scripts/build-environment-assets.py using Pillow and imageio-ffmpeg. The script reads local archives from Desktop/Space_combat; it does not copy restricted source ZIPs into public/.
+
+MOBILE ONSLAUGHT: Baldur/Foozle Void Fleet kitbashed capital ships and escorts (CC0); Wenrexa UI Sci-Fi Minimalism #01 (CC0, https://wenrexa.itch.io/nesia01); GrafxKid sparkles (CC0); original semantic badges/shield/hull/turrets (CC0). Oxanium and Barlow are self-hosted with SIL OFL texts. See /assets/onslaught/credits.json. User-supplied Terminal_Dash and ORBITAL BOMBARDMENT retain their original ownership. Individual sci-fi sound samples used under project-use terms; see /assets/audio/provenance.json. Supplied mismatching NPC WAVs are not used as item announcements.

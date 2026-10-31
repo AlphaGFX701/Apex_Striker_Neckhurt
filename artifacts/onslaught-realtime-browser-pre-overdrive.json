@@ -1,0 +1,13 @@
+[
+  {
+    "stage": 1,
+    "weapon": "plasma",
+    "startedAt": "2026-10-31T09:36:44.789Z",
+    "endedAt": "2026-10-31T09:40:27.783Z",
+    "result": {
+      "boss": "0 / 900 · PHASE 3/3",
+      "metrics": "{\"time\":206.80597999993785,\"frameP95\":7.100000000005821,\"frames\":1800,\"enemies\":7,\"enemyBullets\":0}",
+      "stats": "Score\n18,333\nFlight time\n206.8s\nDodges\n0\nEMP uses\n6"
+    }
+  }
+]

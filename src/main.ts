@@ -9,7 +9,11 @@ import {
 import { GamepadAdapter, type PadFrame, type PadCommand } from "./gamepad";
 import { ControllerLab } from "./controller-lab";
 import { SensorController } from "./sensor";
-import { AudioDirector } from "./audio-director";
+import {
+  AudioDirector,
+  VOICE_CLIPS,
+  VOICE_SOURCE_STATUS,
+} from "./audio-director";
 import { createGame } from "./game";
 import { GameModel, type GameSnapshot } from "./model";
 import { ProgressStore } from "./progress";
@@ -17,8 +21,6 @@ import {
   EQUIPMENT,
   STAGES,
   defaultRun,
-  defaultEquipment,
-  equipmentStat,
   type EquipmentId,
   type RunConfig,
 } from "./equipment";
@@ -33,7 +35,11 @@ const el = <T extends HTMLElement = HTMLElement>(id: string) =>
   document.getElementById(id) as T;
 const dialog = (id: string) => el<HTMLDialogElement>(id);
 const icon = (id: string) => `<img src="/assets/tactical/${id}.svg" alt="">`;
-const progress = new ProgressStore(undefined, true),
+const progress = new ProgressStore(
+    undefined,
+    true,
+    "gyro-onslaught-progress-v1",
+  ),
   build = new ShipBuildStore(),
   sensor = new SensorController(),
   pad = new GamepadAdapter(),
@@ -45,8 +51,7 @@ let source = matchMedia("(pointer: coarse)").matches ? "sensor" : "manual",
   mode: "stage" | "endless" = "stage",
   parts: ShipPartImages | undefined,
   rotation = 0,
-  selectedItem: EquipmentId = progress.state.equipment.main,
-  slot = "main";
+  selectedItem: EquipmentId = progress.state.equipment.main;
 const returnRoutes: string[] = [];
 const legacyWeapon = new ProgressStore().state.equipment.main;
 let arcadeWeapon: "pulse" | "plasma" | "laser" =
@@ -66,8 +71,6 @@ let runId = "",
   padFrame: PadFrame | undefined,
   padMenu: boolean[] = [],
   labActive = false,
-  countdownUntil = 0,
-  renderedPower = false,
   toastTimer = 0;
 const names: Record<Action, string> = {
   dodgeLeft: "Dodge left",
@@ -201,6 +204,10 @@ const { scene } = createGame(el("game"), {
   },
   onRelease: () => pause("Touch released. Resume when you are ready."),
 });
+if (qaPilot)
+  void import("./qa-tools").then(({ installQaCapture }) =>
+    installQaCapture(scene, () => feedback.capture()),
+  );
 document.addEventListener("pointerdown", () => feedback.unlock(), {
   once: true,
 });
@@ -218,6 +225,20 @@ el("test-sound").onclick = () => {
   feedback.unlock();
   feedback.ready();
 };
+el("voice-source-status").textContent = VOICE_SOURCE_STATUS;
+el("voice-previews").replaceChildren(
+  ...VOICE_CLIPS.map((clip) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "secondary";
+    button.textContent = clip.text;
+    button.onclick = () => {
+      feedback.unlock();
+      feedback.previewVoice(clip.key);
+    };
+    return button;
+  }),
+);
 function balance() {
   el("balance").textContent = "";
   el("save-status").textContent = progress.persistent
@@ -229,9 +250,11 @@ function setView(next: string) {
   view = next;
   if (next !== "battle") {
     feedback.clearAnnouncements();
+    feedback.resumeAudio();
     feedback.music("menu");
   }
   document.body.dataset.view = next;
+  document.title = `${({ home: "Mobile Onslaught", stages: "Missions", hangar: "Hangar", battle: "In flight", preflight: "Preflight", settings: "Settings", controller: "Controller Lab", results: "Flight report", records: "Records" } as Record<string, string>)[next] || "Flight"} · Gyro Space Combat`;
   document.querySelectorAll<HTMLElement>(".screen").forEach((s) => {
     s.hidden = s.id !== next;
   });
@@ -489,101 +512,12 @@ function renderEquipment() {
     );
 }
 
-function openEquipment(id: EquipmentId) {
-  selectedItem = id;
-  const item = EQUIPMENT.find((e) => e.id === id)!,
-    level = progress.state.levels[id];
-  el("practice-level-label").hidden = !practice();
-  el<HTMLSelectElement>("practice-level").value = String(practiceLevels[id]);
-  el("unequip-item").hidden = item.slot === "main";
-  el("equipment-name").textContent = item.name;
-  el("equipment-description").textContent = item.description;
-  el("equipment-comparison").innerHTML =
-    `<div><small>CURRENT · ${level ? "LEVEL " + level : "LOCKED"}</small><strong>${level ? equipmentStat(id, level) : "Not owned"}</strong></div><div><small>${level === 3 ? "MAXIMUM LEVEL" : "NEXT · LEVEL " + (level + 1)}</small><strong>${equipmentStat(id, Math.min(3, level + 1))}</strong><span class="positive">${level < 3 ? (level === 0 ? "New combat system" : "+20% base firepower / improved system") : "Fully upgraded"}</span></div>`;
-  el<HTMLButtonElement>("equip-item").disabled = level === 0 && !practice();
-  el<HTMLButtonElement>("upgrade-item").disabled =
-    practice() || level >= 3 || progress.state.credits < progress.cost(id);
-  el("upgrade-item").textContent = practice()
-    ? "All levels available"
-    : level >= 3
-      ? "Maximum level"
-      : `${level ? "Upgrade" : "Unlock"} · ◈ ${progress.cost(id)}`;
-  el("equipment-status").textContent = practice()
-    ? "Practice can equip any system without purchasing."
-    : "";
-  el<HTMLSelectElement>("preview-level").value = String(
-    practice() ? practiceLevels[id] : Math.max(1, level),
-  );
-  previewDirty = true;
-  if (!dialog("equipment-dialog").open) dialog("equipment-dialog").showModal();
-}
-let practiceEquipment = defaultEquipment();
-let practiceLevels = {
-  pulse: 3,
-  plasma: 3,
-  laser: 3,
-  missile: 3,
-  shield: 3,
-  drone: 3,
-};
-el("equip-item").onclick = () => {
-  const item = EQUIPMENT.find((e) => e.id === selectedItem)!;
-  if (practice()) {
-    practiceEquipment[item.slot] = item.id;
-    practiceLevels[item.id] = Number(
-      el<HTMLSelectElement>("practice-level").value,
-    );
-    toast("Equipped for practice only.");
-  } else {
-    progress.equip(selectedItem);
-    toast("System equipped.");
-  }
-  renderEquipment();
-  previewDirty = true;
-  dialog("equipment-dialog").close();
-};
-el("upgrade-item").onclick = () => {
-  if (progress.upgrade(selectedItem)) {
-    balance();
-    renderEquipment();
-    openEquipment(selectedItem);
-    toast("Upgrade installed.");
-  } else toast("Upgrade unavailable.");
-};
-el("try-upgrade").onclick = () => {
-  el<HTMLSelectElement>("preview-level").value = String(
-    Math.min(3, progress.state.levels[selectedItem] + 1),
-  );
-  previewDirty = true;
-  dialog("equipment-dialog").close();
-  el("firing-preview").scrollIntoView({ block: "center", behavior: "smooth" });
-};
-el("practice-level").onchange = () => {
-  el<HTMLSelectElement>("preview-level").value =
-    el<HTMLSelectElement>("practice-level").value;
-  previewDirty = true;
-};
-el("unequip-item").onclick = () => {
-  const item = EQUIPMENT.find((e) => e.id === selectedItem)!;
-  if (item.slot === "main") return;
-  if (practice()) practiceEquipment[item.slot] = null;
-  else {
-    progress.state.equipment[item.slot] = null;
-    progress.save();
-  }
-  renderEquipment();
-  previewDirty = true;
-  dialog("equipment-dialog").close();
-};
-el("close-equipment").onclick = () => dialog("equipment-dialog").close();
-el("preview-level").onchange = () => {
-  previewDirty = true;
-};
 function renderStages() {
+  el<HTMLSelectElement>("stage-weapon").value = arcadeWeapon;
   el("stage-cards").innerHTML =
     STAGES.map((s, i) => {
       const locked = false;
-      return `<article class="stage-card stage-${i}"><span class="eyebrow">SECTOR 0${i + 1} · ${progress.state.cleared.includes(i) ? "CLEARED" : locked ? "LOCKED" : "AVAILABLE"}</span><img src="/assets/environment/boss-preview-${i}.webp" alt="${s.boss}"><h2>${s.name}</h2><p>${s.description}</p><div class="stage-meta"><span>BOSS <b>${s.boss}</b></span><span>WEAKNESS <b>${s.weakness.toUpperCase()} ×1.25</b></span></div><button class="${locked ? "secondary" : "primary"}" data-stage="${i}" ${locked ? "disabled" : ""}>${locked ? "Clear the previous stage" : "Prepare mission →"}</button></article>`;
+      return `<article class="stage-card stage-${i}"><span class="eyebrow">SECTOR 0${i + 1} · ${progress.state.cleared.includes(i) ? "CLEARED" : locked ? "LOCKED" : "AVAILABLE"}</span><img src="/assets/onslaught/boss-${i}-preview.png" alt="${s.boss}"><h2>${s.name}</h2><p>${s.description}</p><div class="stage-meta"><span>BOSS <b>${s.boss}</b></span><span>WEAKNESS <b>${s.weakness.toUpperCase()} ×1.25</b></span></div><button class="${locked ? "secondary" : "primary"}" data-stage="${i}" ${locked ? "disabled" : ""}>${locked ? "Clear the previous stage" : "Prepare mission →"}</button></article>`;
     }).join("") +
     `<article class="stage-card endless-card"><span class="eyebrow">SURVIVAL OPERATIONS</span><h2>Endless frontier.</h2><p>No time limit. Escalating waves, rotating threats and a boss every three waves.</p><button class="primary" id="endless-start" >Prepare endless run →</button></article>`;
   el("stage-cards")
@@ -602,6 +536,14 @@ function renderStages() {
     setView("preflight");
   };
 }
+el<HTMLSelectElement>("stage-weapon").onchange = () => {
+  arcadeWeapon = el<HTMLSelectElement>("stage-weapon")
+    .value as typeof arcadeWeapon;
+  selectedItem = arcadeWeapon;
+  try {
+    localStorage.setItem("gyro-arcade-weapon", arcadeWeapon);
+  } catch {}
+};
 el("practice-mode").onchange = () => renderStages();
 function config(): RunConfig {
   const c = defaultRun();
@@ -623,7 +565,7 @@ function renderPreflight() {
   el("mission-name").textContent =
     mode === "endless" ? "Endless Frontier" : STAGES[selectedStage].name;
   el("mission-detail").textContent =
-    `${practice() ? "PRACTICE · " : ""}${mode === "stage" ? "90 seconds · " : ""}3 lives · Auto-fire`;
+    `${practice() ? "PRACTICE · " : ""}${mode === "stage" ? "2 min assault · Endurance boss · " : ""}3 lives · Auto-fire`;
   el("mission-loadout").innerHTML = Object.values(c.equipment)
     .filter(Boolean)
     .map((id) => {
@@ -668,7 +610,7 @@ for (const id of ["enable-sensors", "settings-enable"])
     await sensor.enable();
     toast(sensor.telemetry.message);
   };
-for (const id of ["center-sensors", "settings-center", "power-center"])
+for (const id of ["center-sensors", "settings-center"])
   el(id).onclick = () => {
     sensor.calibrate();
     clearInput();
@@ -696,7 +638,7 @@ el("launch").onclick = () => {
     toast("Ship artwork is still loading. Try again shortly.");
     return;
   }
-  feedback.unlock();
+  feedback.resumeAudio();
   feedback.clearAnnouncements();
   scene.model.configure(config());
   scene.setPractice(practice());
@@ -706,24 +648,75 @@ el("launch").onclick = () => {
   lastLives = 3;
   lastEnergy = 0;
   lastPickupCount = 0;
-  renderedPower = false;
   clearInput();
   setView("battle");
   scene.start();
+  if (qaPilot) {
+    scene.model.practice = true;
+    const fixture = new URLSearchParams(location.search).get("fixture");
+    if (fixture) {
+      const m = scene.model;
+      m.state.powers.weapon = 2;
+      m.state.shield = true;
+      m.state.drones = [
+        { id: 1, side: -1, rank: 0 },
+        { id: 2, side: 1, rank: 0 },
+        { id: 3, side: -1, rank: 1 },
+      ];
+      m.state.powers.drone = 3;
+      if (fixture === "icons") {
+        m.state.boss = null;
+        m.state.miniBoss = null;
+        m.state.enemies = [];
+        m.state.enemyBullets = [];
+        m.state.rocks = [];
+        m.state.pickups = (
+          ["weapon", "missile", "drone", "shield", "repair", "energy"] as const
+        ).map((kind, i) => ({
+          x: 85 + (i % 3) * 110,
+          y: 290 + Math.floor(i / 3) * 105,
+          kind,
+          age: 0,
+          value: 0,
+        }));
+        scene.pause();
+        updateHud(m.state);
+      }
+      const seconds =
+          fixture === "icons" ? 0 : fixture === "warm"
+          ? 16
+          : fixture === "elite"
+            ? 55
+            : fixture === "mini"
+              ? 94
+              : 128;
+      for (let i = 0; i < seconds * 20; i++) {
+        m.update(0.05, { x: Math.sin(i * 0.018) * 0.3, y: 0 });
+        m.drainEvents();
+      }
+      if (m.state.boss && fixture === "boss")
+        m.state.boss.health = m.state.boss.maxHealth * 0.3;
+      m.state.shield = true;
+      m.state.drones = [
+        { id: 101, side: -1, rank: 0 },
+        { id: 102, side: 1, rank: 0 },
+        { id: 103, side: -1, rank: 1 },
+      ];
+      m.state.powers.drone = 3;
+    }
+  }
   sensor.setGestureActive(source === "sensor");
   feedback.music("in-the-wreckage");
   el("practice-energy").hidden = !practice();
 };
 function pause(reason = "Take a breath. The frontier can wait.") {
   if (view !== "battle") return;
-  countdownUntil = 0;
   scene.pause();
   feedback.pauseAudio();
   clearInput();
   sensor.setGestureActive(false);
   el("pause-reason").textContent = reason;
-  if (!dialog("pause-dialog").open && !dialog("power-dialog").open)
-    dialog("pause-dialog").showModal();
+  if (!dialog("pause-dialog").open) dialog("pause-dialog").showModal();
 }
 function resume() {
   feedback.unlock();
@@ -734,7 +727,6 @@ function resume() {
   }
   dialog("pause-dialog").close();
   clearInput();
-  countdownUntil = 0;
   scene.model.state.invincible = Math.max(scene.model.state.invincible, 0.6);
   scene.resume();
   feedback.resumeAudio();
@@ -744,7 +736,7 @@ function resume() {
 el("pause").onclick = () => pause();
 el("resume").onclick = resume;
 dialog("pause-dialog").addEventListener("cancel", (e) => e.preventDefault());
-dialog("power-dialog").addEventListener("cancel", (e) => e.preventDefault());
+
 el("pause-settings").onclick = () => navigate("settings");
 el("restart").onclick = () => {
   dialog("pause-dialog").close();
@@ -774,8 +766,7 @@ dialog("confirm-dialog").addEventListener("close", () => {
     view === "battle" &&
     scene.hasStarted &&
     !scene.isRunning &&
-    !countdownUntil &&
-    !dialog("power-dialog").open
+    !document.querySelector("dialog[open]")
   )
     dialog("pause-dialog").showModal();
 });
@@ -786,66 +777,59 @@ for (const [id, action] of [
 ] as const)
   el(id).onclick = () => scene.action(action);
 el("practice-energy").onclick = () => scene.model.fillEnergy();
-const perkNames: Record<string, [string, string]> = {
-  damage: ["Damage Boost", "+10% main weapon damage"],
-  rapid: ["Rapid Fire", "+10% main weapon fire rate"],
-  magnet: ["Magnet Field", "+40 pickup attraction range"],
-  charger: ["EMP Charger", "+1% EMP energy per second"],
-  evasive: ["Evasive Drive", "Dodge cooldown reduced by 0.3s"],
-  repair: ["Repair", "Restore one life; at full hull, gain 30% EMP"],
-  energy: ["EMP Supply", "Fully charge your EMP"],
-  credits: ["Salvage Cache", "Collect 20 additional credits"],
-};
-function showPowers(s: GameSnapshot) {
-  renderedPower = true;
-  scene.pause();
-  feedback.pauseAudio();
-  clearInput();
-  sensor.setGestureActive(false);
-  el("power-cards").innerHTML = s.powerChoices
-    .map(
-      (id) =>
-        `<button class="power-card" data-power="${id}">${icon(id)}<small>FIELD UPGRADE${s.perks[id] ? ` · STACK ${s.perks[id] + 1}/2` : ""}</small><h3>${perkNames[id][0]}</h3><p>${perkNames[id][1]}</p><span>Install upgrade →</span></button>`,
-    )
-    .join("");
-  el("power-cards")
-    .querySelectorAll<HTMLButtonElement>("[data-power]")
-    .forEach(
-      (b) =>
-        (b.onclick = () => {
-          scene.model.choosePower(b.dataset.power!);
-          dialog("power-dialog").close();
-          renderedPower = false;
-          resume();
-        }),
-    );
-  dialog("power-dialog").showModal();
-}
 function updateHud(s: GameSnapshot) {
   el("score").textContent = String(s.score).padStart(6, "0");
+  const clock = s.boss ? Math.max(0, s.time - s.bossStarted) : s.time;
   el("time").textContent =
-    scene.model.config.mode === "endless"
-      ? `${Math.floor(s.time / 60)}:${String(Math.floor(s.time % 60)).padStart(2, "0")}`
-      : String(Math.ceil(90 - s.time));
-  el("wave").textContent =
-    scene.model.config.mode === "endless" ? `WAVE ${s.wave}` : "TIME LEFT";
+    `${Math.floor(clock / 60)}:${String(Math.floor(clock % 60)).padStart(2, "0")}`;
+  el("wave").textContent = s.boss
+    ? "BOSS ENGAGED"
+    : scene.model.config.mode === "endless"
+      ? `WAVE ${s.wave}`
+      : "ASSAULT";
   el("combo").textContent = s.combo > 1 ? `${s.combo} CHAIN` : "";
-  el("lives").textContent =
-    "♥ ".repeat(Math.max(0, s.lives)) + "♡ ".repeat(Math.max(0, 3 - s.lives));
-  el("shield-status").textContent = s.shield ? "SHIELD ONLINE" : "";
-  el("run-credits").textContent = s.powers.weapon
-    ? `POWER ${s.powers.weapon + 1}`
+  if (el("lives").dataset.hp !== String(s.lives)) {
+    el("lives").dataset.hp = String(s.lives);
+    el("lives").innerHTML = Array.from(
+      { length: 3 },
+      (_, i) =>
+        `<i class="hull-segment ${i < s.lives ? "full" : "empty"}" aria-hidden="true"></i>`,
+    ).join("");
+    el("lives").setAttribute("aria-label", `Hull ${s.lives} of 3`);
+  }
+  if (el("shield-status").dataset.online !== String(s.shield)) {
+    el("shield-status").dataset.online = String(s.shield);
+    el("shield-status").classList.toggle("online", s.shield);
+    el("shield-status").innerHTML =
+      `<img src="/assets/onslaught/pickup-shield.png" alt="">${s.shield ? "SHIELD ONLINE" : "NO SHIELD"}`;
+  }
+  el("drone-status").textContent = s.drones.length
+    ? `ESCORT ×${s.drones.length}`
     : "";
+  el("battle").dataset.damage = s.hitEffect > 0 ? s.damageKind : "";
+  el("run-credits").textContent = s.powers.weapon
+    ? `POWER ${s.powers.weapon + 1}${s.powers.overdrive > 0 ? ` · RED ${Math.ceil(s.powers.overdrive)}s` : ""}`
+    : "";
+  el("run-credits").classList.toggle("overdrive", s.powers.overdrive > 0);
   for (const event of scene.model.drainEvents()) {
     if (event.type === "pickup") feedback.pickup(event.data.effect);
     else if (event.type === "warning") feedback.warning();
+    else if (event.type === "shield-hit") feedback.shieldHit();
+    else if (event.type === "drone-intercept") feedback.droneIntercept();
+    else if (event.type === "hull-hit") feedback.hullHit();
+    else if (
+      event.type === "enemy-destroyed" ||
+      event.type === "mini-destroyed"
+    )
+      feedback.explosion();
   }
   if (scene.isRunning) feedback.music(s.boss ? "battle" : "in-the-wreckage");
-  el("stage-warning").textContent = s.warning;
+  if (el("stage-warning").textContent !== s.warning)
+    el("stage-warning").textContent = s.warning;
   el("stage-warning").hidden = !s.warning;
   el("segment-label").textContent = [
     "WARM-UP",
-    "ELITE AMBUSH",
+    "PRESSURE",
     "MINI-BOSS RUSH",
     "FINAL BOSS",
   ][s.segment];
@@ -855,15 +839,29 @@ function updateHud(s: GameSnapshot) {
   el("emp-state").textContent =
     s.energy >= 100 ? "READY" : `${Math.floor(s.energy)}%`;
   el("emp").classList.toggle("charged", s.energy >= 100);
+  el("emp").style.setProperty("--charge", `${s.energy}%`);
+  for (const id of ["dodge-left", "dodge-right"])
+    el(id).style.setProperty(
+      "--charge",
+      `${(1 - s.dodgeCooldown / 2.5) * 100}%`,
+    );
   el("dodge-state").textContent = s.dodgeCooldown > 0 ? "RECHARGING" : "READY";
+  el("dodge-right").querySelector("small")!.textContent =
+    s.dodgeCooldown > 0 ? "RECHARGING" : "READY";
   const targetBoss = s.boss || s.miniBoss;
   el("segment-label").hidden = !!targetBoss;
   el("boss-hud").hidden = !targetBoss;
   if (targetBoss) {
     el("boss-hud").dataset.phase = String(targetBoss.phase || 1);
+    el("boss-hud").style.setProperty(
+      "--boss-hp",
+      `${Math.max(0, targetBoss.health / targetBoss.maxHealth) * 100}%`,
+    );
     el("boss-name").textContent = s.boss
       ? STAGES[scene.model.config.stage].boss
-      : "ELITE COMMANDER";
+      : ["Armored Carrier", "Reactor Frigate", "Command Escort"][
+          scene.model.config.stage
+        ];
     el("boss-phase").textContent =
       `${Math.max(0, Math.ceil(targetBoss.health))} / ${targetBoss.maxHealth} · PHASE ${targetBoss.phase || 1}${s.boss ? "/3" : ""}`;
     el<HTMLProgressElement>("boss-health").value = Math.max(
@@ -871,10 +869,7 @@ function updateHud(s: GameSnapshot) {
       targetBoss.health / targetBoss.maxHealth,
     );
   }
-  if (s.lives < lastLives) feedback.play("hit");
   lastLives = s.lives;
-  if (s.powerChoices.length && !renderedPower && view === "battle")
-    showPowers(s);
   if (s.gameOver && !settled) completeRound();
 }
 function completeRound() {
@@ -885,7 +880,6 @@ function completeRound() {
   clearInput();
   sensor.setGestureActive(false);
   dialog("pause-dialog").close();
-  dialog("power-dialog").close();
   const s = scene.model.state,
     c = scene.model.config,
     _reward = progress.settle(runId, {
@@ -916,13 +910,13 @@ function completeRound() {
     ["Flight time", s.time.toFixed(1) + "s"],
     ["Dodges", s.dodges],
     ["EMP uses", s.emps],
+    ["Shots intercepted", s.intercepted],
+    ["Power-ups", s.pickupCount],
   ]
     .map(([l, v]) => `<div><small>${l}</small><b>${v}</b></div>`)
     .join("");
   el("reward-breakdown").textContent = `Power-ups collected: ${s.pickupCount}`;
-  el("result-perks").innerHTML = Object.entries(s.perks)
-    .map(([p, n]) => `<span>${perkNames[p][0]} ×${n}</span>`)
-    .join("");
+  el("result-perks").textContent = `Flight seed ${s.seed}`;
   el("next-stage").hidden =
     c.mode !== "stage" || c.stage >= 2 || s.result !== "won";
   paint("result-ship");
@@ -1080,10 +1074,6 @@ function stopForVisibility() {
     pause("App switched or window lost focus. Resume when ready.");
   sensor.setGestureActive(false);
   clearInput();
-  if (countdownUntil) {
-    countdownUntil = 0;
-    pause("Resume interrupted.");
-  }
 }
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) stopForVisibility();
@@ -1182,9 +1172,8 @@ window.setInterval(() => {
       if (edge(13) || edge(15)) buttons[(index + 1) % buttons.length]?.focus();
       if (edge(0) && document.activeElement instanceof HTMLButtonElement)
         document.activeElement.click();
-      if (edge(1) && !dialog("power-dialog").open) {
-        if (dialog("equipment-dialog").open) dialog("equipment-dialog").close();
-        else if (view === "controller" || view === "settings") {
+      if (edge(1)) {
+        if (view === "controller" || view === "settings") {
           {
             const back = returnRoutes.pop() || "home";
             settingsReturn = returnRoutes.at(-1) || "home";
@@ -1219,24 +1208,6 @@ function animate(now: number) {
     el("pickup-announcement").textContent = "";
   const dt = Math.min(0.05, (now - lastFrame) / 1000);
   lastFrame = now;
-  if (countdownUntil && view === "battle") {
-    const remaining = countdownUntil - now;
-    el("battle-hint").textContent =
-      `GET READY · ${Math.max(1, Math.ceil(remaining / 1000))}`;
-    if (remaining <= 0) {
-      countdownUntil = 0;
-      const reason = ready();
-      if (reason || document.querySelector("dialog[open]")) {
-        pause(reason || "Mission paused.");
-        requestAnimationFrame(animate);
-        return;
-      }
-      clearInput();
-      scene.resume();
-      sensor.setGestureActive(source === "sensor");
-      el("battle-hint").textContent = "";
-    }
-  }
   if (view === "hangar" && parts) {
     if (previewDirty) {
       previewDirty = false;
@@ -1250,8 +1221,12 @@ function animate(now: number) {
       const item = EQUIPMENT.find((e) => e.id === arcadeWeapon)!;
       c.equipment.main = item.id;
       c.levels = {
-        ...(practice() ? practiceLevels : progress.state.levels),
-        [selectedItem]: Number(el<HTMLSelectElement>("preview-level").value),
+        pulse: 1,
+        plasma: 1,
+        laser: 1,
+        missile: 1,
+        shield: 1,
+        drone: 1,
       };
       preview = new GameModel();
       preview.configure(c);

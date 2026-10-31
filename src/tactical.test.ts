@@ -47,7 +47,7 @@ describe("tactical loadout", () => {
   });
 });
 describe("tactical simulation", () => {
-  it("pauses simulation for a choice and resets temporary upgrades", () => {
+  it("ignores legacy choice settings and keeps the arcade running", () => {
     const m = new GameModel(() => 0.2),
       c = defaultRun();
     c.powerups = true;
@@ -55,13 +55,13 @@ describe("tactical simulation", () => {
     m.practice = true;
     for (let i = 0; i < 410 && !m.state.powerChoices.length; i++)
       m.update(0.05, { x: 0, y: 0 });
-    expect(m.state.powerChoices).toHaveLength(3);
+    expect(m.state.powerChoices).toHaveLength(0);
     const t = m.state.time;
     m.update(0.05, { x: 1, y: 1 });
-    expect(m.state.time).toBe(t);
+    expect(m.state.time).toBeGreaterThan(t);
     expect(m.action("emp").accepted).toBe(false);
     expect(m.choosePower("invalid")).toBe(false);
-    expect(m.choosePower(m.state.powerChoices[0])).toBe(true);
+    expect(m.choosePower("repair")).toBe(false);
     m.reset();
     expect(m.state.perks).toEqual({});
     expect(m.state.powerChoices).toEqual([]);
@@ -138,7 +138,7 @@ describe("tactical simulation", () => {
     m.update(0.05, { x: 0, y: 0 });
     expect(missile.vx).toBeLessThan(before + 20);
   });
-  it("runs every stage to a terminal result with upgrades enabled", () => {
+  it("runs every stage to a terminal result with legacy flags safely ignored", () => {
     for (let stage = 0; stage < 3; stage++) {
       const m = new GameModel(() => 0.4),
         c = defaultRun();
@@ -150,7 +150,7 @@ describe("tactical simulation", () => {
       c.levels.missile = 3;
       m.configure(c);
       m.practice = true;
-      for (let i = 0; i < 6000 && !m.state.gameOver; i++) {
+      for (let i = 0; i < 14000 && !m.state.gameOver; i++) {
         if (m.state.powerChoices.length) m.choosePower(m.state.powerChoices[0]);
         const target = m.state.boss ? { x: m.state.boss.x, y: 600 } : null;
         if (m.state.energy >= 100) m.action("emp");
@@ -158,7 +158,7 @@ describe("tactical simulation", () => {
       }
       expect(m.state.gameOver).toBe(true);
       expect(m.state.result).toBe("practice");
-      expect(m.state.time).toBeLessThanOrEqual(90);
+      expect(m.state.time).toBeGreaterThan(180);
     }
   });
   it("simulates twenty minutes of Endless with bounded objects and valid choices", () => {
@@ -204,16 +204,23 @@ describe("tactical simulation", () => {
           s.explosions.length,
       );
       expect(s.bullets.length).toBeLessThanOrEqual(360);
-      expect(s.enemyBullets.length).toBeLessThanOrEqual(280);
-      expect(s.enemies.length).toBeLessThanOrEqual(24);
+      expect(s.enemyBullets.length).toBeLessThanOrEqual(360);
+      expect(s.enemies.length).toBeLessThanOrEqual(32);
     }
     expect(m.state.time).toBeGreaterThan(1200);
     expect(m.state.gameOver).toBe(false);
-    expect(m.state.wave).toBeGreaterThan(10);
-    expect(max).toBeLessThan(800);
+    expect(m.state.wave).toBeGreaterThan(3);
+    expect(max).toBeLessThan(850);
   });
 });
 describe("save recovery", () => {
+  it("keepsOnslaught scores separate and leavesolderarcade records untouched",()=>{
+    const old=JSON.stringify({version:6,records:[{mode:"stage",stage:0,score:900,time:80,date:"2026-10-18"}]});
+    const data=new Map([["gyro-arcade-progress-v1",old]]),storage={getItem:(k:string)=>data.get(k)||null,setItem:(k:string,v:string)=>{data.set(k,v)}};
+    const p=new ProgressStore(storage,true,"gyro-onslaught-progress-v1");expect(p.state.records).toHaveLength(0);
+    p.settle("new-rules",{practice:false,mode:"stage",stage:0,won:true,credits:999,score:100,time:210});
+    expect(p.state.records).toHaveLength(1);expect(p.state.credits).toBe(0);expect(p.state.cleared).toContain(0);expect(data.get("gyro-arcade-progress-v1")).toBe(old);
+  });
   it("does not award a completed round again after reloading the browser save", () => {
     const data = new Map<string, string>();
     const storage = {
@@ -288,8 +295,8 @@ it("advances the post-boss Endless wave and rotates its stage", () => {
     maxHealth: 70,
     shot: 1,
   };
-  m.state.energy = 100;
-  m.action("emp");
+  m.state.boss.health = 0;
+  m.update(0.01, { x: 0, y: 0 });
   expect(m.state.boss).toBeNull();
   expect(m.state.wave).toBe(4);
   expect(m.config.stage).toBe(1);

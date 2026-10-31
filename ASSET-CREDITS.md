@@ -60,3 +60,16 @@ Pickup icons in public/assets/arcade were drawn as original vector artwork for t
 - Pickup/ready/warning/victory synthesis: original Web Audio effects. Spoken phrases use the user's installed English device voices through SpeechSynthesis; no recorded celebrity or cloned voice is used.
 
 Rebuild runtime assets with scripts/build-environment-assets.py using Pillow and imageio-ffmpeg. The script reads local archives from Desktop/Space_combat; it does not copy restricted source ZIPs into public/.
+
+## Mobile Onslaught / Endurance bosses (current)
+
+- Baldur, commissioned and distributed by Foozle: Kla'ed and Nairan hulls, wings, escort fleets, engine and destruction strips from Void Fleet1/2. Pack READMEs specify CC0. Current capital ships are connected kitbashes with purpose-drawn spars, sockets and separate destructible turret geometry. Hit masks preserve each source silhouette. Runtime images and manifest are in assets/onslaught; rebuild with scripts/build-onslaught-assets.py.
+- Wenrexa, UI Sci-Fi Minimalism #01: https://wenrexa.itch.io/nesia01 . Official page specifies CC0 and permits commercial/free project use. Extracted button/header/item frames are game UI derivatives; no original ZIP ships.
+- GrafxKid Mini Pixel Pack3: CC0 as stated in pack LICENSE.txt. Sparkle frames are adapted for impacts.
+- Semantic weapon/missile/drone/shield/repair/EMP badges, hull energy segments, shield lattice, drone interception burst and matching turret additions are manually coded pixel/vector geometry, CC0. No generative imagery.
+- Oxanium (display) and Barlow (body): SIL Open Font License. Source font and license files are self-hosted under assets/fonts. Rajdhani is historical and no longer the display face.
+- User-supplied Terminal_Dash.mp3 and ORBITAL BOMBARDMENT Epic Sci-Fi Battle Music Space Fleet Invasion Soundtrack.mp3 are the active assault/boss tracks. Original ownership is retained; this project does not claim these tracks are CC0. Goose Ninja's menu track remains active in menus; older battle tracks are historical runtime files.
+- Provided sci-fi SFX pack is permitted for inclusion in projects, with no standalone resale/pack redistribution; its README discloses ElevenLabs-generated audio. Only individual runtime samples are included. Original procedural warp, EMP and explosion synthesis is code-authored.
+- Supplied renamed announcement WAVs are identical unrelated NPC dialogue. They are not shipped as falsely labelled item voices. Correct English device speech remains the fallback pending matching recordings. See AUDIO-PROVENANCE.md.
+
+Detailed asset provenance: /assets/onslaught/credits.json and /assets/audio/music-manifest.json. Earlier sections describe historical releases; current combat environments use Feony space-only variants, not the former planet background.

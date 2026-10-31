@@ -1,0 +1,6 @@
+{
+  "music": "User-provided Terminal_Dash and ORBITAL BOMBARDMENT; original ownership retained. File metadata is in music-manifest.json.",
+  "samples": "Individual samples from user-provided free-scifi-weapons-sounds-audio.zip, included as part of this game under pack README project-use terms. No standalone pack redistribution or resale. Pack discloses ElevenLabs-generated source audio.",
+  "originalSynthesis": "Code-authored EMP, warp, warning, ready and explosion effects.",
+  "voice": "Correct device speech fallback. Supplied identical NPC dialogue WAVs were not used as item announcements; see voice-manifest.json."
+}
