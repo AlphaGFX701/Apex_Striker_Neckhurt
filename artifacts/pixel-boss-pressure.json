@@ -1,0 +1,68 @@
+{
+  "kind": "controlled-boss-emission-fixture-not-human-playtest",
+  "method": "Clear previously observed hostile bullets each0.01s and count newly emitted shots; move pilot to avoid stationary beam. No player damage.",
+  "previousExposedSixSecondCounts": [
+    4,
+    5,
+    5
+  ],
+  "runs": [
+    {
+      "state": "armored",
+      "phase": 1,
+      "intervalSeconds": 6,
+      "emitted": 83,
+      "perSecond": 13.83
+    },
+    {
+      "state": "armored",
+      "phase": 2,
+      "intervalSeconds": 6,
+      "emitted": 100,
+      "perSecond": 16.67
+    },
+    {
+      "state": "armored",
+      "phase": 3,
+      "intervalSeconds": 6,
+      "emitted": 113,
+      "perSecond": 18.83
+    },
+    {
+      "state": "exposed",
+      "phase": 1,
+      "intervalSeconds": 6,
+      "emitted": 46,
+      "perSecond": 7.67
+    },
+    {
+      "state": "exposed",
+      "phase": 2,
+      "intervalSeconds": 6,
+      "emitted": 87,
+      "perSecond": 14.5
+    },
+    {
+      "state": "exposed",
+      "phase": 3,
+      "intervalSeconds": 6,
+      "emitted": 103,
+      "perSecond": 17.17
+    }
+  ],
+  "changes": {
+    "coreHP": 650,
+    "supplyOrbSeconds": [
+      24,
+      60,
+      96,
+      132,
+      168
+    ],
+    "enemyWeaponLootWeight": "1/16; previously1/6",
+    "meteorWeaponDropChance": 0.05,
+    "redProjectileShare": "one in three main rounds",
+    "redLaser": "two interceptions per third0.1s pulse",
+    "overdriveSeconds": 25
+  }
+}

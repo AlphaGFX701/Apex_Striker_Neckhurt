@@ -14,4 +14,8 @@ Stage1 boss:650 core HP,three phases. Pair of turrets15/20/25 HP each in phases1
 
 Keep music Terminal_Dash / ORBITAL BOMBARDMENT; no spoken announcements. Model owns rules and one-time events. Add shared ShipDefinition/WeaponPresentation/WaveScript and explicit boss state. Keep gyro calibration/pause/stale signal/disconnect behavior, no countdown. Only three skill buttons outside field.
 
-Acceptance: old relevant tests plus gates/thresholds/target selection/once-only rewards;9forms andallweapons;320x568,390x844,430x932,landscape;fullstage1with3weapons;stage2/3regression;20min actually-renderedbrowserEndless (exclude throttled intervals);physicalgyro/controller separate. Screens/video,credits,researchcomparison,testreport then publish existing public site. NoIPA/APKpackaging.
+Acceptance: old relevant tests plus gates/thresholds/target selection/once-only rewards;9forms andallweapons;320x568,390x844,430x932,landscape;fullstage1with3weapons;stage2/3regression;physicalgyro/controller separate. Screens/video,credits,researchcomparison,testreport then publish existing public site. NoIPA/APKpackaging.
+
+## User adjustments after review
+
+Skip the 20-minute Endless browser test. Move wingmen away from the flagship, positioning an edge-constrained wingman forward, with one engine effect per wingman. Stage-one boss uses denser fans, aimed shots and rings without increasing 650 HP; preserve the 90-unit safe lane and pause ordinary attacks during the warned beam. Reduce weapon Orb drop weight to 1/16, supplies to 24/60/96/132/168 seconds, and red interception to about one third of main shots; laser can intercept two shots every third pulse. Red duration remains 25 seconds. Test these updated behaviors and review the changes before publishing.

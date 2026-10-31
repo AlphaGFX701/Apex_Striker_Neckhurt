@@ -75,6 +75,10 @@ Rebuild runtime assets with scripts/build-environment-assets.py using Pillow and
 Detailed asset provenance: /assets/onslaught/credits.json and /assets/audio/music-manifest.json. Earlier sections describe historical releases; current combat environments use Feony space-only variants, not the former planet background.
 # Evolution Arcade runtime artwork
 
+## Pixel Combat player fleet
+
+Falcon, Raven and Atlas are adaptations of Baldur/Foozle's Nairan Fighter, Scout and Bomber from Void Fleet Pack 2 (CC0 1.0). The silhouettes are recolored and combined with parts from the same pack; banks, engines and evolution frames are prepared as pixel art. Muzzle flash frames derive from Gustavo Vituri's Space Shooter Asset Pack, which permits use and modification in games but not standalone redistribution. Detailed credits and license texts are in `public/assets/pixel-fleet/credits.json` and the accompanying license files. No art or code from Thunder Strike is included.
+
 Selected GUI derivatives: CraftPix Space Game GUI, from the user-supplied `Space_Game_GUI_PNG.zip`, under the [CraftPix file license](https://craftpix.net/file-licenses/). Only game-integrated runtime derivatives are included, never the source ZIP/PSD pack. Blank button material is derived from the author's window texture, with labels supplied by accessible HTML.
 
 Projectile, beam, fighter and booster frames: **Gustavo Vituri**, [Space Shooter Asset Pack](https://gvituri.itch.io/space-shooter). Personal/commercial game use and modification permitted; standalone pack redistribution prohibited. Author states no generative AI was used. The game includes selected frames, not an asset-library download. Friendly fighter tiers and engine frames are recolored cyan/silver/white, preserving authored silhouettes and alpha, to distinguish them from warm-colored hostile units.

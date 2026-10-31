@@ -627,8 +627,6 @@ el("launch").onclick = () => {
   scene.model.configure(config());
   scene.setPractice(practice());
   scene.setPixelShip(build.saved.hull);
-  for (const level of [1, 2, 3] as const)
-    scene.setShipCanvas(composeShip(build.saved, parts, 512, level), level);
   runId = crypto.randomUUID();
   settled = false;
   lastLives = 3;

@@ -23,20 +23,10 @@ export interface GameControl {
 }
 export class SpaceScene extends Phaser.Scene {
   readonly model = new GameModel();
-  shipStyle = 0;
-  private customShip = false;
   private pixelShipId: 0 | 1 | 2 = 0;
   private muzzleRemaining = 0;
   setPixelShip(id: number) {
     this.pixelShipId = normalizeShipId(id);
-  }
-  setShipCanvas(canvas: HTMLCanvasElement, level: 1 | 2 | 3 = 1) {
-    if (!this.textures) return;
-    const key = `player-custom-${level}`;
-    if (this.textures.exists(key)) this.textures.remove(key);
-    this.textures.addCanvas(key, canvas);
-    this.textures.get(key).setFilter(Phaser.Textures.FilterMode.NEAREST);
-    this.customShip = true;
   }
   private sprites: Phaser.GameObjects.Image[] = [];
   private spriteIndex = 0;
@@ -579,7 +569,7 @@ export class SpaceScene extends Phaser.Scene {
     }
     if (s.laser > 0) {
       const width = 7 + s.powers.weapon * 4,
-        red = s.powers.overdrive > 0,
+        red = s.laserInterceptor,
         beamColor = red ? 0xff3657 : 0x60d8ff;
       this.sprite(
         red ? "evo-red" : "evo-beam-core",
@@ -621,8 +611,6 @@ export class SpaceScene extends Phaser.Scene {
         p.y + 20,
         13,
       );
-      g.fillStyle(0x81eaff, 0.8);
-      g.fillEllipse(p.x, p.y + 13, 4, 9);
     }
     for (const hit of s.interceptions) {
       const t = Math.min(1, hit.age / 0.12),

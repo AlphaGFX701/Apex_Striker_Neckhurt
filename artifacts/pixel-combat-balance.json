@@ -15,7 +15,7 @@
     {
       "weapon": "pulse",
       "loadout": "level2-wing2",
-      "bossSeconds": 63.6,
+      "bossSeconds": 63,
       "result": "won",
       "coreHP": 650,
       "transitions": 2,
@@ -33,7 +33,7 @@
     {
       "weapon": "plasma",
       "loadout": "level2-wing2",
-      "bossSeconds": 62.95,
+      "bossSeconds": 62.15,
       "result": "won",
       "coreHP": 650,
       "transitions": 2,
@@ -51,7 +51,7 @@
     {
       "weapon": "laser",
       "loadout": "level2-wing2",
-      "bossSeconds": 54.6,
+      "bossSeconds": 54,
       "result": "won",
       "coreHP": 650,
       "transitions": 2,

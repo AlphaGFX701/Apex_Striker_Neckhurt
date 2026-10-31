@@ -216,6 +216,7 @@ export interface GameSnapshot {
     age: number;
   }[];
   laser: number;
+  laserInterceptor: boolean;
   seed: number;
   formation: string;
 }
@@ -229,9 +230,14 @@ export function clampShip(x: number, y: number) {
   };
 }
 export function dronePosition(ship: Body, d: Drone) {
+  const desiredX = ship.x + d.side * (84 + d.rank * 23);
+  const x = clamp(desiredX, 18, WORLD.width - 18);
+  // Near a screen edge, move the obstructed wingman forward instead of
+  // clamping it on top of the flagship's wide evolved wings.
+  const obstructed = Math.abs(x - ship.x) < 80;
   return {
-    x: clamp(ship.x + d.side * (42 + d.rank * 23), 12, 378),
-    y: ship.y + 8 + d.rank * 23,
+    x,
+    y: obstructed ? Math.max(22, ship.y - 70) : ship.y + 8 + d.rank * 23,
   };
 }
 /** Stage-one guided weapons share the same visible hardpoint geometry as collisions. */
@@ -356,6 +362,7 @@ export class GameModel {
       drones: [],
       interceptions: [],
       laser: 0,
+      laserInterceptor: false,
       seed: 0,
       formation: "",
     };
@@ -503,19 +510,25 @@ export class GameModel {
     );
     this.killsSinceDrop++;
     if (e.kind === 2 || this.killsSinceDrop >= 5 || this.random() < 0.3) {
-      const kinds: PickupKind[] =
-        s.lives === 1
-          ? [
-              "weapon",
-              "missile",
-              "drone",
-              "shield",
-              "repair",
-              "repair",
-              "repair",
-              "energy",
-            ]
-          : ["weapon", "missile", "drone", "shield", "repair", "energy"];
+      const kinds: PickupKind[] = [
+        "weapon",
+        "missile",
+        "missile",
+        "missile",
+        "drone",
+        "drone",
+        "drone",
+        "shield",
+        "shield",
+        "shield",
+        "repair",
+        "repair",
+        "repair",
+        "energy",
+        "energy",
+        "energy",
+      ];
+      if (s.lives === 1) kinds.push("repair", "repair", "repair");
       s.pickups.push({
         x: e.x,
         y: e.y,
@@ -580,7 +593,7 @@ export class GameModel {
       });
     }
   }
-  private ring(x: number, y: number, speed: number, rotation = 0) {
+  private ring(x: number, y: number, speed: number, rotation = 0, count = 24) {
     speed *= Math.min(
       1.4,
       1 + this.config.stage * 0.08 + (this.state.wave - 1) * 0.025,
@@ -588,10 +601,10 @@ export class GameModel {
     const gap = Math.atan2(this.state.ship.y - y, this.state.ship.x - x) + 0.35;
     for (
       let i = 0;
-      i < 24 && this.state.enemyBullets.length < LIMITS.enemyBullets;
+      i < count && this.state.enemyBullets.length < LIMITS.enemyBullets;
       i++
     ) {
-      const a = (i * Math.PI * 2) / 24 + rotation;
+      const a = (i * Math.PI * 2) / count + rotation;
       if (Math.abs(Math.atan2(Math.sin(a - gap), Math.cos(a - gap))) < 0.28)
         continue;
       this.pushPatternShot({
@@ -802,7 +815,7 @@ export class GameModel {
     const stage = this.config.stage,
       endless = this.config.mode === "endless";
     s.time += step;
-    const supplyTimes = [12, 28, 48, 72, 96];
+    const supplyTimes = [24, 60, 96, 132, 168];
     while (
       this.supplyIndex < supplyTimes.length &&
       s.time >= supplyTimes[this.supplyIndex]
@@ -865,6 +878,7 @@ export class GameModel {
     s.energy = Math.min(100, s.energy + (step * 100) / 75);
     s.powers.missile = Math.max(0, s.powers.missile - step);
     s.powers.overdrive = Math.max(0, s.powers.overdrive - step);
+    if (s.powers.overdrive <= 0) s.laserInterceptor = false;
     this.laserBlockBudget = 0;
     for (const key of [
       "invincible",
@@ -1126,7 +1140,8 @@ export class GameModel {
       this.fireCount++;
       if (main === "laser") {
         s.laser = 0.12;
-        if (s.powers.overdrive > 0) this.laserBlockBudget += 4;
+        s.laserInterceptor = s.powers.overdrive > 0 && this.fireCount % 3 === 0;
+        if (s.laserInterceptor) this.laserBlockBudget += 2;
         const targets = [
           ...s.enemies.filter((e) => e.health > 0),
           ...(s.miniBoss ? [s.miniBoss] : []),
@@ -1176,7 +1191,7 @@ export class GameModel {
           this.spark(s.ship.x, t.y);
         }
       } else
-        for (const shot of weaponVolley(main, level)) {
+        for (const [index, shot] of weaponVolley(main, level).entries()) {
           const angle = (shot.angle * Math.PI) / 180;
           s.bullets.push({
             x: s.ship.x + shot.offset,
@@ -1185,7 +1200,8 @@ export class GameModel {
             speed: Math.cos(angle) * 530,
             vx: Math.sin(angle) * 530,
             damage: shot.damage * 0.7,
-            interceptor: s.powers.overdrive > 0,
+            interceptor:
+              s.powers.overdrive > 0 && (this.fireCount + index) % 3 === 0,
             type: main,
           });
         }
@@ -1219,7 +1235,7 @@ export class GameModel {
             Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y),
         )[0];
         const angle = target
-          ? clamp(Math.atan2(target.x - p.x, p.y - target.y), -0.26, 0.26)
+          ? Math.atan2(target.x - p.x, p.y - target.y)
           : 0;
         for (const offset of wingLevel === 3 ? [-4, 4] : [0])
           s.bullets.push({
@@ -1378,9 +1394,14 @@ export class GameModel {
     }
     b.shot -= step;
     if (b.shot <= 0 && !s.beams.length && (b.restUntil ?? 0) <= s.time) {
-      b.shot = mounts.length
-        ? (phase === 1 ? 1.6 : phase === 2 ? 1.45 : 1.25) / (1 + stage * 0.05)
-        : 2.4;
+      const onslaught = b.state !== undefined;
+      b.shot = onslaught
+        ? mounts.length
+          ? [0.9, 0.8, 0.7][phase - 1]
+          : [1.1, 0.95, 0.85][phase - 1]
+        : mounts.length
+          ? (phase === 1 ? 1.6 : phase === 2 ? 1.45 : 1.25) / (1 + stage * 0.05)
+          : 2.4;
       const beforeShots = s.enemyBullets.length;
       // Paired mounts alternate, reducing pressure when a hardpoint is destroyed.
       const parity = Math.floor(b.age * 2) % 2;
@@ -1388,26 +1409,43 @@ export class GameModel {
         ? (b.turrets ?? []).filter((t, i) => t.health > 0 && i % 2 === parity)
         : [{ x: 0, y: 45 }];
       b.attackSerial = (b.attackSerial ?? 0) + 1;
-      const ringAttack = b.attackSerial % 3 === 0 && mounts.length > 0;
+      const ringAttack =
+        b.attackSerial % 3 === 0 && (onslaught || mounts.length > 0);
       if (ringAttack) {
-        this.ring(b.x, b.y + 55, 90 + phase * 8, b.age * 0.07);
-        b.shot = 2.8;
-        b.restUntil = s.time + 1.8;
+        this.ring(
+          b.x,
+          b.y + 55,
+          90 + phase * 8,
+          b.age * 0.07,
+          onslaught ? 28 + phase * 4 : 24,
+        );
+        b.shot = onslaught ? 1.8 : 2.8;
+        b.restUntil = s.time + (onslaught ? 1.1 : 1.8);
       }
       for (const t of ringAttack ? [] : active) {
         const x = b.x + t.x,
           y = b.y + t.y;
         const aim =
-          phase >= 2
+          phase >= 2 || (onslaught && b.attackSerial % 3 === 2)
             ? Math.atan2(s.ship.x - x, Math.max(110, s.ship.y - y))
             : Math.sin(b.age * 0.65) * 0.3;
         this.fan(
           x,
           y,
-          mounts.length ? (phase === 1 ? 5 : phase === 2 ? 7 : 9) : 3,
+          onslaught
+            ? mounts.length
+              ? 9 + phase * 2
+              : 7 + phase * 2
+            : mounts.length
+              ? phase === 1
+                ? 5
+                : phase === 2
+                  ? 7
+                  : 9
+              : 3,
           phase === 1 ? 112 : 128,
           aim,
-          0.15,
+          onslaught ? 0.13 : 0.15,
         );
       }
       if (s.enemyBullets.length === beforeShots) {
@@ -1489,7 +1527,9 @@ export class GameModel {
               y: r.y,
               age: 0,
               value: 0,
-              kind: this.random() < 0.4 ? "repair" : "weapon",
+              kind: (["repair", "repair", "energy", "weapon"] as const)[
+                Math.floor(this.random() * 4) % 4
+              ],
             });
           break;
         }

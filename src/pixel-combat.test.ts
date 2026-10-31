@@ -97,6 +97,37 @@ describe("stage-one pixel combat", () => {
       expect(b.health).toBeLessThan(hp);
     }
   });
+  it.each([1, 2, 3])(
+    "keeps phase %i threatening after both mounts are destroyed",
+    (phase) => {
+      const m = commander(),
+        b = m.state.boss!;
+      b.state = "exposed";
+      b.phase = phase;
+      b.shot = 0.01;
+      b.health = phase === 1 ? 650 : phase === 2 ? 430 : 215;
+      b.turrets!.forEach((t) => (t.health = 0));
+      let emitted = 0;
+      for (let i = 0; i < 600; i++) {
+        m.state.enemyBullets = [];
+        m.state.bullets = [];
+        m.state.enemies = [];
+        m.update(0.01, { x: Math.floor(i / 100) % 2 ? -1 : 1, y: 0 });
+        emitted += m.state.enemyBullets.length;
+      }
+      expect(emitted).toBeGreaterThanOrEqual(24);
+    },
+  );
+  it("suspends normal salvos for the entire large-beam warning and firing interval", () => {
+    const m = commander();
+    m.state.boss!.shot = 0;
+    m.state.beams = [{ x: 100, age: 0 }];
+    for (let i = 0; i < 35; i++) {
+      m.state.bullets = [];
+      m.update(0.05, { x: 0, y: 0 });
+      expect(m.state.enemyBullets).toHaveLength(0);
+    }
+  });
   it("aims both wingmen at the live mounts ahead instead of the nearer central escort", () => {
     const m = commander();
     m.state.ship.x = 195;
@@ -112,8 +143,13 @@ describe("stage-one pixel combat", () => {
     for (let i = 0; i < 5; i++) m.update(0.05, { x: 0, y: 0 });
     const guided = m.state.bullets.filter((b) => b.damage === 0.5625);
     expect(guided).toHaveLength(2);
-    expect(guided[0].vx).toBeLessThan(0);
-    expect(guided[1].vx).toBeGreaterThan(0);
+    const mounts = bossAimPoints(m.state.boss!);
+    for (const bullet of guided) {
+      const nearest = [...mounts].sort(
+        (a, b) => Math.abs(a.x - bullet.x) - Math.abs(b.x - bullet.x),
+      )[0];
+      expect(Math.sign(bullet.vx!)).toBe(Math.sign(nearest.x - bullet.x));
+    }
     m.state.bullets = [
       {
         x: 145,
@@ -129,6 +165,62 @@ describe("stage-one pixel combat", () => {
     ];
     m.update(0.05, { x: 0, y: 0 });
     expect(m.state.bullets.find((b) => b.missile)!.speed).toBeGreaterThan(280);
+  });
+  it("spaces guaranteed supplies but still offers five evolution orbs during stage one", () => {
+    const m = new GameModel();
+    m.practice = true;
+    for (const time of [24, 60, 96, 132, 168]) {
+      m.state.time = time - 0.01;
+      m.state.pickups = [];
+      m.state.bullets = [];
+      m.state.enemies = [];
+      m.update(0.02, { x: 0, y: 0 });
+      expect(m.state.pickups.filter((p) => p.kind === "weapon")).toHaveLength(
+        1,
+      );
+      for (const p of m.state.pickups)
+        Object.assign(p, { x: m.state.ship.x, y: m.state.ship.y });
+      m.update(0.01, { x: 0, y: 0 });
+    }
+    expect(m.state.evolution.level).toBe(3);
+    expect(m.state.evolution.orbs).toBe(5);
+  });
+  it.each([-1, 1] as const)(
+    "lets the outer wingman hit a live mount from screen edge %i",
+    (side) => {
+      const m = commander(),
+        b = m.state.boss!;
+      m.state.ship.x = side === -1 ? 23 : 367;
+      // Isolate the clamped outer wingman's shots while the boss drifts away;
+      // the inner wingman must not hide a missed firing angle in this fixture.
+      b.age = side === -1 ? 0 : Math.PI / 0.42;
+      m.state.wingmen.level = 2;
+      m.state.drones = [{ id: 1, side, rank: 0 }];
+      for (let i = 0; i < 400; i++) {
+        m.state.bullets = m.state.bullets.filter(
+          (shot) => shot.damage === 0.5625,
+        );
+        m.state.pickups = [];
+        m.state.enemies = [];
+        m.update(0.01, { x: 0, y: 0 });
+      }
+      const mount = b.turrets![side === -1 ? 0 : 1];
+      expect(mount.health).toBeLessThan(mount.maxHealth);
+      expect(b.health).toBe(650);
+    },
+  );
+  it("uses a one-in-sixteen weapon weight in guaranteed enemy loot", () => {
+    let orbs = 0;
+    for (let i = 0; i < 16; i++) {
+      const m = new GameModel(() => (i + 0.5) / 16);
+      m.state.enemies = [
+        { x: 100, y: 100, radius: 22, kind: 2, health: 6, shot: 10, phase: 0 },
+      ];
+      m.state.energy = 100;
+      m.action("emp");
+      orbs += m.state.pickups.filter((p) => p.kind === "weapon").length;
+    }
+    expect(orbs).toBe(1);
   });
   it("selects phase-appropriate authored motifs without adjacent repeats and resets", () => {
     const director = new StageWaveManager();

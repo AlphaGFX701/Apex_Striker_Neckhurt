@@ -15,11 +15,44 @@ function power(m: GameModel) {
   tick(m);
 }
 describe("25-second Red Overdrive", () => {
-  it("handles360crossing projectile pairs without duplicate interception",()=>{
-    const m=new GameModel();m.state.powers.overdrive=25;
-    m.state.bullets=Array.from({length:360},(_,i)=>({x:20+(i%24)*15,y:90+Math.floor(i/24)*35,radius:4,speed:530,interceptor:true}));
-    m.state.enemyBullets=m.state.bullets.map(b=>({x:b.x,y:b.y-12,radius:4,vx:0,vy:140}));
-    m.update(.05,{x:0,y:0});expect(m.state.intercepted).toBe(360);expect(m.state.enemyBullets).toHaveLength(0);expect(m.state.bullets).toHaveLength(0);
+  it.each(["pulse", "plasma"] as const)(
+    "interleaves red %s rounds instead of making every projectile an interceptor",
+    (weapon) => {
+      const m = new GameModel(),
+        c = defaultRun();
+      c.equipment.main = weapon;
+      m.configure(c);
+      m.state.evolution = { orbs: 5, level: 3, transformRemaining: 0 };
+      m.state.powers.weapon = 2;
+      m.state.powers.overdrive = 25;
+      tick(m, 0.72);
+      const red = m.state.bullets.filter((b) => b.interceptor).length;
+      expect(red).toBeGreaterThan(0);
+      expect(red / m.state.bullets.length).toBeGreaterThanOrEqual(0.3);
+      expect(red / m.state.bullets.length).toBeLessThanOrEqual(0.36);
+    },
+  );
+  it("handles360crossing projectile pairs without duplicate interception", () => {
+    const m = new GameModel();
+    m.state.powers.overdrive = 25;
+    m.state.bullets = Array.from({ length: 360 }, (_, i) => ({
+      x: 20 + (i % 24) * 15,
+      y: 90 + Math.floor(i / 24) * 35,
+      radius: 4,
+      speed: 530,
+      interceptor: true,
+    }));
+    m.state.enemyBullets = m.state.bullets.map((b) => ({
+      x: b.x,
+      y: b.y - 12,
+      radius: 4,
+      vx: 0,
+      vy: 140,
+    }));
+    m.update(0.05, { x: 0, y: 0 });
+    expect(m.state.intercepted).toBe(360);
+    expect(m.state.enemyBullets).toHaveLength(0);
+    expect(m.state.bullets).toHaveLength(0);
   });
   it("starts and refreshes25seconds even at max weapon, then resets on restart", () => {
     const m = new GameModel();
@@ -90,9 +123,9 @@ describe("25-second Red Overdrive", () => {
       vy: 0,
     }));
     m.state.beams = [{ x: 50, age: 0 }];
-    tick(m, 0.1);
+    tick(m, 0.31);
     expect(m.state.intercepted).toBeGreaterThan(0);
-    expect(m.state.intercepted).toBeLessThanOrEqual(4);
+    expect(m.state.intercepted).toBeLessThanOrEqual(2);
     expect(m.state.beams).toHaveLength(1);
   });
 });

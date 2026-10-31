@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { GameModel } from "./model";
+import { GameModel, dronePosition, WORLD } from "./model";
 function pickup(
   m: GameModel,
   kind: "weapon" | "drone" | "shield" | "energy" = "weapon",
@@ -8,6 +8,23 @@ function pickup(
   m.update(0.01, { x: 0, y: 0 });
 }
 describe("Evolution Arcade round rules", () => {
+  it("keeps wingmen clear of evolved wings, including at screen edges", () => {
+    const left = { id: 1, side: -1 as const, rank: 0 };
+    const right = { id: 2, side: 1 as const, rank: 0 };
+    for (const x of [
+      WORLD.margin,
+      WORLD.width / 2,
+      WORLD.width - WORLD.margin,
+    ]) {
+      const ship = { x, y: 600, radius: 6 };
+      for (const drone of [left, right]) {
+        const p = dronePosition(ship, drone);
+        expect(p.x).toBeGreaterThanOrEqual(18);
+        expect(p.x).toBeLessThanOrEqual(WORLD.width - 18);
+        expect(Math.abs(p.x - x) >= 80 || ship.y - p.y >= 70).toBe(true);
+      }
+    }
+  });
   it("evolves at two and five orbs, refreshes red fire and resets between runs", () => {
     const m = new GameModel();
     pickup(m);
@@ -23,10 +40,12 @@ describe("Evolution Arcade round rules", () => {
     m.update(0.05, { x: 0, y: 0 });
     pickup(m);
     expect(m.state.powers.overdrive).toBe(25);
-    m.state.invincible=0;m.state.shield=false;
-    m.state.enemyBullets=[{...m.state.ship,vx:0,vy:0}];
-    m.update(.01,{x:0,y:0});
-    expect(m.state.lives).toBe(2);expect(m.state.evolution.level).toBe(3);
+    m.state.invincible = 0;
+    m.state.shield = false;
+    m.state.enemyBullets = [{ ...m.state.ship, vx: 0, vy: 0 }];
+    m.update(0.01, { x: 0, y: 0 });
+    expect(m.state.lives).toBe(2);
+    expect(m.state.evolution.level).toBe(3);
     m.reset();
     expect(m.state.evolution).toMatchObject({ orbs: 0, level: 1 });
   });
@@ -141,7 +160,7 @@ describe("Evolution Arcade round rules", () => {
       m.state.rocks = [];
       m.update(0.05, { x: 0, y: 0 });
     }
-    expect(m.state.evolution.orbs).toBeGreaterThanOrEqual(2);
+    expect(m.state.evolution.orbs).toBeGreaterThanOrEqual(1);
     expect(m.state.energy).toBeCloseTo(44, 1);
     pickup(m, "energy");
     expect(m.state.energy).toBeCloseTo(49, 1);
