@@ -1,4 +1,4 @@
-# Pixel Combat — observable UI contract
+# Apex Strikers — Neon Onslaught — observable UI contract
 
 ## Canonical UI Map
 
@@ -44,6 +44,6 @@ A round settles once. Practice never writes records. Pixel scores use gyro-pixel
 
 Battle fits a 9:16 field without scrolling and respects safe areas. Menus may scroll. Controls have at least 44x44px touch targets, visible focus and pressed/selected/disabled states. Numeric readouts use tabular digits. Landscape preserves the portrait field. Real device observations and simulated test input are labelled separately.
 
-## First-sector objective
+## Commander objectives
 
-Source: PIXEL-COMBAT-PLAN.md. The first-sector commander shows BREAK THE TURRETS while armored, CORE EXPOSED while vulnerable and REARMING during its phase transition. There is one shared core-health bar, not a second boss-health layer. The phase transition clears danger and preserves remaining core health. Other-sector and Endless HUD remains compatible with the earlier boss shape.
+Source: NEON-PLAN.md. Every commander shows BREAK THE TURRETS while armored, CORE EXPOSED while vulnerable and REARMING during its phase transition. There is one shared core-health bar, not a second boss-health layer. The phase transition clears danger and preserves remaining core health. The HUD displays the current sector phase count:2/3/3. Stage3 adds Rage below20%. Super shows a five-second remaining status distinct from Red Overdrive. Victory and defeat presentation finish before Results; input and rewards stay frozen once the result is decided.

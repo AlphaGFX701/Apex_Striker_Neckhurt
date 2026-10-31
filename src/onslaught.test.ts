@@ -189,35 +189,14 @@ describe("mobile onslaught contract", () => {
     expect(t.health).toBeLessThan(before);
     expect(b.health).toBe(b.maxHealth);
   });
-  it("stationary phase-three targets lock once, allow an EMP cancel and leave a warp exit", () => {
-    const m = new GameModel();
-    m.practice = true;
-    m.state.time = 119.99;
-    tick(m, 0.02);
-    // Enter phase three through the authored hardpoint gates rather than
-    // assigning core HP, which no longer owns stage-one phase transitions.
-    for (let phase = 1; phase <= 2; phase++) {
-      const b = m.state.boss!;
-      for (const t of [...b.turrets!]) {
-        m.state.bullets = [
-          { x: b.x + t.x, y: b.y + t.y, radius: 2, speed: 0, damage: 1000 },
-        ];
-        tick(m, 0.01);
-      }
-      m.state.bullets = [{ x: b.x, y: b.y, radius: 2, speed: 0, damage: 1000 }];
-      tick(m, 0.01);
-      tick(m, 1.55);
-    }
-    expect(m.state.boss!.phase).toBe(3);
-    tick(m, 2.5);
-    expect(m.state.beams).toHaveLength(1);
-    const x = m.state.beams[0].x;
-    m.state.energy = 100;
-    m.action("emp");
-    expect(m.state.beams).toHaveLength(0);
-    tick(m, 0.3);
-    expect(m.action("dodgeLeft").accepted).toBe(true);
-    expect(Math.abs(m.state.ship.x - x)).toBeGreaterThan(28);
+  it("warned capital beams allow an EMP cancel and a warp exit",()=>{
+    const m=new GameModel();m.practice=true;m.state.time=119.99;tick(m,0.02);
+    const b=m.state.boss!;b.phase=2;b.attackSerial=4;b.shot=0;b.restUntil=0;
+    m.state.enemyBullets=[];m.state.beams=[];tick(m,0.01);
+    expect(m.state.beams).toHaveLength(1);const x=m.state.beams[0].x;
+    m.state.energy=100;m.action('emp');expect(m.state.beams).toHaveLength(0);
+    tick(m,0.3);expect(m.action('dodgeLeft').accepted).toBe(true);
+    expect(Math.abs(m.state.ship.x-x)).toBeGreaterThan(28);
   });
   it("destroyed original turret slots reduce volleys and core fallback is weaker", () => {
     const counts = (dead: number) => {

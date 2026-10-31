@@ -1,0 +1,17 @@
+# Apex Strikers — Neon Onslaught acceptance contract
+
+The user approved this implementation in the current chat. Baseline: ffd1900fa6ba7f0bb906c31a9968f7da502ca9f1.
+
+- Rename visible game, browser titles, app display name, documentation and downloadable device report to Apex Strikers; preserve URL, app ID and save keys.
+- Gyro remains primary, with calibration, controller and touch fallbacks. English interface. Three stages, Endless, Practice. No purchases/permanent strength.
+- Central DifficultyProfile: ordinary HP 6/9/12, armored HP 16/24/32, boss HP 900/1200/1500, enemy caps 14/18/22, boss-support caps 4/6/8, attack cadence 1/2/4, phases 2/3/3. Final sector Rage below 20% doubles pressure. Benchmark Level2 + escort2 at 65% tracking: 60–120 seconds; tune exposed-core vulnerability as needed to achieve this.
+- Replace permanent safe edge with reachable 90-unit escape corridors chosen between attack packets. Limit hostile projectile speed to 1.4x base. Big moves warn for 1.2 seconds and do not overlap other major hazards. Destroyed turrets stop firing; core gates in all sectors; phases never heal.
+- Add locked kamikaze charge (0.8 seconds before charging), breakable shield walls, rear homing gunners (tracking limited to two seconds), side crossfire. Ordinary formations leave through bottom edge.
+- Stage 2 phase 2 has two decoys, clearly marked true core, retaliation cooldown at least 1.2 seconds. Stage 3 has warned charge, 180-degree sweep beam and dense final packets during Rage.
+- Stage 1 meteors split once into two fragments, and distinct indestructible iron rocks. Stage 2 plasma reduces auto-fire by 50% only inside active cloud. Stage 3 warned defense grid. Stage2/3 destructible black hole, max one, 8-second life plus 1-second detonation warning, pull <=35% player speed, no overlap with major boss beams.
+- Use artist source packs: Kla'ed/Nairan/Nautolan per sector, actual hull/engine/weapon/shield/destruction layers, selected Void Environment assets. Do not publish source archives. No AI images or extracted Thunder Strike content.
+- Escort art from SpaceShooterAssetPack with directional Mini Pixel Pack3 boosters. Exactly two escorts, three ranks, no overlap with flagship. Extra pickup at max rank refreshes Super to five seconds, never stacks. New neon modules on all friendly ships; twice normal damage exactly once; ordinary-bullet interception; no invulnerability or giant-laser blocking. Preserve Red Overdrive timer and 32/78/124/170/216-second supply schedule and reduced Orb rate. Orb colors orange/cyan/green, same evolution rules.
+- EndingSequence: boss multi-point smoke/explosions slow presentation for three seconds, VICTORY for one second, then results; death explosion 1.5 seconds, GAME OVER then results. Settle rewards once. Practice/withdrawal retain their own outcomes; Endless boss defeat continues the next wave.
+- Terminal_Dash regular music, ORBITAL BOMBARDMENT boss music; no spoken announcements. Reduced Effects preserves readable warnings/outcomes while reducing flashes/shake/particles.
+- Caps: 22 enemies, 480 hostile/player rounds, 60 pickups, 160 particles. Pool visuals. Verify 320x568,390x844,430x932,844x390. Simulated all-stage and short Endless validation, no real-time 20-minute soak. Physical gyro/controller not claimed without hardware evidence.
+- Deliver screenshots, short video, credits, test report, successful build and deploy existing public Site with updated title.

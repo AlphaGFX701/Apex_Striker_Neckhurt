@@ -1,3 +1,4 @@
+import { DIFFICULTY, beamDistance, ORB_SUPPLY_TIMES, superMultiplier, endingDuration, nextEscapeLane, type EnemyArchetype, type BossPattern, type HazardState, type SuperModeState, type EndingSequence } from "./neon";
 import {
   StageWaveManager,
   waveAt,
@@ -27,9 +28,9 @@ import {
 } from "./equipment";
 export const WORLD = { width: 390, height: 693.3333333333, margin: 23 };
 export const LIMITS = {
-  enemies: 14,
-  playerBullets: 360,
-  enemyBullets: 360,
+  enemies: 22,
+  playerBullets: 480,
+  enemyBullets: 480,
   pickups: 60,
   particles: 160,
 };
@@ -39,6 +40,7 @@ export interface Body {
   radius: number;
 }
 export interface Rock extends Body {
+  iron?: boolean; fragment?: boolean; vx?: number;
   speed: number;
   spin: number;
   phase: number;
@@ -56,6 +58,7 @@ export interface Bullet extends Body {
   age?: number;
 }
 export interface Enemy extends Body {
+  muzzle?: number; archetype?: EnemyArchetype; shieldHP?: number; lock?: { x: number; y: number };
   path?: FlightPath;
   health: number;
   shot: number;
@@ -78,6 +81,7 @@ export type PickupKind =
   | "repair"
   | "energy";
 export interface EnemyBullet extends Body {
+  homing?: boolean; age?: number; lane?: number; source?: "boss" | "escort";
   prevX?: number;
   prevY?: number;
   vx: number;
@@ -92,6 +96,8 @@ export interface Turret {
   flashAt?: number;
 }
 export interface Boss extends Body {
+  muzzle?: number; rage?: boolean; pattern?: BossPattern; decoyCooldown?: number; decoys?: { x: number; y: number }[];
+  dash?: { age: number; x: number; y: number };
   state?: "armored" | "exposed" | "transition" | "defeated";
   transitionRemaining?: number;
   safeLaneX?: number;
@@ -127,7 +133,7 @@ export const comboMultiplier = (chain: number) =>
   chain >= 20 ? 5 : chain >= 10 ? 3 : chain >= 5 ? 2 : 1;
 export interface PickupCollected {
   kind: PickupKind;
-  effect: PickupKind | "score";
+  effect: PickupKind | "score" | "super";
 }
 export type CombatEvent =
   | { id: number; type: "pickup"; data: PickupCollected }
@@ -146,6 +152,7 @@ export type CombatEvent =
       text: string;
     };
 export interface GameSnapshot {
+  superMode: SuperModeState; hazards: HazardState[]; ending: EndingSequence | null; weaponJammed: boolean;
   evolution: EvolutionState;
   wingmen: WingmanState;
   stats: RunStats;
@@ -206,7 +213,7 @@ export interface GameSnapshot {
     size?: number;
     spark?: boolean;
   }[];
-  beams: { x: number; age: number; y?: number }[];
+  beams: { x: number; age: number; y?: number; sweep?: boolean }[];
   drones: Drone[];
   interceptions: {
     fromX: number;
@@ -300,6 +307,7 @@ export class GameModel {
   private droneId = 0;
   private droneCollected = false;
   private lastFormation = "";
+  private emittingBoss = false;
   private stationary = 0;
   private anchor = { x: 195, y: 610 };
   private random: () => number;
@@ -311,6 +319,7 @@ export class GameModel {
   }
   private initialState(): GameSnapshot {
     return {
+      superMode: { remaining: 0 }, hazards: [], ending: null, weaponJammed: false,
       evolution: { orbs: 0, level: 1, transformRemaining: 0 },
       wingmen: { level: 0 },
       stats: { enemiesDestroyed: 0, bestMultiplier: 1 },
@@ -442,6 +451,7 @@ export class GameModel {
       s.enemyBullets = [];
       s.beams = [];
       for (const r of s.rocks) this.explode(r.x, r.y, undefined, 65);
+      s.hazards=[];
       s.rocks = [];
       s.meteors = null;
       this.stationary = 0;
@@ -479,6 +489,14 @@ export class GameModel {
     this.state.outcome = result === "practice" ? "won" : result;
     this.state.result = this.practice ? "practice" : result;
     this.state.gameOver = true;
+    const kind = this.practice ? "practice" : result === "won" ? "victory" : result === "lost" || result === "timeout" ? "defeat" : "withdrawn";
+    this.state.ending = { kind, elapsed: 0, duration: endingDuration(kind) };
+    this.state.enemyBullets = []; this.state.beams = []; this.state.hazards = [];
+    if(kind==='victory') {
+      for(const enemy of this.state.enemies) this.explode(enemy.x,enemy.y,`enemy-${enemy.faction??this.config.stage}-${enemy.kind??0}`,65);
+      this.state.enemies=[];this.state.rocks=[];this.state.pickups=[];this.state.bullets=[];
+    }
+    if (kind === "defeat") this.explode(this.state.ship.x, this.state.ship.y, undefined, 130);
     this.clearInput();
   }
   private explode(x: number, y: number, art?: string, size = 65) {
@@ -642,7 +660,7 @@ export class GameModel {
       specs = formationSpecs(f, stage, 85 + this.random() * 220);
     }
     for (const e of bossSupport ? specs.slice(0, 2) : specs) {
-      if (s.enemies.length >= (bossSupport ? 4 : 12 + stage * 2)) break;
+      if (s.enemies.length >= (bossSupport ? DIFFICULTY[stage].supportCap : DIFFICULTY[stage].enemyCap)) break;
       if (
         e.kind === 2 &&
         s.enemies.filter((other) => other.kind === 2).length >= 2
@@ -651,22 +669,28 @@ export class GameModel {
       if (bossSupport) {
         const leftCount = s.enemies.filter((ally) => (ally.originX ?? ally.x) < 195).length;
         const rightCount = s.enemies.length - leftCount;
-        if (leftCount >= 2 && rightCount >= 2) break;
-        e.x = leftCount <= rightCount && leftCount < 2 ? 60 : 330;
+        if (leftCount >= DIFFICULTY[stage].supportCap / 2 && rightCount >= DIFFICULTY[stage].supportCap / 2) break;
+        e.x = leftCount <= rightCount && leftCount < DIFFICULTY[stage].supportCap / 2 ? 60 : 330;
         e.y = -35;
         e.motion = "escort";
         e.kind = 0;
+      }
+      if(e.motion==='crossfire' && !bossSupport) {
+        e.x=e.x<195?-36:426;e.y=140+(s.enemies.length%3)*45;
+        this.notice('CROSSFIRE INBOUND',1.2);
       }
       s.enemies.push({
         ...e,
         radius: e.kind === 2 ? 22 : 16,
         health:
-          (e.kind === 2 ? [6, 8, 10][stage] : [2, 2.5, 3][stage]) *
+          (e.kind === 2 ? DIFFICULTY[stage].armorHP : DIFFICULTY[stage].enemyHP) *
           Math.min(1.6, 1 + (s.wave - 1) * 0.025),
-        shot: 0.6,
+        shot: e.motion === "crossfire" ? 1.2 : 0.6,
         originX: e.x,
         age: 0,
         faction: stage,
+        archetype: e.kind === 2 ? "shield-wall" : s.segment > 0 && this.random() < 0.18 ? "kamikaze" : e.motion === "crossfire" ? "crossfire" : e.kind === 1 ? "rear-gunner" : "fighter",
+        shieldHP: e.kind === 2 ? DIFFICULTY[stage].armorHP * 0.35 : 0,
       });
     }
   }
@@ -674,11 +698,9 @@ export class GameModel {
     const s = this.state,
       stage = this.config.stage,
       art = BOSS_ART[stage];
-    const hp = STAGES[stage].hp * Math.min(2.5, 1 + (s.wave - 1) * 0.04);
+    const hp = DIFFICULTY[stage].bossHP * Math.min(2.5, 1 + (s.wave - 1) * 0.04);
     s.boss = {
-      ...(stage === 0 && this.config.mode === "stage"
-        ? { state: "armored" as const, transitionRemaining: 0 }
-        : {}),
+      state: "armored" as const, transitionRemaining: 0,
       safeLaneX: 265,
       attackSerial: 0,
       restUntil: 0,
@@ -705,6 +727,7 @@ export class GameModel {
     s.beams = [];
     s.storm = null;
     s.meteors = null;
+    s.hazards = [];
     this.beamClock = 3;
     this.enemyClock = 0;
     this.clearInput();
@@ -725,14 +748,14 @@ export class GameModel {
           value: 0,
           kind,
         });
-      this.explode(m.x, m.y, `void-2-${this.config.stage}`, 150);
+      this.explode(m.x, m.y, this.config.stage===2?"nautolan-mini":`void-2-${this.config.stage}`, 150);
       s.miniBoss = null;
       s.enemyBullets = [];
       this.event("mini-destroyed", "TARGET DESTROYED");
     }
     if (!s.boss || s.boss.health > 0 || s.gameOver) return;
     if (s.boss.state) s.boss.state = "defeated";
-    this.explode(s.boss.x, s.boss.y, undefined, 210);
+    this.explode(s.boss.x, s.boss.y, `capital-${this.config.stage}`, 210);
     for (let i = 0; i < 4; i++) {
       this.explode(
         s.boss.x + (i % 2 ? 1 : -1) * 45,
@@ -763,7 +786,7 @@ export class GameModel {
     let effect: PickupCollected["effect"] = kind;
     if (
       (kind === "repair" && s.lives >= 3) ||
-      (kind === "drone" && s.wingmen.level >= 3) ||
+
       (kind === "shield" && s.shield)
     )
       effect = "score";
@@ -785,6 +808,11 @@ export class GameModel {
     else if (kind === "shield") s.shield = true;
     else if (kind === "missile")
       s.powers.missile = Math.min(24, s.powers.missile + 12);
+    else if (kind === "drone" && s.wingmen.level >= 3) {
+      s.superMode.remaining = 5;
+      effect="super";
+      this.notice("SUPER MODE · 5 SECONDS", 1.2);
+    }
     else if (kind === "drone") {
       s.wingmen.level = (s.wingmen.level + 1) as 1 | 2 | 3;
       if (!s.drones.length)
@@ -813,7 +841,9 @@ export class GameModel {
     const stage = this.config.stage,
       endless = this.config.mode === "endless";
     s.time += step;
-    const supplyTimes = [32, 78, 124, 170, 216];
+    s.superMode.remaining = Math.max(0, s.superMode.remaining - step);
+    this.updateHazards(step);
+    const supplyTimes = ORB_SUPPLY_TIMES;
     while (
       this.supplyIndex < supplyTimes.length &&
       s.time >= supplyTimes[this.supplyIndex]
@@ -844,8 +874,8 @@ export class GameModel {
           x: 195,
           y: 145,
           radius: 38,
-          health: 60 + stage * 15,
-          maxHealth: 60 + stage * 15,
+          health: 120 + stage * 60,
+          maxHealth: 120 + stage * 60,
           shot: 1.5,
         };
       if (event.kind === "boss-warning") this.notice("WARNING · CAPITAL SHIP");
@@ -962,7 +992,7 @@ export class GameModel {
     s.pickups = s.pickups
       .filter((p) => p.age < 15 && p.y < 750)
       .slice(-LIMITS.pickups);
-    this.fire(step);
+    this.fire(step * (s.weaponJammed ? 0.5 : 1));
     this.spawnClock += step;
     this.enemyClock += step;
     if (!s.boss && this.spawnClock > 3.2) {
@@ -976,7 +1006,13 @@ export class GameModel {
         spin: (this.random() - 0.5) * 1.8,
         phase: 0,
         target: this.random() > 0.5,
+        iron: stage === 0 && this.random() < 0.15,
+        vx: stage === 0 ? (this.random() - 0.5) * 80 : 0,
       });
+    }
+    if(stage===0 && s.rocks.length && this.spawnClock===0) {
+      const rock=s.rocks[s.rocks.length-1];
+      if(this.random()<0.35) {const left=this.random()<0.5;rock.x=left?-35:425;rock.y=80+this.random()*170;rock.vx=left?85:-85;rock.speed=65;}
     }
     const support = s.boss
       ? Math.max(
@@ -987,21 +1023,31 @@ export class GameModel {
             Math.max(0, (s.boss.age ?? 0) - 180) / 60,
         )
       : Math.max(2.4, 4.2 - stage * 0.3 - s.segment * 0.35);
-    if (this.enemyClock >= (s.time < 3 ? 1.5 : support)) {
+    if (this.enemyClock >= (s.time < 3 ? 1.5 : support / Math.sqrt(DIFFICULTY[stage].cadence))) {
       this.enemyClock = 0;
       this.spawnFormation(!!s.boss);
     }
     for (const e of s.enemies) {
+      e.muzzle = Math.max(0,(e.muzzle??0)-step);
       e.flash = Math.max(0, (e.flash ?? 0) - step);
       e.stun = Math.max(0, (e.stun ?? 0) - step);
       if (e.stun > 0) continue;
       e.age = (e.age ?? 0) + step;
       const a = e.age,
         origin = e.originX ?? e.x;
-      if (a > 5.5) {
+      if (e.archetype === "kamikaze" && a > 1.2) {
+        e.lock ??= { x: s.ship.x, y: s.ship.y };
+        if (a > 2) {
+          const dx = e.lock.x-e.x, dy=e.lock.y-e.y, d=Math.hypot(dx,dy)||1;
+          e.x += dx/d*270*step; e.y += dy/d*270*step;
+          if(d<14) e.lock={x:e.x,y:900};
+        }
+      } else if (a > 5.5) {
         // After attacking, fly through the bottom of the playfield instead
         // of abruptly shooting sideways off screen.
         e.y += 150 * step;
+      } else if(e.archetype==='crossfire') {
+        e.x=origin+(origin<195?1:-1)*Math.min(a*60,115);e.y+=15*step;
       } else if (e.path) {
         Object.assign(e, flightPathPosition(e.path, a / 5.5));
       } else {
@@ -1025,6 +1071,7 @@ export class GameModel {
       }
       e.shot -= step;
       if (
+        e.archetype !== "kamikaze" &&
         e.shot <= 0 &&
         e.y > 35 &&
         e.y < 460 &&
@@ -1033,8 +1080,14 @@ export class GameModel {
         !s.beams.length &&
         !(s.boss && (s.boss.restUntil ?? 0) > s.time)
       ) {
-        e.shot = (e.kind === 2 ? 2.7 : 2.2) / (1 + stage * 0.15);
-        if (e.kind === 2) this.ring(e.x, e.y + 18, 103, e.phase * 0.08);
+        e.shot = (e.kind === 2 ? 2.7 : 2.2) / DIFFICULTY[stage].cadence;
+        e.muzzle=0.1;
+        if(e.archetype === "crossfire") {
+          this.fan(e.x,e.y,3,132,Math.atan2(s.ship.x-e.x,Math.max(70,s.ship.y-e.y)),0.12);
+        } else if (e.archetype === "rear-gunner") {
+          const angle = Math.atan2(s.ship.x-e.x,s.ship.y-e.y);
+          this.pushPatternShot({x:e.x,y:e.y+14,radius:5,vx:Math.sin(angle)*120,vy:Math.cos(angle)*120,homing:true,age:0});
+        } else if (e.kind === 2) this.ring(e.x, e.y + 18, 103, e.phase * 0.08);
         else
           this.fan(
             e.x,
@@ -1058,17 +1111,18 @@ export class GameModel {
     this.updateBoss(step);
     for (const b of s.beams) {
       b.age += step;
+
       if (
         b.age >= 1.2 &&
-        b.age < 1.8 &&
-        s.ship.y + s.ship.radius >= 170 &&
-        Math.abs(s.ship.x - b.x) < 22 + s.ship.radius
+        b.age < (b.sweep ? 2.6 : 1.8) &&
+        beamDistance(s.ship,b) < 22 + s.ship.radius
       )
         this.damage("beam");
     }
-    s.beams = s.beams.filter((b) => b.age < 1.8);
+    s.beams = s.beams.filter((b) => b.age < (b.sweep ? 2.6 : 1.8));
     for (const r of s.rocks) {
       r.y += r.speed * step;
+      r.x += (r.vx ?? 0) * step;
       r.phase += r.spin * step;
     }
     for (const b of s.bullets) {
@@ -1100,6 +1154,11 @@ export class GameModel {
     for (const b of s.enemyBullets) {
       b.prevX = b.x;
       b.prevY = b.y;
+      b.age=(b.age??0)+step;
+      if(b.homing && b.age<2) {
+        const angle=Math.atan2(s.ship.y-b.y,s.ship.x-b.x),speed=Math.hypot(b.vx,b.vy),t=1-Math.exp(-step*0.65);
+        b.vx+=(Math.cos(angle)*speed-b.vx)*t;b.vy+=(Math.sin(angle)*speed-b.vy)*t;
+      }
       b.x += b.vx * step;
       b.y += b.vy * step;
     }
@@ -1117,7 +1176,7 @@ export class GameModel {
           e.health > 0 && e.y < 765 && e.y > -180 && e.x > -90 && e.x < 480,
       )
       .slice(-LIMITS.enemies);
-    s.rocks = s.rocks.filter((r) => r.y < 765).slice(-48);
+    s.rocks = s.rocks.filter((r) => r.y < 765 && r.x>-100 && r.x<490).slice(-48);
     s.pickups = s.pickups.slice(-LIMITS.pickups);
     s.explosions = s.explosions.slice(-48);
     if (this.events.length > 64) this.events = this.events.slice(-64);
@@ -1139,8 +1198,10 @@ export class GameModel {
       this.fireCount++;
       if (main === "laser") {
         s.laser = 0.12;
-        s.laserInterceptor = s.powers.overdrive > 0 && this.fireCount % 3 === 0;
+        s.laserInterceptor = (s.superMode.remaining > 0 || s.powers.overdrive > 0 && this.fireCount % 3 === 0);
         if (s.laserInterceptor) this.laserBlockBudget += 2;
+        for(const d of s.boss?.decoys??[]) if(Math.abs(s.ship.x-d.x)<25+6+s.powers.weapon*14 && d.y-35-(6+s.powers.weapon*14)<s.ship.y-25)
+          this.hitBoss(0,d.x,s.ship.y-25,6+s.powers.weapon*14,true);
         const targets = [
           ...s.enemies.filter((e) => e.health > 0),
           ...(s.miniBoss ? [s.miniBoss] : []),
@@ -1160,9 +1221,11 @@ export class GameModel {
           )
           .sort((a, b) => b.y - a.y)
           .slice(0, 3);
+        const well=s.hazards.find(h=>h.kind==='black-hole' && h.y<s.ship.y && Math.abs(h.x-s.ship.x)<24);
+        if(well) {well.hp-=0.97*superMultiplier(s.superMode)*[1,1.6,2.3][level-1];if(well.hp<=0)this.explode(well.x,well.y,undefined,110);}
         for (const t of targets) {
           const damage =
-            0.97 *
+            0.97 * superMultiplier(s.superMode) *
             [1, 1.6, 2.3][level - 1] *
             damageMultiplier(
               "laser",
@@ -1179,7 +1242,8 @@ export class GameModel {
               true,
             );
           else {
-            t.health -= damage;
+            if((t as Enemy).shieldHP && (t as Enemy).shieldHP!>0) (t as Enemy).shieldHP=Math.max(0,(t as Enemy).shieldHP!-damage);
+            else t.health -= damage;
             if (t === s.miniBoss) this.markHit(t);
             else {
               const e = t as Enemy;
@@ -1198,9 +1262,9 @@ export class GameModel {
             radius: 4,
             speed: Math.cos(angle) * 530,
             vx: Math.sin(angle) * 530,
-            damage: shot.damage * 0.7,
+            damage: shot.damage * 0.7 * superMultiplier(s.superMode),
             interceptor:
-              s.powers.overdrive > 0 && (this.fireCount + index) % 3 === 0,
+              (s.superMode.remaining > 0 || s.powers.overdrive > 0 && (this.fireCount + index) % 3 === 0),
             type: main,
           });
         }
@@ -1216,7 +1280,7 @@ export class GameModel {
           radius: 5,
           speed: 280,
           vx: side * 45,
-          damage: 1.5,
+          damage: 1.5 * superMultiplier(s.superMode),
           type: "missile",
           missile: true,
           age: 0,
@@ -1243,11 +1307,52 @@ export class GameModel {
             radius: 3,
             speed: Math.cos(angle) * 500,
             vx: Math.sin(angle) * 500,
-            damage: wingLevel === 1 ? 0.45 : wingLevel === 2 ? 0.5625 : 0.5,
+            damage: (wingLevel === 1 ? 0.45 : wingLevel === 2 ? 0.5625 : 0.5) * superMultiplier(s.superMode),
+            interceptor: s.superMode.remaining > 0,
             type: "pulse",
           });
       }
     }
+  }
+  advanceEnding(dt: number) {
+    const ending = this.state.ending;
+    if (!ending || ending.elapsed >= ending.duration) return;
+    ending.elapsed = Math.min(ending.duration, ending.elapsed + Math.min(0.05, Math.max(0, dt)));
+  }
+  private updateHazards(step: number) {
+    const s = this.state, stage = this.config.stage;
+    const slot = Math.floor(s.time / 18);
+    const previous = Math.floor((s.time - step) / 18);
+    if (slot !== previous && s.time > 20 && !s.beams.length && !s.hazards.length && !s.boss?.dash) {
+      if (stage > 0) {
+        const kind = slot % 2 === 0 ? 'black-hole' : stage === 1 ? 'plasma' : 'grid';
+        s.hazards.push({ kind, x: clamp(s.ship.x + (slot % 2 ? 80 : -80),70,320), y: kind === 'black-hole' ? 360 : 440, age:0, radius:kind === 'plasma' ? 95 : 80, hp:24 });
+        this.notice(kind === 'black-hole' ? 'GRAVITY WELL' : kind === 'plasma' ? 'PLASMA FIELD' : 'DEFENSE GRID',1.2);
+      }
+    }
+    s.weaponJammed = false;
+    for (const h of s.hazards) {
+      h.age += step;
+      if (h.kind === 'plasma') {
+        h.y += 18*step;
+        if(h.age >= 1.2 && Math.hypot(s.ship.x-h.x,s.ship.y-h.y)<h.radius) s.weaponJammed=true;
+      } else if(h.kind === 'black-hole' && h.age >= 1.2 && h.age < 8) {
+        const pull = (body: Body, strength:number) => {
+          const dx=h.x-body.x,dy=h.y-body.y,d=Math.hypot(dx,dy);
+          if(d>1 && d<170) {const v=strength*(1-d/170)*step;body.x+=dx/d*v;body.y+=dy/d*v;}
+        };
+        pull(s.ship,310*0.35);
+        Object.assign(s.ship,clampShip(s.ship.x,s.ship.y));
+        for(const b of s.bullets) pull(b,100);
+        for(const b of s.enemyBullets) {
+          const old={x:b.x,y:b.y};pull(b,100);
+          if(s.boss && threatensPassage(b,b.lane??s.boss.safeLaneX??195,90)) Object.assign(b,old);
+        }
+      } else if(h.kind === 'black-hole' && h.age >= 9) {
+        if(Math.hypot(s.ship.x-h.x,s.ship.y-h.y)<h.radius) this.damage('beam');
+      } else if(h.kind === 'grid' && h.age >= 1.2 && h.age < 1.8 && Math.abs(s.ship.x-h.x)<24+s.ship.radius) this.damage('beam');
+    }
+    s.hazards=s.hazards.filter(h=>h.hp>0 && h.age<(h.kind==='black-hole'?9.2:h.kind==='plasma'?7:1.8));
   }
   private markHit(target: { flash?: number; flashAt?: number }) {
     if (this.state.time - (target.flashAt ?? -10) >= 0.1) {
@@ -1274,6 +1379,10 @@ export class GameModel {
   ) {
     const b = this.state.boss;
     if (!b || b.state === "transition" || b.state === "defeated") return false;
+    for(const d of b.decoys??[]) if(Math.abs(x-d.x)<25+radius && (laser ? d.y-35-radius<y : Math.abs(y-d.y)<35+radius)) {
+      if((b.decoyCooldown??0)<=0 && !this.state.beams.length) { b.decoyCooldown=1.2;this.ring(d.x,d.y,100,0,24); }
+      this.spark(x,d.y);return false;
+    }
     const hit = findBossHit(b, x, y, radius, laser);
     if (!hit) return false;
     if (hit === "core" && b.state === "armored") {
@@ -1293,9 +1402,10 @@ export class GameModel {
       }
     } else if (b.state === "exposed") {
       const phase = b.phase ?? 1;
-      const threshold = (b.maxHealth * (3 - phase)) / 3;
-      b.health = Math.max(threshold, b.health - damage);
-      if (b.health <= threshold && phase < 3) {
+      const phases = DIFFICULTY[this.config.stage].phases;
+      const threshold = (b.maxHealth * (phases - phase)) / phases;
+      b.health = Math.max(threshold, b.health - damage * DIFFICULTY[this.config.stage].exposedDamage);
+      if (b.health <= threshold && phase < phases) {
         b.phase = phase + 1;
         b.state = "transition";
         b.transitionRemaining = 1.5;
@@ -1309,6 +1419,7 @@ export class GameModel {
         );
         this.state.enemyBullets = [];
         this.state.beams = [];
+        this.state.hazards=[];
         this.beamClock = 2;
         this.stationary = 0;
         this.event("phase", `PHASE ${b.phase}`);
@@ -1320,146 +1431,91 @@ export class GameModel {
     return true;
   }
   private updateBoss(step: number) {
-    const s = this.state,
-      b = s.boss;
-    if (!b) return;
-    const stage = this.config.stage;
-    b.age = (b.age ?? 0) + step;
-    b.flash = Math.max(0, (b.flash ?? 0) - step);
-    if (b.state === "transition") {
-      b.transitionRemaining = Math.max(0, (b.transitionRemaining ?? 0) - step);
-      if (b.transitionRemaining > 0) return;
-      const health = 10 + (b.phase ?? 1) * 5;
-      b.turrets = BOSS_ART[0].mounts.map((m) => ({
-        x: m.x * BOSS_ART[0].width,
-        y: m.y * BOSS_ART[0].width,
-        health,
-        maxHealth: health,
-        flash: 0,
-      }));
-      b.state = "armored";
-      b.shot = 0.35;
-      this.notice("BREAK THE TURRETS", 1.2);
+    const s=this.state,b=s.boss;
+    if(!b) return;
+    const stage=this.config.stage,profile=DIFFICULTY[stage];
+    if(!b.state) {
+      const derived=Math.min(profile.phases,Math.floor((1-b.health/b.maxHealth)*profile.phases)+1);
+      if(b.phase!==derived) {s.enemyBullets=[];s.beams=[];b.shot=1.2;}
+      b.phase=derived;
     }
-    if (
-      b.state === "armored" &&
-      (b.turrets ?? []).every((t) => t.health <= 0)
-    ) {
-      b.state = "exposed";
-      this.notice("CORE EXPOSED", 1.2);
+    const phase=b.phase??1;
+    b.muzzle=Math.max(0,(b.muzzle??0)-step);
+    b.age=(b.age??0)+step;b.flash=Math.max(0,(b.flash??0)-step);
+    b.decoyCooldown=Math.max(0,(b.decoyCooldown??0)-step);
+    if(b.state==='transition') {
+      b.decoys=[];
+      b.transitionRemaining=Math.max(0,(b.transitionRemaining??0)-step);
+      if(b.transitionRemaining>0) return;
+      const hp=10+phase*5;
+      b.turrets=BOSS_ART[stage].mounts.map(m=>({x:m.x*BOSS_ART[stage].width,y:m.y*BOSS_ART[stage].width,health:hp,maxHealth:hp,flash:0}));
+      b.state='armored';b.shot=0.5;this.notice('BREAK THE TURRETS',1.2);
     }
-    const phase = b.state
-      ? (b.phase ?? 1)
-      : b.health <= b.maxHealth / 3
-        ? 3
-        : b.health <= (b.maxHealth * 2) / 3
-          ? 2
-          : 1;
-    if (b.phase && b.phase !== phase) {
-      s.enemyBullets = [];
-      s.beams = [];
-      b.shot = 1.5;
-      this.beamClock = 2;
-      this.stationary = 0;
-      b.safeLaneX = clamp(s.ship.x + (phase === 2 ? -70 : 70), 65, 325);
-      b.attackSerial = 0;
-      b.restUntil = 0;
-      this.event("phase", `PHASE ${phase}`);
-      this.notice(`BOSS · PHASE ${phase}`, 0.9);
+    if(b.state==='armored' && b.turrets?.every(t=>t.health<=0)) {b.state='exposed';this.notice('CORE EXPOSED',1.2);}
+    if(stage===2 && !b.rage && b.health/b.maxHealth<0.2) {
+      b.rage=true;s.enemyBullets=[];s.hazards=[];s.beams=[];
+      b.restUntil=s.time+1.2;b.shot=1.2;this.event('warning','REACTOR OVERLOAD · RAGE');this.notice('RAGE MODE',1.2);
     }
-    b.phase = phase;
-    b.x = 195 + Math.sin(b.age * 0.42) * (stage === 2 ? 43 : 65);
-    const mounts = (b.turrets ?? []).filter((t) => t.health > 0);
-    for (const t of b.turrets ?? []) t.flash = Math.max(0, t.flash - step);
-    this.beamClock -= step;
-    if (Math.hypot(s.ship.x - this.anchor.x, s.ship.y - this.anchor.y) < 32)
-      this.stationary += step;
-    else {
-      this.stationary = 0;
-      this.anchor = { x: s.ship.x, y: s.ship.y };
+    b.x=195+Math.sin(b.age*0.42)*(stage===2?43:65);
+    b.decoys=stage>0 && phase===2 ? [{x:65,y:b.y+45},{x:325,y:b.y+45}] : [];
+    if(b.dash) {
+      b.dash.age+=step;
+      const d=b.dash;
+      if(d.age<1.2) {this.notice('CHARGE LOCK',0.1);s.enemyBullets=[];}
+      else if(d.age<1.8) {
+        const t=Math.min(1,(d.age-1.2)/0.6);b.x=195+(d.x-195)*t;b.y=205+(d.y-205)*t;
+      } else if(d.age<2.6) {
+        const t=(d.age-1.8)/0.8;b.x=d.x+(195-d.x)*t;b.y=d.y+(205-d.y)*t;
+      } else {b.dash=undefined;b.y=205;b.restUntil=s.time+0.8;}
+      return;
     }
-    if (
-      phase === 3 &&
-      this.stationary >= 1.8 &&
-      this.beamClock <= 0 &&
-      !s.beams.length &&
-      ((b.restUntil ?? 0) > s.time || s.enemyBullets.length < 60)
-    ) {
-      s.enemyBullets = [];
-      s.beams.push({ x: clamp(s.ship.x, 27, 363), y: s.ship.y, age: 0 });
-      this.stationary = 0;
-      this.beamClock = 3.4;
-      this.event("warning", "ORBITAL LOCK");
+    for(const t of b.turrets??[]) t.flash=Math.max(0,t.flash-step);
+    this.beamClock-=step;
+    b.shot-=step;
+    if(b.shot>0 || s.beams.length || (b.restUntil??0)>s.time || s.hazards.some(h=>h.kind!=='plasma')) return;
+    const serial=(b.attackSerial??0)+1;b.attackSerial=serial;
+    // Keep the old corridor until the preceding shots leave the lower arena.
+    // This prevents an old and a new volley from closing each other's exits.
+    if(s.enemyBullets.some(q=>q.source==='boss' && q.y>=0 && q.y<=710 && q.vy>0)) {b.shot=0.12;b.attackSerial=serial-1;return;}
+    const previousLane=b.safeLaneX??195;
+    const desired=nextEscapeLane(previousLane,s.ship.x,serial);
+    const candidates=[desired,Math.max(65,previousLane-60),Math.min(325,previousLane+60),previousLane];
+    b.safeLaneX=candidates.find(lane=>!s.enemyBullets.some(round=>threatensPassage(round,lane,90)))??previousLane;
+    const live=(b.turrets??[]).filter(t=>t.health>0);
+    const speed=Math.min(1.4,1+stage*0.08+(s.wave-1)*0.025);
+    const count=live.length?13+phase*2:9+phase*2;
+    const rage=b.rage?2:1;
+    b.pattern=b.rage && serial%5===0?'dash':b.rage && serial%5===1?'overload':serial%3===0?'ring':serial%3===1?'spiral':'aimed';
+    if(b.pattern==='dash') {
+      s.hazards=[];s.enemyBullets=[];b.dash={age:0,x:clamp(s.ship.x,65,325),y:Math.min(470,s.ship.y)};return;
     }
-    b.shot -= step;
-    if (b.shot <= 0 && !s.beams.length && (b.restUntil ?? 0) <= s.time) {
-      const onslaught = b.state !== undefined;
-      b.shot = onslaught
-        ? mounts.length
-          ? [0.82, 0.72, 0.64][phase - 1]
-          : [0.98, 0.86, 0.76][phase - 1]
-        : mounts.length
-          ? (phase === 1 ? 1.4 : phase === 2 ? 1.25 : 1.1) / (1 + stage * 0.05)
-          : 1.7;
-      const beforeShots = s.enemyBullets.length;
-      // Paired mounts alternate, reducing pressure when a hardpoint is destroyed.
-      const parity = Math.floor(b.age * 2) % 2;
-      const active = mounts.length
-        ? (b.turrets ?? []).filter((t, i) => t.health > 0 && i % 2 === parity)
-        : [{ x: 0, y: 45 }];
-      b.attackSerial = (b.attackSerial ?? 0) + 1;
-      const ringAttack =
-        b.attackSerial % 3 === 0;
-      if (ringAttack) {
-        this.ring(
-          b.x,
-          b.y + 55,
-          90 + phase * 8,
-          b.age * 0.07,
-          onslaught ? (mounts.length ? 28 + phase * 4 : 20 + phase * 2) : 24,
-        );
-        b.shot = onslaught ? 1.8 : 2.8;
-        b.restUntil = s.time + (onslaught ? 1.1 : 1.8);
-      }
-      for (const t of ringAttack ? [] : active) {
-        const x = b.x + t.x,
-          y = b.y + t.y;
-        const aim =
-          phase >= 2 || (onslaught && b.attackSerial % 3 === 2)
-            ? Math.atan2(s.ship.x - x, Math.max(110, s.ship.y - y))
-            : Math.sin(b.age * 0.65) * 0.3;
-        this.fan(
-          x,
-          y,
-          onslaught
-            ? mounts.length
-              ? 9 + phase * 2
-              : 7 + phase * 2
-            : mounts.length
-              ? phase === 1
-                ? 5
-                : phase === 2
-                  ? 7
-                  : 9
-              : 3,
-          phase === 1 ? 112 : 128,
-          aim,
-          onslaught ? 0.13 : 0.15,
-        );
-      }
-      if (s.enemyBullets.length === beforeShots) {
-        for (const edge of [12, 378]) {
-          const angle = Math.atan2(edge - b.x, 600 - b.y);
-          this.pushPatternShot({
-            x: b.x,
-            y: b.y + 35,
-            radius: 4,
-            vx: Math.sin(angle) * 112,
-            vy: Math.cos(angle) * 112,
-          });
+    if(b.pattern==='overload' || phase===profile.phases && serial%5===0) {
+      s.enemyBullets=[];s.hazards=[];
+      s.beams=[{x:b.pattern==='overload'?b.x:clamp(s.ship.x,40,350),y:b.pattern==='overload'?b.y:s.ship.y,age:0,sweep:b.pattern==='overload'}];
+      this.event('warning',b.pattern==='overload'?'OVERLOAD SWEEP':'ORBITAL LOCK');
+      b.shot=2.4;return;
+    }
+    // A packet contains closely spaced pulses. Each packet uses a single
+    // escape corridor; the next corridor is selected only after it clears.
+    const pulses=Math.min(8,profile.cadence*rage);
+    this.emittingBoss=true;
+    for(let pulse=0;pulse<pulses;pulse++) {
+      const y=b.y+45-pulse*22;
+      if(b.pattern==='ring') this.ring(b.x,y,100,b.age*0.1+pulse*0.08,live.length?20+live.length*6:20);
+      else {
+        const active=live.length?live.filter((_,i)=>i%2===serial%2):[{x:0,y:25}];
+        for(const t of active) {
+          const x=b.x+t.x;
+          const aim=b.pattern==='aimed'?Math.atan2(s.ship.x-x,Math.max(120,s.ship.y-y)):Math.sin(serial*0.7+pulse*0.15)*0.55;
+          this.fan(x,y,count,112,aim,0.14);
         }
       }
     }
+    this.emittingBoss=false;
+    b.muzzle=0.1;
+    // Homing does not operate inside boss packets; it could close a planned gap.
+    b.shot=Math.max(0.45,(live.length?1.1:1.4)/Math.sqrt(profile.cadence)/rage);
+    b.restUntil=s.time+0.3;
   }
   private pushHostile(b: EnemyBullet) {
     if (this.state.enemyBullets.length < LIMITS.enemyBullets)
@@ -1469,13 +1525,16 @@ export class GameModel {
     const boss = this.state.boss;
     // Each authored volley reserves its phase's escape sector; raw admission never erases attacks.
     if (boss && threatensPassage(b, boss.safeLaneX ?? 265, 90)) return;
+    b.source=this.emittingBoss?"boss":"escort";
+    b.lane=boss?.safeLaneX;
+    if(boss) b.homing=false;
     this.pushHostile(b);
   }
   private interceptShots() {
     const s = this.state,
       spent = new Set<Bullet>(),
       removed = new Set<EnemyBullet>();
-    if (this.laserBlockBudget > 0 && s.powers.overdrive > 0) {
+    if (this.laserBlockBudget > 0 && (s.powers.overdrive > 0 || s.superMode.remaining > 0)) {
       const targets = s.enemyBullets
         .filter(
           (b) =>
@@ -1514,12 +1573,16 @@ export class GameModel {
       spent = new Set<Bullet>(),
       rocks = new Set<Rock>();
     for (const b of s.bullets) {
+      const well=s.hazards.find(h=>h.kind==='black-hole' && h.hp>0 && Math.hypot(b.x-h.x,b.y-h.y)<18+b.radius);
+      if(well) {well.hp-=b.damage??1;spent.add(b);this.spark(b.x,b.y);if(well.hp<=0)this.explode(well.x,well.y,undefined,110);continue;}
       for (const r of s.rocks)
         if (!rocks.has(r) && collides(b, r)) {
+          if(r.iron) {spent.add(b);this.spark(b.x,b.y);break;}
           spent.add(b);
           rocks.add(r);
           s.score += r.target ? 25 : 10;
-          this.explode(r.x, r.y, undefined, 65);
+          this.explode(r.x, r.y, "neon-rock", 65);
+          if(this.config.stage===0 && !r.fragment && r.radius>14) for(const side of [-1,1]) s.rocks.push({...r,radius:9,fragment:true,vx:side*65,speed:r.speed*1.2});
           if (this.random() < 0.2)
             s.pickups.push({
               x: r.x,
@@ -1538,6 +1601,7 @@ export class GameModel {
         spent.add(b);
         this.markHit(e);
         this.spark(b.x, b.y);
+        if((e.shieldHP??0)>0) {e.shieldHP=Math.max(0,e.shieldHP!-(b.damage??1)*(b.type==="plasma"?1.25:1));continue;}
         e.health -=
           (b.damage ?? 1) *
           damageMultiplier(b.type ?? "pulse", e.kind === 2, e.kind === 0);
@@ -1549,7 +1613,7 @@ export class GameModel {
         this.spark(b.x, b.y);
       } else if (s.boss) {
         const boss = s.boss;
-        if (findBossHit(boss, b.x, b.y, b.radius)) {
+        if (findBossHit(boss, b.x, b.y, b.radius) || boss.decoys?.some(d=>Math.hypot(d.x-b.x,d.y-b.y)<35+b.radius)) {
           spent.add(b);
           const damaged = this.hitBoss(
             (b.damage ?? 1) *

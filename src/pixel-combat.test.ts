@@ -32,13 +32,13 @@ describe("stage-one pixel combat", () => {
     expect(b.turrets).toHaveLength(2);
     expect(b.turrets!.map((t) => t.health)).toEqual([15, 15]);
     shootAt(m, b.x, b.y);
-    expect(b.health).toBe(650);
+    expect(b.health).toBe(900);
     const left = b.turrets![0];
     shootAt(m, b.x + left.x, b.y + left.y);
     expect(b.state).toBe("armored");
     expect(b.turrets![1].health).toBe(15);
     shootAt(m, b.x, b.y);
-    expect(b.health).toBe(650);
+    expect(b.health).toBe(900);
     const right = b.turrets![1];
     shootAt(m, b.x + right.x, b.y + right.y);
     expect(b.state).toBe("exposed");
@@ -51,32 +51,32 @@ describe("stage-one pixel combat", () => {
     m.state.enemyBullets = [{ x: 10, y: 20, radius: 4, vx: 0, vy: 1 }];
     m.state.beams = [{ x: 20, age: 0 }];
     shootAt(m, b.x, b.y);
-    expect(b.health).toBeCloseTo((650 * 2) / 3);
+    expect(b.health).toBeCloseTo(900 / 2);
     expect(b.phase).toBe(2);
     expect(b.state).toBe("transition");
     expect(bossAimPoints(b)).toEqual([]);
     expect(m.state.enemyBullets).toHaveLength(0);
     expect(m.state.beams).toHaveLength(0);
     shootAt(m, b.x, b.y);
-    expect(b.health).toBeCloseTo((650 * 2) / 3);
+    expect(b.health).toBeCloseTo(900 / 2);
     for (let i = 0; i < 31; i++) m.update(0.05, { x: 0, y: 0 });
     expect(b.state).toBe("armored");
     expect(b.turrets!.map((t) => t.maxHealth)).toEqual([20, 20]);
     expect(b.turrets!.every((t) => t.health > 0 && t.health <= 20)).toBe(true);
-    expect(b.health).toBeCloseTo((650 * 2) / 3);
+    expect(b.health).toBeCloseTo(900 / 2);
     breakPair(m);
     shootAt(m, b.x, b.y);
-    expect(b.health).toBeCloseTo(650 / 3);
-    expect(b.phase).toBe(3);
+    expect(b.health).toBeCloseTo(0);
+    expect(b.state).toBe("defeated");
   });
   it("prioritizes live hardpoints and settles the final core only once", () => {
     const m = commander();
     const b = m.state.boss!;
     expect(bossAimPoints(b)).toHaveLength(2);
-    for (let phase = 1; phase <= 3; phase++) {
+    for (let phase = 1; phase <= 2; phase++) {
       breakPair(m);
       shootAt(m, b.x, b.y);
-      if (phase < 3)
+      if (phase < 2)
         for (let i = 0; i < 31; i++) m.update(0.05, { x: 0, y: 0 });
     }
     expect(b.state).toBe("defeated");
@@ -88,13 +88,11 @@ describe("stage-one pixel combat", () => {
       m.drainEvents().filter((e) => e.type === "boss-destroyed"),
     ).toHaveLength(1);
   });
-  it("keeps the existing open-core rules in other sectors and Endless", () => {
-    for (const m of [commander(1), commander(2), commander(0, "endless")]) {
-      const b = m.state.boss!;
-      expect(b.state).toBeUndefined();
-      const hp = b.health;
-      shootAt(m, b.x, b.y, 5);
-      expect(b.health).toBeLessThan(hp);
+  it("gates every sector and Endless behind live hardpoints", () => {
+    for(const m of [commander(1),commander(2),commander(0,'endless')]) {
+      const b=m.state.boss!;expect(b.state).toBe('armored');const hp=b.health;
+      shootAt(m,b.x,b.y,5);expect(b.health).toBe(hp);
+      breakPair(m);expect(b.state).toBe('exposed');shootAt(m,b.x,b.y,5);expect(b.health).toBeLessThan(hp);
     }
   });
   it.each([1, 2, 3])(
@@ -105,7 +103,7 @@ describe("stage-one pixel combat", () => {
       b.state = "exposed";
       b.phase = phase;
       b.shot = 0.01;
-      b.health = phase === 1 ? 650 : phase === 2 ? 430 : 215;
+      b.health = phase === 1 ? 900 : phase === 2 ? 430 : 215;
       b.turrets!.forEach((t) => (t.health = 0));
       let emitted = 0;
       for (let i = 0; i < 600; i++) {
@@ -206,10 +204,10 @@ describe("stage-one pixel combat", () => {
       }
       const mount = b.turrets![side === -1 ? 0 : 1];
       expect(mount.health).toBeLessThan(mount.maxHealth);
-      expect(b.health).toBe(650);
+      expect(b.health).toBe(900);
     },
   );
-  it("uses a one-in-sixteen weapon weight in guaranteed enemy loot", () => {
+  it("keeps reduced weapon weight in guaranteed enemy loot", () => {
     let orbs = 0;
     for (let i = 0; i < 16; i++) {
       const m = new GameModel(() => (i + 0.5) / 16);

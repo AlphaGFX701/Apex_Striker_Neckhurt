@@ -5,7 +5,7 @@ export const MUSIC_TRACKS = {
   "in-the-wreckage": "/assets/audio/terminal-dash.mp3",
   battle: "/assets/audio/orbital-bombardment.mp3",
 } as const;
-const LABELS: Record<PickupKind | "score", string> = {
+const LABELS: Record<PickupKind | "score" | "super", string> = {
   weapon: "POWER ORB",
   missile: "MISSILES ONLINE",
   drone: "WINGMEN ENHANCED",
@@ -13,6 +13,7 @@ const LABELS: Record<PickupKind | "score", string> = {
   repair: "HULL REPAIRED",
   energy: "EMP CELL",
   score: "BONUS SCORE",
+  super: "SUPER MODE ACTIVE",
 };
 /** Music and non-verbal effects only. No device speech or recorded announcements. */
 export class AudioDirector extends Feedback {
@@ -104,7 +105,7 @@ export class AudioDirector extends Feedback {
       }
     }
   }
-  pickup(kind: PickupKind | "score") {
+  pickup(kind: PickupKind | "score" | "super") {
     this.play("pickup");
     this.onAnnouncement?.(LABELS[kind]);
   }

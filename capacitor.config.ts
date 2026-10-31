@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.mjadsakul.gyrospacelab',
-  appName: 'Gyro Space Lab',
+  appName: 'Apex Strikers',
   webDir: 'dist',
   ios: {
     contentInset: 'automatic',

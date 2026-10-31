@@ -54,6 +54,7 @@ describe("stage events", () => {
   it("changes boss phases without restoring health and clears old bullets", () => {
     const m = new GameModel();
     m.practice = true;
+    m.config.stage = 1;
     m.state.boss = {
       x: 195,
       y: 140,

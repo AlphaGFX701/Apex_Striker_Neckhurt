@@ -1,0 +1,87 @@
+{
+  "kind": "simulation-not-human-or-device-test",
+  "tracking": 0.65,
+  "rows": [
+    {
+      "stage": 1,
+      "weapon": "pulse",
+      "seconds": 69.9,
+      "won": true,
+      "hp": 900,
+      "peakEnemies": 4,
+      "peakBullets": 24
+    },
+    {
+      "stage": 1,
+      "weapon": "plasma",
+      "seconds": 69.3,
+      "won": true,
+      "hp": 900,
+      "peakEnemies": 3,
+      "peakBullets": 23
+    },
+    {
+      "stage": 1,
+      "weapon": "laser",
+      "seconds": 65.4,
+      "won": true,
+      "hp": 900,
+      "peakEnemies": 3,
+      "peakBullets": 23
+    },
+    {
+      "stage": 2,
+      "weapon": "pulse",
+      "seconds": 98.5,
+      "won": true,
+      "hp": 1200,
+      "peakEnemies": 4,
+      "peakBullets": 78
+    },
+    {
+      "stage": 2,
+      "weapon": "plasma",
+      "seconds": 111.8,
+      "won": true,
+      "hp": 1200,
+      "peakEnemies": 4,
+      "peakBullets": 111
+    },
+    {
+      "stage": 2,
+      "weapon": "laser",
+      "seconds": 74.25,
+      "won": true,
+      "hp": 1200,
+      "peakEnemies": 4,
+      "peakBullets": 70
+    },
+    {
+      "stage": 3,
+      "weapon": "pulse",
+      "seconds": 101.4,
+      "won": true,
+      "hp": 1500,
+      "peakEnemies": 8,
+      "peakBullets": 204
+    },
+    {
+      "stage": 3,
+      "weapon": "plasma",
+      "seconds": 117.35,
+      "won": true,
+      "hp": 1500,
+      "peakEnemies": 8,
+      "peakBullets": 228
+    },
+    {
+      "stage": 3,
+      "weapon": "laser",
+      "seconds": 95.1,
+      "won": true,
+      "hp": 1500,
+      "peakEnemies": 8,
+      "peakBullets": 201
+    }
+  ]
+}

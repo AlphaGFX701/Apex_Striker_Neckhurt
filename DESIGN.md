@@ -1,4 +1,4 @@
-# Gyro Space Combat — Pixel Combat design system
+# Apex Strikers — Neon Onslaught design system
 
 ## Product and visual direction
 
@@ -30,7 +30,11 @@ Two / five orbs produce Level 2 / 3 with added physical equipment at a common im
 
 Wingmen are a permanent pair, one on each side, with three gun levels. They have no hitbox and never act as disposable armor. Shield precedes hull. Five / ten / twenty kills yield x2 / x3 / x5 kill score; only actual hull loss resets the chain. Rewards and stats settle once.
 
-Enemy caps are 10 / 12 / 14 including up to two armored ships. Boss escorts occupy two separate side slots and refill only a vacant slot. Fighters shoot in warm-up and retreat through an exclusive movement branch. Bosses have 650 / 800 / 1000 core HP, separate hardpoints and three phases. Stage1 uses armored/exposed/transition states: break both turrets to expose the core, then stop excess damage at each phase boundary. A persistent text label explains the current target; temporary warnings never replace that objective. Other sectors and Endless keep their existing boss rules. Authored volleys reserve 90-unit escape sectors; raw projectile admission must not silence the boss. Core fallback remains visible after turret destruction.
+DifficultyProfile owns HP, cadence and caps: ordinary HP6/9/12, armor16/24/32, core900/1200/1500, caps14/18/22, supports4/6/8, cadence1/2/4 and phases2/3/3. All commanders gate their cores behind destructible turrets. Phase boundaries clamp overflow without healing and rearm only after the warning. Exposed-core vulnerability is1/1.2/1.8 to target60–120 seconds at Level2/escort2 with65% tracking. Final-sector Rage begins below20% and doubles packet density. Packets use reachable90-unit corridors, not a permanent safe edge; packet ownership prevents escorts from starving commander attacks. Ordinary formations attack then fly through the bottom edge. Kamikaze, shield wall, rear-gunner and side-crossfire have distinct roles.
+
+At max wingman rank, another pickup refreshes Super to five seconds. All friendly weapons deal double damage once and intercept ordinary rounds. Super grants no invulnerability and cannot block giant beams. Red Overdrive remains independent. Three stage-colored orbs retain the same evolution effect and32/78/124/170/216 supplies.
+
+A decided terminal result freezes gameplay immediately, then EndingSequence drives a three-second slow explosion plus one-second VICTORY or1.5-second player explosion plus GAME OVER. Results settle once after presentation. Practice and withdrawal retain their own result; Endless commanders continue to the next cycle.
 
 EMP clears ordinary enemies, rocks, bullets and active beams, not commanders or hardpoints. Passive charge is 75 seconds; cells add 5%; kills never refund energy. Recovery covers both normal volleys and the orbital-lock clock and stationary tracking. Big-beam warnings last 1.2 seconds and suspend ordinary fire.
 
@@ -46,10 +50,10 @@ Touch targets are at least 44px. Battle does not scroll; menus do. Respect safe 
 
 ## Environment, audio and compatibility
 
-Feony Background 7 remains the space-only backdrop. Parallax speeds are 10 / 20 / 30 units per simulation second. Themes crossfade over two seconds. Pause freezes simulation offsets. Canvas is the compatibility baseline; color variants and meteor contours are prepared offline rather than relying on WebGL tint.
+Feony space backdrop is supplemented by selected animated Void Environment stars, alien recolored planets, black holes and asteroid destruction. Stage1 has fragmenting/iron rocks; Stage2 plasma jams fire; Stage3 defense beams. Major hazards do not overlap sweep beams. Black holes have destructible cores, bounded gravity and a detonation warning. Parallax speeds are 10 / 20 / 30 units per simulation second. Themes crossfade over two seconds. Pause freezes simulation offsets. Canvas is the compatibility baseline; color variants and meteor contours are prepared offline rather than relying on WebGL tint.
 
 AudioDirector owns music and nonverbal SFX only. There is no speech or announcer queue. Terminal_Dash plays in stages; ORBITAL BOMBARDMENT plays for bosses, crossfading in 400 ms and continuing across phases. Missing audio never blocks play. The real loader shows progress and a retry path for asset failure.
 
 ## Change authority
 
-PIXEL-COMBAT-PLAN.md is the accepted source for three fixed pixel ships, run-only progression, first-sector choreography and the armor-gated commander. EVOLUTION-PLAN.md remains authoritative for retained gyro, EMP, wingman, feedback and lifecycle behavior. The theme and DOM controls keep the existing canonical CSS token ownership.
+NEON-PLAN.md supersedes earlier balance and boss rules. PIXEL-COMBAT-PLAN.md is the historical source for three fixed pixel ships, run-only progression, first-sector choreography and the armor-gated commander. EVOLUTION-PLAN.md remains authoritative for retained gyro, EMP, wingman, feedback and lifecycle behavior. The theme and DOM controls keep the existing canonical CSS token ownership.

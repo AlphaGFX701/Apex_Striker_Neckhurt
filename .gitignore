@@ -8,3 +8,6 @@ ios/App/Pods/
 ios/App/DerivedData/
 artifacts/*-server*.log
 artifacts/onslaught-soak*.log
+
+/artifacts/drone-source.png
+/artifacts/neon-video/

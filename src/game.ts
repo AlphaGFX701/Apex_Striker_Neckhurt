@@ -1,3 +1,5 @@
+import { beamGeometry } from "./neon";
+import { NEON_IMAGES } from "./neon-assets";
 import { ParallaxEnvironment } from "./parallax";
 import { BOSS_ART, ONSLAUGHT_IMAGES } from "./onslaught-assets";
 import { EVOLUTION_IMAGES } from "./evolution-assets";
@@ -38,6 +40,7 @@ export class SpaceScene extends Phaser.Scene {
     this.load.on("progress", (value: number) =>
       this.control.onLoadProgress?.(value),
     );
+    for (const key of NEON_IMAGES) this.load.image(key, `/assets/neon/${key}.png`);
     for (const key of EVOLUTION_IMAGES)
       this.load.image(key, `/assets/evolution/${key}.png`);
     for (const image of PIXEL_FLEET_IMAGES)
@@ -53,6 +56,7 @@ export class SpaceScene extends Phaser.Scene {
         `/assets/environment/feony-scroll-${i}.webp`,
       );
     this.load.atlas("fleet", "/assets/atlas.png", "/assets/atlas.json");
+    for (const key of NEON_IMAGES) this.textures.get(key).setFilter(Phaser.Textures.FilterMode.NEAREST);
     for (const key of ONSLAUGHT_IMAGES)
       this.load.image(key, `/assets/onslaught/${key}.png`);
     this.load.image("drone", "/assets/tactical/drone.png");
@@ -100,6 +104,7 @@ export class SpaceScene extends Phaser.Scene {
     return image;
   }
   private environment!: ParallaxEnvironment;
+  private hostileLayer!: Phaser.Textures.CanvasTexture;
   private lastMiniBurst = 0;
   private art!: Phaser.GameObjects.Graphics;
   private stars: { x: number; y: number; size: number; speed: number }[] = [];
@@ -122,6 +127,8 @@ export class SpaceScene extends Phaser.Scene {
         this.textures.get(key).setFilter(Phaser.Textures.FilterMode.NEAREST);
     this.control.onReady?.();
     this.environment = new ParallaxEnvironment(this);
+    this.hostileLayer = this.textures.createCanvas('hostile-layer', WORLD.width, Math.ceil(WORLD.height))!;
+    this.add.image(WORLD.width/2,Math.ceil(WORLD.height)/2,'hostile-layer').setDepth(1.5);
     this.art = this.add.graphics().setDepth(3);
     for (let i = 0; i < 85; i++)
       this.stars.push({
@@ -273,7 +280,11 @@ export class SpaceScene extends Phaser.Scene {
       s = this.model.state,
       stage = this.model.config.stage,
       reduced = !!this.control.reducedEffects?.();
-    if (s.gameOver) this.endAge += _dt;
+    if (s.gameOver) {
+      this.model.advanceEnding(_dt);
+      this.endAge += _dt * (s.ending?.kind === 'victory' ? 0.3 : 1);
+      this.control.onHud(s);
+    }
     this.environment.update(s, reduced, stage);
     g.clear();
     for (const image of this.sprites) image.setVisible(false);
@@ -299,6 +310,7 @@ export class SpaceScene extends Phaser.Scene {
         Math.atan2(b.vx ?? 0, b.speed),
         0.9,
       );
+      if (!reduced && s.bullets.length+s.enemyBullets.length<240) {
       g.fillStyle(
         b.interceptor
           ? 0xff3657
@@ -312,6 +324,7 @@ export class SpaceScene extends Phaser.Scene {
       g.fillEllipse(b.x, b.y, 9, 22);
       g.fillStyle(b.interceptor ? 0xffc4cc : b.missile ? 0xffe6b3 : 0xeaffff);
       g.fillRoundedRect(b.x - 1.5, b.y - 8, 3, b.missile ? 17 : 12, 1);
+      }
     }
     for (const r of s.rocks) {
       this.sprite(
@@ -320,12 +333,20 @@ export class SpaceScene extends Phaser.Scene {
         r.y,
         r.radius * 3.1,
         r.phase,
-      );
+      ).setTint(r.iron ? 0xa0dbff : 0xffffff);
+      if(r.iron) { g.lineStyle(3,0xd5f4ff,0.9);g.strokeRect(r.x-12,r.y-12,24,24); }
     }
     for (const e of s.enemies) {
       const key = `enemy-${e.faction ?? stage}-${e.kind ?? 0}`,
         width = e.kind === 2 ? 72 : 58;
       this.sprite(key, e.x, e.y, width);
+      if(this.textures.exists(`${key}-weapon-0`) && (e.muzzle??0) > 0)
+        this.sprite(`${key}-weapon-${Math.floor(s.time*16)%8}`,e.x,e.y,width);
+      if((e.shieldHP??0)>0 && this.textures.exists(`${key}-shield-0`))
+        this.sprite(`${key}-shield-${Math.floor(s.time*12)%8}`,e.x,e.y,width*1.15,0,0.8);
+      if(e.archetype==='kamikaze' && e.lock && (e.age??0)<2) {
+        g.lineStyle(2,0xff7468,0.6);g.strokeCircle(e.lock.x,e.lock.y,18);
+      }
       this.sprite(
         `${key}-engine-${Math.floor(s.time * 12) % 8}`,
         e.x,
@@ -352,9 +373,9 @@ export class SpaceScene extends Phaser.Scene {
     }
     if (s.miniBoss) {
       const m = s.miniBoss;
-      this.sprite(`void-2-${stage}`, m.x, m.y, 112);
+      this.sprite(stage===2?"nautolan-mini-base-0":`void-2-${stage}`, m.x, m.y, 112);
       this.sprite(
-        `void-2-${stage}-engine-${Math.floor(s.time * 12) % 8}`,
+        stage===2?`nautolan-mini-engine-${Math.floor(s.time*12)%8}`:`void-2-${stage}-engine-${Math.floor(s.time * 12) % 8}`,
         m.x,
         m.y,
         112,
@@ -364,12 +385,23 @@ export class SpaceScene extends Phaser.Scene {
         g.strokeCircle(m.x, m.y, m.radius);
       }
     }
-    if (s.boss) {
+    if (s.boss && !(s.gameOver && this.endAge > 0.55)) {
       const b = s.boss,
         art = BOSS_ART[stage];
-      this.sprite(art.key, b.x, b.y, art.width);
+      for(const d of b.decoys??[]) {
+        this.sprite(art.key,d.x,d.y,art.width*0.55,0,0.4);
+        g.lineStyle(1,0xa88bdf,0.4);g.strokeCircle(d.x,d.y,33);
+      }
+      this.sprite(b.rage ? "boss-2-rage" : art.key, b.x, b.y, art.width);
+      if(b.decoys?.length || b.rage) {
+        g.lineStyle(2,b.rage?0xff3858:0x7dfff4,0.7);g.strokeEllipse(b.x,b.y,art.width*0.8,art.width*0.9);
+      }
+      if(b.dash && b.dash.age<1.2) {
+        g.lineStyle(40,0xff4259,0.12);g.lineBetween(195,205,b.dash.x,b.dash.y);
+        g.lineStyle(2,0xff8b77,0.7);g.strokeCircle(b.dash.x,b.dash.y,35);
+      }
       this.sprite(
-        `${art.key}-engine-${Math.floor(s.time * 12) % 8}`,
+        `${art.key}-engine-${Math.floor(s.time * 12) % 8}${b.rage?"-rage":""}`,
         b.x,
         b.y,
         art.width,
@@ -383,6 +415,8 @@ export class SpaceScene extends Phaser.Scene {
           0,
           Math.min(0.45, (b.flash / 0.07) * 0.45),
         );
+      if(b.state==='armored') this.sprite(`capital-${stage}-shield-${Math.floor(s.time*12)%8}${b.rage?"-rage":""}`,b.x,b.y,art.width,0,0.48);
+      if((b.muzzle??0)>0 && !s.beams.length) this.sprite(`capital-${stage}-weapon-${Math.floor(s.time*16)%8}`,b.x,b.y,art.width,0,0.8);
       for (const t of b.turrets ?? []) {
         if (t.health <= 0) {
           g.fillStyle(0x130e16, 0.85);
@@ -410,18 +444,19 @@ export class SpaceScene extends Phaser.Scene {
         );
       }
     }
-    for (const b of s.enemyBullets) {
-      g.fillStyle(0xff855a, 0.18);
-      g.fillCircle(b.x, b.y, 8);
-      g.fillStyle(0xffb56f);
-      g.fillCircle(b.x, b.y, b.radius + 0.5);
-      g.fillStyle(0xfff5d9);
-      g.fillCircle(b.x, b.y, 1.8);
+    // One persistent layer avoids hundreds of Canvas scene-object transforms.
+    const hostileContext=this.hostileLayer.context;
+    hostileContext.clearRect(0,0,WORLD.width,Math.ceil(WORLD.height));
+    const hostileArt=this.textures.get('hostile-round').getSourceImage() as CanvasImageSource;
+    for (const bullet of s.enemyBullets) {
+      const size=18+bullet.radius*0.5;
+      hostileContext.drawImage(hostileArt,bullet.x-size/2,bullet.y-size/2,size,size);
     }
+    this.hostileLayer.refresh();
     for (const p of s.pickups)
       if (p.kind) {
         this.sprite(
-          `pickup-${p.kind}`,
+          p.kind === "weapon" ? `orb-${stage}` : `pickup-${p.kind}`,
           p.x,
           p.y,
           34,
@@ -440,6 +475,9 @@ export class SpaceScene extends Phaser.Scene {
       if (progress >= 1) continue;
       const frame = e.spark
         ? `evo-spark-${Math.min(3, Math.floor(progress * 4))}`
+        : e.art === 'neon-rock' ? `rock-burst-${Math.min(7,Math.floor(progress*8))}`
+        : e.art?.startsWith('capital-') ? `${e.art}-destroy-${Math.min(11,Math.floor(progress*12))}`
+        : e.art === "nautolan-mini" ? `nautolan-mini-destroy-${Math.min(7,Math.floor(progress*8))}`
         : e.art?.startsWith("enemy-")
           ? `${e.art}-destroy-${Math.min(7, Math.floor(progress * 8))}`
           : e.art
@@ -464,6 +502,23 @@ export class SpaceScene extends Phaser.Scene {
           );
         }
     }
+    for(const h of s.hazards) {
+      const active=h.age>=1.2;
+      if(h.kind==='black-hole') {
+        this.sprite(`gravity-${Math.floor(s.time*8)%8}`,h.x,h.y,240,0,0.7);
+        g.lineStyle(2,h.age>=8?0xff755a:0xaf85ff,0.6);
+        g.strokeCircle(h.x,h.y,h.age>=8?h.radius:18);
+        g.fillStyle(0x0a081c,0.8);g.fillCircle(h.x,h.y,14);
+        g.lineStyle(2,0xd6aaff,0.9);g.strokeCircle(h.x,h.y,18);
+        g.fillStyle(0xe3bfff);g.fillRect(h.x-20,h.y-30,40*Math.max(0,h.hp/24),3);
+      } else if(h.kind==='plasma') {
+        g.fillStyle(0xac68f5,active?0.14:0.05);g.fillCircle(h.x,h.y,h.radius);
+        g.lineStyle(2,0xc68dff,0.4);g.strokeCircle(h.x,h.y,h.radius);
+      } else {
+        g.fillStyle(active?0xff6555:0xffa477,active?0.7:0.1);g.fillRect(h.x-24,0,48,WORLD.height);
+        g.lineStyle(2,0xffb894,0.65);g.strokeRect(h.x-24,0,48,WORLD.height);
+      }
+    }
     if (s.storm) {
       const h = s.storm;
       g.fillStyle(0xb18cff, h.age >= 1.2 ? 0.08 : 0.025);
@@ -475,6 +530,15 @@ export class SpaceScene extends Phaser.Scene {
     for (const beam of s.beams) {
       const firing = beam.age >= 1.2,
         alpha = 0.35 + Math.sin(beam.age * 24) * 0.15;
+      if(beam.sweep) {
+        const line=beamGeometry(beam);
+        g.lineStyle(firing?44:48,firing?0xff604f:0xffaa74,firing?0.6:0.12);
+        g.lineBetween(line.x1,line.y1,line.x2,line.y2);
+        g.lineStyle(firing?7:2,firing?0xfff8d1:0xffa47c,0.85);
+        g.lineBetween(line.x1,line.y1,line.x2,line.y2);
+        if(!firing) {g.lineStyle(2,0xff7e73,0.4);g.strokeCircle(beam.x,beam.y??205,50);}
+        continue;
+      }
       if (!firing) {
         g.fillStyle(0xf16d65, 0.08);
         g.fillRect(beam.x - 22, 170, 44, WORLD.height - 170);
@@ -542,7 +606,7 @@ export class SpaceScene extends Phaser.Scene {
           (alpha * 0.15) / i,
         );
     }
-    if (warp || s.invincible === 0 || Math.floor(s.time * 14) % 2 === 0) {
+    if (s.result !== "lost" && (warp || s.invincible === 0 || Math.floor(s.time * 14) % 2 === 0)) {
       this.sprite(
         frame.engineFrames[Math.floor(s.time * 16) % frame.engineFrames.length].key,
         ship.x,
@@ -561,6 +625,14 @@ export class SpaceScene extends Phaser.Scene {
           lean,
           reduced ? 0.55 : 0.95,
         ).setDepth(2);
+    }
+    if(s.superMode.remaining>0 && !s.gameOver) {
+      this.sprite('ship-upgrade-3',ship.x,ship.y,shipWidth*1.2,lean,0.85).setTint(0xe9a4ff);
+      g.lineStyle(2,0xc58cff,0.85);
+      for(const side of [-1,1]) {
+        g.lineBetween(ship.x+side*42,ship.y+30,ship.x+side*55,ship.y-32);
+        g.fillStyle(0xc0ffff,0.85);g.fillCircle(ship.x+side*55,ship.y-32,3);
+      }
     }
     if (s.evolution.transformRemaining > 0) {
       const p = 1 - s.evolution.transformRemaining / 0.45;
@@ -604,17 +676,17 @@ export class SpaceScene extends Phaser.Scene {
       g.lineStyle(1, 0x5fe1ff, 0.45);
       g.strokeCircle(p.x, p.y, 17 + rank);
       this.sprite(
-        `wingman-${rank}`,
+        `escort-${s.superMode.remaining>0?"super-":""}${rank}`,
         p.x,
         p.y,
-        27 + s.wingmen.level * 3,
+        39 + s.wingmen.level * 3,
         lean * 0.3,
       );
       this.sprite(
-        `wingman-thruster-${Math.floor(s.time * 16) % 4}`,
+        `escort-engine-${Math.abs(s.velocity.x)<30?"idle":s.velocity.x<0?"left":"right"}-${Math.floor(s.time * 16) % 2}`,
         p.x,
-        p.y + 20,
-        13,
+        p.y + 16,
+        22,
       );
       if (s.bullets.some((bullet) => Math.abs(bullet.x - p.x) < 10 && bullet.y < p.y && bullet.y > p.y - 14)) {
         g.fillStyle(0xd8fbff, 0.9);
@@ -651,9 +723,9 @@ export class SpaceScene extends Phaser.Scene {
         0,
         s.hitEffect / 0.3,
       );
-    g.lineStyle(1, 0xffffff, 0.95);
+    g.lineStyle(1, 0xffffff, s.result === "lost" ? 0 : 0.95);
     g.strokeCircle(ship.x, ship.y, ship.radius);
-    g.fillStyle(0x8dfbff);
+    g.fillStyle(0x8dfbff,s.result === "lost" ? 0 : 1);
     g.fillCircle(ship.x, ship.y, 2);
     if (s.empEffect > 0) {
       const p = 1 - s.empEffect / 0.75;
@@ -661,6 +733,10 @@ export class SpaceScene extends Phaser.Scene {
       g.strokeCircle(s.empOrigin.x, s.empOrigin.y, Math.min(180, p * 270));
       g.lineStyle(2, 0xcafffa, (1 - p) * 0.6);
       g.strokeCircle(s.empOrigin.x, s.empOrigin.y, Math.min(180, p * 240));
+    }
+    if(s.ending?.kind==='victory' && this.endAge<1.2 && !reduced) {
+      const center=s.boss??s.ship;
+      for(let i=0;i<8;i++) {g.fillStyle(0x60717e,0.12*(1-Math.min(1,this.endAge/1.2)));g.fillCircle(center.x+Math.sin(i*2.4)*this.endAge*90,center.y+Math.cos(i*2.4)*this.endAge*70,15+this.endAge*30);}
     }
     const burst = s.explosions.find(
       (e) => e.art?.startsWith("void-2-") && e.age < 0.08,

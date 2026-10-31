@@ -1710,3 +1710,22 @@ body.reduced-effects #battle[data-low-hull="true"] .battle-stage:after {
   width: 100%;
   min-height: 44px;
 }
+
+#ending-banner {position:absolute;inset:0;z-index:15;display:grid;place-items:center;pointer-events:none;background:linear-gradient(transparent,#06122555,transparent);font:700 clamp(32px,8vw,60px) ChakraPetch,sans-serif;letter-spacing:.12em;color:#adfaff;text-shadow:0 0 20px #35baff;}
+#ending-banner[data-kind="defeat"]{color:#ff9a93;text-shadow:0 0 20px #ff3a55;}
+#ending-banner[hidden]{display:none;}
+
+@media (orientation:landscape) and (max-height:500px) {
+ .hud-top{left:4px;right:4px;gap:4px;}
+ .hud-score{min-width:0;}.hud-score b{font-size:12px;}.hud-score small{font-size:7px;letter-spacing:0;}
+ .hud-time{min-width:33px;}.hud-time b{font-size:11px;}.hud-time small,.hud-score>span{display:none;}
+ #boss-hud{left:4px;right:4px;top:54px;padding:4px;}
+ #boss-hud .row-between{display:block;}#boss-name{max-width:100%;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:7px;}
+ #boss-phase{display:block;font-size:7px;}#boss-objective{font-size:7px;}#stage-warning{font-size:8px;padding:3px;}
+ .hud-bottom{left:4px;right:4px;bottom:4px;display:grid;grid-template-columns:1fr 1fr;gap:2px;}
+ .hull-cluster{grid-row:1/3;padding:2px;gap:2px;}.hull-cluster>small{font-size:6px;letter-spacing:0;}
+ #lives{gap:2px;height:9px;}.hull-segment{width:18px;height:9px;}#shield-status{font-size:6px;}#shield-status img{width:10px;height:10px;}
+ #drone-status,#run-credits{font-size:7px;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+ .combat-controls button{font-size:9px;padding:3px 1px;gap:1px;}.combat-controls span{font-size:9px;}.combat-controls small{font-size:6px;}
+ .combat-controls .emp-button img{width:12px;height:12px;}#emp-state{font-size:10px;}
+}

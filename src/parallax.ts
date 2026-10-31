@@ -12,6 +12,8 @@ export class ParallaxEnvironment {
   private changedAt = 0;
   private fromColor = COLORS[0];
   private currentColor = COLORS[0];
+  private planet: Phaser.GameObjects.Image;
+  private distantStars: Phaser.GameObjects.Image;
   private mist: Phaser.GameObjects.Graphics;
   private celestial: Phaser.GameObjects.Graphics;
   constructor(scene: Phaser.Scene) {
@@ -19,6 +21,8 @@ export class ParallaxEnvironment {
       scene.add.image(195, 0, "feony-scroll-0").setDepth(-5),
     );
     this.celestial = scene.add.graphics().setDepth(-4);
+    this.planet=scene.add.image(300,80,"planet-0-0").setDepth(-4).setAlpha(0.48);
+    this.distantStars=scene.add.image(195,340,"void-stars-0").setDepth(-4.5).setDisplaySize(700,700).setAlpha(0.14);
     this.debris = Array.from({ length: 10 }, (_, i) =>
       scene.add
         .image((i * 97 + 20) % 390, 0, "environment", `debris-${i % 6}`)
@@ -57,7 +61,9 @@ export class ParallaxEnvironment {
     const planetX = [308, 75, 320][stage];
     const radius = [88, 112, 76][stage];
     const palette = [0x3c6481, 0x705271, 0x8c573c][stage];
-    planet.fillStyle(palette, 0.32);
+    this.planet.setTexture(`planet-${stage}-${Math.floor(time*3)%8}`).setPosition(planetX,planetY).setDisplaySize(radius*2,radius*2);
+    this.distantStars.setTexture(`void-stars-${Math.floor(time*2)%8}`).setY(340+(time*3)%80);
+    planet.fillStyle(palette, 0.04);
     planet.fillCircle(planetX, planetY, radius);
     planet.lineStyle(2, 0xb9d6e7, 0.18);
     planet.strokeCircle(planetX, planetY, radius);

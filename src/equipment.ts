@@ -65,7 +65,7 @@ export const STAGES = [
     weakness: "plasma" as DamageType,
     description: "Break the blockade through an ancient debris field.",
     color: "#60d8ff",
-    hp: 650,
+    hp: 900,
   },
   {
     name: "Orbital Convoy",
@@ -73,7 +73,7 @@ export const STAGES = [
     weakness: "laser" as DamageType,
     description: "Intercept the convoy. Watch for reactor beam warnings.",
     color: "#b5a2ff",
-    hp: 800,
+    hp: 1200,
   },
   {
     name: "Citadel Assault",
@@ -81,7 +81,7 @@ export const STAGES = [
     weakness: "missile" as DamageType,
     description: "Breach the citadel and defeat its command fleet.",
     color: "#f0bc74",
-    hp: 1000,
+    hp: 1500,
   },
 ];
 export interface RunConfig {

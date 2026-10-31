@@ -93,3 +93,12 @@ Runtime manifest/provenance: `/assets/evolution/manifest.json` and `/assets/evol
 
 Evolution side-wing/gun/engine overlays: additional adaptations of **Skorpio — Space Ship & Mech Construction Kit2**, [source](https://opengameart.org/content/space-ship-mech-construction-kit-2), **CC-BY-SA3.0**. `ship-upgrade-2.png` and `ship-upgrade-3.png` retain that license; see `/assets/evolution/LICENSE-SHIP-UPGRADES.txt`. The original module derivatives and modification script remain available with the game source.
 
+
+
+## Apex Strikers — Neon Onslaught
+
+Selected Nautolan hulls, engine effects, weapon overlays, shields and destruction frames: Baldur, commissioned/distributed by Foozle, **Void Fleet Pack3**, local Readme license CC0. Kla’ed and Nairan weapon/shield/destruction layers use the previously credited Fleet Packs1/2. Void Environment Pack stars, alien recolored planet frames, black-hole and asteroid-destruction frames: Baldur/Foozle, CC0 per included Readme.
+
+Escort hull cells: Gustavo Vituri SpaceShooterAssetPack, existing project license attribution retained. Changes: selected authored hull cells, cool palette, normalized anchors and added hardpoint modules. Directional booster frames: GrafxKid Mini Pixel Pack3, CC0 per LICENSE.txt; cyan recoloring and integer enlargement. Missing Kla’ed shield contours are derived from hull alpha; neon Orb symbols and Super modules are manually drawn by code, not generated images.
+
+Canvas Rage colors are baked into red derivative textures. Selected adapted artwork is in assets/neon; manifest and provenance in assets/neon/credits.json. Reproduce with scripts/build-neon-assets.py. No source archives or extracted APK artwork are distributed.

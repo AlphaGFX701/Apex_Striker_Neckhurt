@@ -1,3 +1,4 @@
+import { DIFFICULTY } from "./neon";
 import { screens } from "./screens";
 import {
   PixelShipStore,
@@ -231,6 +232,9 @@ const { scene } = createGame(el("game"), {
   },
   onRelease: () => pause("Touch released. Resume when you are ready."),
 });
+if (qaPilot) {
+  (window as unknown as { __apexQA: typeof scene }).__apexQA = scene;
+}
 if (qaPilot)
   void import("./qa-tools").then(({ installQaCapture }) =>
     installQaCapture(scene, () => feedback.capture()),
@@ -267,7 +271,7 @@ function setView(next: string) {
     feedback.music("menu");
   }
   document.body.dataset.view = next;
-  document.title = `${({ home: "Pixel Combat", stages: "Missions", hangar: "Hangar", battle: "In flight", preflight: "Preflight", settings: "Settings", controller: "Controller Lab", results: "Flight report", records: "Records" } as Record<string, string>)[next] || "Flight"} · Gyro Space Combat`;
+  document.title = `${({ home: "Home", stages: "Missions", hangar: "Hangar", battle: "In flight", preflight: "Preflight", settings: "Settings", controller: "Controller Lab", results: "Flight report", records: "Records" } as Record<string, string>)[next] || "Flight"} · Apex Strikers`;
   document.querySelectorAll<HTMLElement>(".screen").forEach((s) => {
     s.hidden = s.id !== next;
   });
@@ -549,7 +553,7 @@ function renderPreflight() {
   el("mission-name").textContent =
     mode === "endless" ? "Endless Frontier" : STAGES[selectedStage].name;
   el("mission-detail").textContent =
-    `${practice() ? "PRACTICE · " : ""}${mode === "stage" ? "2 min assault · 3-phase boss · " : ""}3 lives · Auto-fire`;
+    `${practice() ? "PRACTICE · " : ""}${mode === "stage" ? `2 min assault · ${DIFFICULTY[selectedStage].phases}-phase boss · ` : ""}3 lives · Auto-fire`;
   el("mission-loadout").innerHTML = Object.values(c.equipment)
     .filter(Boolean)
     .map((id) => {
@@ -681,8 +685,11 @@ el("launch").onclick = () => {
         m.update(0.05, { x: Math.sin(i * 0.018) * 0.3, y: 0 });
         m.drainEvents();
       }
-      if (m.state.boss && fixture === "boss")
-        m.state.boss.health = m.state.boss.maxHealth * 0.3;
+      if (m.state.boss && fixture === "boss") {
+        m.state.boss.health = m.state.boss.maxHealth * (m.config.stage===2?0.15:0.3);
+        m.state.boss.phase=DIFFICULTY[m.config.stage].phases;
+      }
+      if(fixture==='super') m.state.superMode.remaining=5;
       m.state.shield = true;
       m.state.wingmen.level = 3;
       m.state.drones = [
@@ -869,7 +876,7 @@ function updateHud(s: GameSnapshot) {
     el("shield-status").innerHTML =
       `<img src="/assets/onslaught/pickup-shield.png" alt="">${s.shield ? "SHIELD ONLINE" : "NO SHIELD"}`;
   }
-  el("drone-status").textContent = s.drones.length
+  el("drone-status").textContent = s.superMode.remaining>0 ? `SUPER · ${s.superMode.remaining.toFixed(1)}s` : s.weaponJammed ? "WEAPON JAM" : s.drones.length
     ? `WINGMEN · LV.${s.wingmen.level}`
     : "";
   el("battle").dataset.damage = s.hitEffect > 0 ? s.damageKind : "";
@@ -929,11 +936,11 @@ function updateHud(s: GameSnapshot) {
           scene.model.config.stage
         ];
     el("boss-phase").textContent =
-      `${Math.max(0, Math.ceil(targetBoss.health))} / ${targetBoss.maxHealth} · PHASE ${targetBoss.phase || 1}${s.boss ? "/3" : ""}`;
+      `${Math.max(0, Math.ceil(targetBoss.health))} / ${targetBoss.maxHealth} · PHASE ${targetBoss.phase || 1}${s.boss ? "/"+DIFFICULTY[scene.model.config.stage].phases : ""}`;
     const bossState = s.boss?.state;
     el("boss-objective").hidden = !bossState || bossState === "defeated";
     el("boss-objective").textContent = bossState === "armored" ? "BREAK THE TURRETS" :
-      bossState === "exposed" ? "CORE EXPOSED" : bossState === "transition" ? "REARMING" : "";
+      bossState === "exposed" ? `CORE EXPOSED · DAMAGE ×${DIFFICULTY[scene.model.config.stage].exposedDamage}` : bossState === "transition" ? "REARMING" : "";
     el("boss-hud").dataset.state = bossState || "";
     el<HTMLProgressElement>("boss-health").value = Math.max(
       0,
@@ -941,7 +948,13 @@ function updateHud(s: GameSnapshot) {
     );
   }
   lastLives = s.lives;
-  if (s.gameOver && !settled) completeRound();
+  const ending=document.getElementById('ending-banner');
+  if(ending) {
+    ending.hidden=!s.ending || s.ending.duration===0;
+    ending.textContent=s.ending && s.ending.elapsed >= (s.ending.kind==='victory'?3:1.5) ? s.ending.kind==='victory'?'VICTORY':'GAME OVER' : '';
+    ending.dataset.kind=s.ending?.kind??'';
+  }
+  if (s.gameOver && !settled && (!s.ending || s.ending.elapsed >= s.ending.duration)) completeRound();
 }
 function completeRound() {
   if (settled) return;
@@ -1004,7 +1017,7 @@ function completeRound() {
   paint("result-ship", false, s.evolution.level);
   if (s.result === "won") feedback.victory();
   else if (s.result === "lost") feedback.defeat();
-  const delay = s.outcome === "won" ? 700 : s.outcome === "lost" ? 450 : 0;
+  const delay = 0;
   if (delay)
     window.setTimeout(() => {
       if (view === "battle" && settled) {
@@ -1157,7 +1170,7 @@ el("trial-export").onclick = () => {
   );
   const a = document.createElement("a");
   a.href = u;
-  a.download = "gyro-space-device-trials.json";
+  a.download = "apex-strikers-device-trials.json";
   a.click();
   setTimeout(() => URL.revokeObjectURL(u), 1000);
 };
