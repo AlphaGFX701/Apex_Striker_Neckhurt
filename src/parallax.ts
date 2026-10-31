@@ -13,10 +13,12 @@ export class ParallaxEnvironment {
   private fromColor = COLORS[0];
   private currentColor = COLORS[0];
   private mist: Phaser.GameObjects.Graphics;
+  private celestial: Phaser.GameObjects.Graphics;
   constructor(scene: Phaser.Scene) {
     this.backgrounds = [0, 1, 2, 3].map(() =>
       scene.add.image(195, 0, "feony-scroll-0").setDepth(-5),
     );
+    this.celestial = scene.add.graphics().setDepth(-4);
     this.debris = Array.from({ length: 10 }, (_, i) =>
       scene.add
         .image((i * 97 + 20) % 390, 0, "environment", `debris-${i % 6}`)
@@ -47,6 +49,26 @@ export class ParallaxEnvironment {
       this.lastSegment = theme;
     }
     this.lastTime = time;
+    // Distant landmarks are purely decorative; dangerous rocks use a separate,
+    // high-contrast sprite and collision model.
+    const planet = this.celestial;
+    planet.clear();
+    const planetY = ((130 + time * 3) % (WORLD.height + 380)) - 120;
+    const planetX = [308, 75, 320][stage];
+    const radius = [88, 112, 76][stage];
+    const palette = [0x3c6481, 0x705271, 0x8c573c][stage];
+    planet.fillStyle(palette, 0.32);
+    planet.fillCircle(planetX, planetY, radius);
+    planet.lineStyle(2, 0xb9d6e7, 0.18);
+    planet.strokeCircle(planetX, planetY, radius);
+    planet.fillStyle(0x080e1c, 0.28);
+    planet.fillCircle(planetX + radius * 0.28, planetY + radius * 0.14, radius * 0.82);
+    if (stage === 1) {
+      planet.lineStyle(8, 0xa69aa5, 0.13);
+      planet.strokeEllipse(planetX, planetY, radius * 3.1, radius * 0.68);
+      planet.lineStyle(2, 0xd1b9a1, 0.2);
+      planet.strokeEllipse(planetX, planetY, radius * 2.8, radius * 0.52);
+    }
     const blend = Math.min(1, Math.max(0, (time - this.changedAt) / 2));
     const a = Phaser.Display.Color.IntegerToColor(this.fromColor),
       b = Phaser.Display.Color.IntegerToColor(COLORS[theme]);

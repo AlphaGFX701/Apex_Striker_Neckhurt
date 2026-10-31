@@ -528,6 +528,8 @@ export class GameModel {
         "energy",
         "energy",
       ];
+      // Preserve the other rewards while halving the chance of a weapon orb.
+      kinds.push(...kinds.filter((kind) => kind !== "weapon"));
       if (s.lives === 1) kinds.push("repair", "repair", "repair");
       s.pickups.push({
         x: e.x,
@@ -640,21 +642,17 @@ export class GameModel {
       specs = formationSpecs(f, stage, 85 + this.random() * 220);
     }
     for (const e of bossSupport ? specs.slice(0, 2) : specs) {
-      if (s.enemies.length >= (bossSupport ? 2 : 10 + stage * 2)) break;
+      if (s.enemies.length >= (bossSupport ? 4 : 12 + stage * 2)) break;
       if (
         e.kind === 2 &&
         s.enemies.filter((other) => other.kind === 2).length >= 2
       )
         continue;
       if (bossSupport) {
-        const leftOccupied = s.enemies.some(
-          (ally) => (ally.originX ?? ally.x) < 195,
-        );
-        const rightOccupied = s.enemies.some(
-          (ally) => (ally.originX ?? ally.x) >= 195,
-        );
-        if (leftOccupied && rightOccupied) break;
-        e.x = leftOccupied ? 330 : 60;
+        const leftCount = s.enemies.filter((ally) => (ally.originX ?? ally.x) < 195).length;
+        const rightCount = s.enemies.length - leftCount;
+        if (leftCount >= 2 && rightCount >= 2) break;
+        e.x = leftCount <= rightCount && leftCount < 2 ? 60 : 330;
         e.y = -35;
         e.motion = "escort";
         e.kind = 0;
@@ -815,7 +813,7 @@ export class GameModel {
     const stage = this.config.stage,
       endless = this.config.mode === "endless";
     s.time += step;
-    const supplyTimes = [24, 60, 96, 132, 168];
+    const supplyTimes = [32, 78, 124, 170, 216];
     while (
       this.supplyIndex < supplyTimes.length &&
       s.time >= supplyTimes[this.supplyIndex]
@@ -982,8 +980,8 @@ export class GameModel {
     }
     const support = s.boss
       ? Math.max(
-          6,
-          11 -
+          5.5,
+          9.5 -
             stage -
             (s.boss.phase ?? 1) * 0.7 -
             Math.max(0, (s.boss.age ?? 0) - 180) / 60,
@@ -1001,8 +999,9 @@ export class GameModel {
       const a = e.age,
         origin = e.originX ?? e.x;
       if (a > 5.5) {
-        e.x += ((e.path ? e.x : origin) < 195 ? -1 : 1) * 150 * step;
-        e.y -= 90 * step;
+        // After attacking, fly through the bottom of the playfield instead
+        // of abruptly shooting sideways off screen.
+        e.y += 150 * step;
       } else if (e.path) {
         Object.assign(e, flightPathPosition(e.path, a / 5.5));
       } else {
@@ -1397,11 +1396,11 @@ export class GameModel {
       const onslaught = b.state !== undefined;
       b.shot = onslaught
         ? mounts.length
-          ? [0.9, 0.8, 0.7][phase - 1]
-          : [1.1, 0.95, 0.85][phase - 1]
+          ? [0.82, 0.72, 0.64][phase - 1]
+          : [0.98, 0.86, 0.76][phase - 1]
         : mounts.length
-          ? (phase === 1 ? 1.6 : phase === 2 ? 1.45 : 1.25) / (1 + stage * 0.05)
-          : 2.4;
+          ? (phase === 1 ? 1.4 : phase === 2 ? 1.25 : 1.1) / (1 + stage * 0.05)
+          : 1.7;
       const beforeShots = s.enemyBullets.length;
       // Paired mounts alternate, reducing pressure when a hardpoint is destroyed.
       const parity = Math.floor(b.age * 2) % 2;
@@ -1410,14 +1409,14 @@ export class GameModel {
         : [{ x: 0, y: 45 }];
       b.attackSerial = (b.attackSerial ?? 0) + 1;
       const ringAttack =
-        b.attackSerial % 3 === 0 && (onslaught || mounts.length > 0);
+        b.attackSerial % 3 === 0;
       if (ringAttack) {
         this.ring(
           b.x,
           b.y + 55,
           90 + phase * 8,
           b.age * 0.07,
-          onslaught ? 28 + phase * 4 : 24,
+          onslaught ? (mounts.length ? 28 + phase * 4 : 20 + phase * 2) : 24,
         );
         b.shot = onslaught ? 1.8 : 2.8;
         b.restUntil = s.time + (onslaught ? 1.1 : 1.8);
@@ -1527,8 +1526,8 @@ export class GameModel {
               y: r.y,
               age: 0,
               value: 0,
-              kind: (["repair", "repair", "energy", "weapon"] as const)[
-                Math.floor(this.random() * 4) % 4
+              kind: (["repair", "repair", "repair", "repair", "energy", "energy", "energy", "weapon"] as const)[
+                Math.floor(this.random() * 8) % 8
               ],
             });
           break;

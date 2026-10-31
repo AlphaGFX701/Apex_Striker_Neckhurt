@@ -598,8 +598,13 @@ export class SpaceScene extends Phaser.Scene {
     }
     for (const drone of s.drones) {
       const p = dronePosition(ship, drone);
+      const rank = s.wingmen.level || 1;
+      // A restrained running light and muzzle flash make the escort readable
+      // without enlarging its footprint or changing its firing position.
+      g.lineStyle(1, 0x5fe1ff, 0.45);
+      g.strokeCircle(p.x, p.y, 17 + rank);
       this.sprite(
-        `wingman-${s.wingmen.level || 1}`,
+        `wingman-${rank}`,
         p.x,
         p.y,
         27 + s.wingmen.level * 3,
@@ -611,6 +616,12 @@ export class SpaceScene extends Phaser.Scene {
         p.y + 20,
         13,
       );
+      if (s.bullets.some((bullet) => Math.abs(bullet.x - p.x) < 10 && bullet.y < p.y && bullet.y > p.y - 14)) {
+        g.fillStyle(0xd8fbff, 0.9);
+        g.fillCircle(p.x, p.y - 16, 3);
+        g.fillStyle(0x4dd8ff, 0.45);
+        g.fillCircle(p.x, p.y - 16, 6);
+      }
     }
     for (const hit of s.interceptions) {
       const t = Math.min(1, hit.age / 0.12),

@@ -91,7 +91,7 @@ describe("Evolution Arcade round rules", () => {
     expect(m.action("emp").accepted).toBe(false);
     expect(m.state.stats.enemiesDestroyed).toBe(2);
   });
-  it("shoots in the warm-up and keeps boss reinforcements to two", () => {
+  it("shoots in the warm-up and keeps boss reinforcements to four", () => {
     const m = new GameModel(() => 0.4);
     m.practice = true;
     let warmShots = 0;
@@ -118,11 +118,9 @@ describe("Evolution Arcade round rules", () => {
     for (let i = 0; i < 4000; i++) {
       m.state.bullets = [];
       m.update(0.01, { x: 0, y: 0 });
-      expect(m.state.enemies.length).toBeLessThanOrEqual(2);
-      if (m.state.enemies.length === 2)
-        expect(m.state.enemies[0].originX! < 195).not.toBe(
-          m.state.enemies[1].originX! < 195,
-        );
+      expect(m.state.enemies.length).toBeLessThanOrEqual(4);
+      expect(m.state.enemies.filter((e) => e.originX! < 195).length).toBeLessThanOrEqual(2);
+      expect(m.state.enemies.filter((e) => e.originX! >= 195).length).toBeLessThanOrEqual(2);
     }
   });
   it("multiplies consecutive kills, keeps the chain behind a shield and resets on hull loss", () => {
@@ -165,7 +163,7 @@ describe("Evolution Arcade round rules", () => {
     pickup(m, "energy");
     expect(m.state.energy).toBeCloseTo(49, 1);
   });
-  it("retires all formation types sideways instead of turning them into ramming enemies", () => {
+  it("sends spent formations down through the bottom edge", () => {
     const m = new GameModel();
     m.practice = true;
     const bomber = {
@@ -187,8 +185,9 @@ describe("Evolution Arcade round rules", () => {
     };
     m.state.enemies = [bomber, zigzag];
     m.update(0.05, { x: 0, y: 0 });
-    expect(bomber.y).toBeLessThan(200);
-    for (let i = 0; i < 50; i++) {
+    expect(bomber.y).toBeGreaterThan(200);
+    expect(bomber.x).toBe(110);
+    for (let i = 0; i < 85; i++) {
       m.state.bullets = [];
       m.update(0.05, { x: 0, y: 0 });
     }

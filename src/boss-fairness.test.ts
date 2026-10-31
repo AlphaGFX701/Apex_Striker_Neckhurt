@@ -43,7 +43,7 @@ describe("readable boss escape corridors", () => {
           for (const b of m.state.enemyBullets)
             if (b.y >= 430 && b.y <= 675)
               expect(Math.abs(b.x - gap)).toBeGreaterThan(45 + b.radius);
-          expect(m.state.enemies.length).toBeLessThanOrEqual(2);
+          expect(m.state.enemies.length).toBeLessThanOrEqual(4);
         }
       }
     },

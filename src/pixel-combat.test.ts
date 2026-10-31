@@ -169,7 +169,7 @@ describe("stage-one pixel combat", () => {
   it("spaces guaranteed supplies but still offers five evolution orbs during stage one", () => {
     const m = new GameModel();
     m.practice = true;
-    for (const time of [24, 60, 96, 132, 168]) {
+    for (const time of [32, 78, 124, 170, 216]) {
       m.state.time = time - 0.01;
       m.state.pickups = [];
       m.state.bullets = [];
