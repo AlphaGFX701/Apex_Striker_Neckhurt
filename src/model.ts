@@ -1,5 +1,5 @@
 import { LaserTimeline, LASER_WARNING_SECONDS, LASER_DAMAGE_WIDTH, type PresentedBeam } from "./laser-presentation";
-import { getStageBalance, standardImpact, GAME_BALANCE_CONFIG, type WaveBalance, type EnemyBalanceGroup } from "./neon";
+import { getStageBalance, standardImpact, getBossPressure, sectorEnemyImpact, GAME_BALANCE_CONFIG, type WaveBalance, type EnemyBalanceGroup } from "./neon";
 import { DIFFICULTY, beamDistance, ORB_SUPPLY_TIMES, superMultiplier, endingDuration, nextEscapeLane, type EnemyArchetype, type BossPattern, type HazardState, type SuperModeState, type EndingSequence } from "./neon";
 import {
   StageWaveManager,
@@ -99,7 +99,7 @@ export interface Turret {
   flashAt?: number;
 }
 export interface Boss extends Body {
-  muzzle?: number; rage?: boolean; pattern?: BossPattern; decoyCooldown?: number; decoys?: { x: number; y: number }[];
+  muzzle?: number; rage?: boolean; pattern?: BossPattern;
   dash?: { age: number; x: number; y: number };
   state?: "armored" | "exposed" | "transition" | "defeated";
   transitionRemaining?: number;
@@ -140,6 +140,7 @@ export interface PickupCollected {
 }
 export type CombatEvent =
   | { id: number; type: "pickup"; data: PickupCollected }
+  | { id:number; type:"boss-entered"; clearedPickups:number }
   | {
       id: number;
       type:
@@ -155,7 +156,7 @@ export type CombatEvent =
       text: string;
     };
 export interface GameSnapshot {
-  superMode: SuperModeState; hazards: HazardState[]; ending: EndingSequence | null; weaponJammed: boolean;
+  superMode: SuperModeState; hazards: HazardState[]; ending: EndingSequence | null;
   evolution: EvolutionState;
   wingmen: WingmanState;
   stats: RunStats;
@@ -323,7 +324,7 @@ export class GameModel {
   }
   private initialState(): GameSnapshot {
     return {
-      superMode: { remaining: 0 }, hazards: [], ending: null, weaponJammed: false,
+      superMode: { remaining: 0 }, hazards: [], ending: null,
       evolution: { orbs: 0, level: 1, transformRemaining: 0 },
       wingmen: { level: 0 },
       stats: { enemiesDestroyed: 0, bestMultiplier: 1 },
@@ -421,7 +422,7 @@ export class GameModel {
   drainEvents() {
     return this.events.splice(0);
   }
-  private event(type: Exclude<CombatEvent["type"], "pickup">, text = "") {
+  private event(type: Exclude<CombatEvent["type"], "pickup" | "boss-entered">, text = "") {
     this.events.push({ id: ++this.eventId, type, text });
   }
   private notice(text: string, duration = 1.5) {
@@ -645,6 +646,7 @@ export class GameModel {
     const s = this.state,
       stage = this.config.stage;
     const balance=getStageBalance(stage,s.time,this.config.mode,bossSupport);
+    const pressure=getBossPressure(stage,this.config.mode),supportCap=pressure.supportCap;
     if(balance && !balance.spawnEnabled) return;
     let specs: SpawnSpec[];
     if (stage === 0 && this.config.mode === "stage" && !bossSupport) {
@@ -667,8 +669,8 @@ export class GameModel {
       s.formation = f;
       specs = formationSpecs(f, stage, 85 + this.random() * 220, balance?.waveSize);
     }
-    for (const e of bossSupport ? specs.slice(0, 2) : specs) {
-      if (s.enemies.length >= (bossSupport ? DIFFICULTY[stage].supportCap : balance?.enemyCap ?? DIFFICULTY[stage].enemyCap)) break;
+    for (const [index,e] of (bossSupport ? specs.slice(0, pressure.waveSize) : specs).entries()) {
+      if (s.enemies.length >= (bossSupport ? supportCap : balance?.enemyCap ?? DIFFICULTY[stage].enemyCap)) break;
       if (
         e.kind === 2 &&
         s.enemies.filter((other) => other.kind === 2).length >= (balance?.armorCap ?? 2)
@@ -677,9 +679,9 @@ export class GameModel {
       if (bossSupport) {
         const leftCount = s.enemies.filter((ally) => (ally.originX ?? ally.x) < 195).length;
         const rightCount = s.enemies.length - leftCount;
-        if (leftCount >= DIFFICULTY[stage].supportCap / 2 && rightCount >= DIFFICULTY[stage].supportCap / 2) break;
-        e.x = leftCount <= rightCount && leftCount < DIFFICULTY[stage].supportCap / 2 ? 60 : 330;
-        e.y = -35;
+        if (leftCount >= supportCap / 2 && rightCount >= supportCap / 2) break;
+        e.x = leftCount <= rightCount && leftCount < supportCap / 2 ? 60 : 330;
+        e.y = -35-(this.config.mode==='endless'?0:index*45);
         e.motion = "escort";
         e.kind = 0;
       }
@@ -735,6 +737,14 @@ export class GameModel {
         flash: 0,
       })),
     };
+    this.enterBossEncounter();
+  }
+  /** One entry policy; phase changes and EMP never consume loose drops. */
+  private enterBossEncounter() {
+    const s=this.state,discarded=s.pickups;
+    s.pickups=[];
+    for(const p of discarded.slice(0,12)) this.explode(p.x,p.y,undefined,32);
+    this.events.push({id:++this.eventId,type:"boss-entered",clearedPickups:discarded.length});
     s.bossStarted = s.time;
     s.rocks = [];
     s.enemies = [];
@@ -1007,7 +1017,7 @@ export class GameModel {
     s.pickups = s.pickups
       .filter((p) => p.age < 15 && p.y < 750)
       .slice(-LIMITS.pickups);
-    this.fire(step * (s.weaponJammed ? 0.5 : 1));
+    this.fire(step);
     this.spawnClock += step;
     this.enemyClock += step;
     if (!s.boss && this.spawnClock > 3.2) {
@@ -1223,8 +1233,6 @@ export class GameModel {
         s.laser = 0.12;
         s.laserInterceptor = (s.superMode.remaining > 0 || s.powers.overdrive > 0 && this.fireCount % 3 === 0);
         if (s.laserInterceptor) this.laserBlockBudget += 2;
-        for(const d of s.boss?.decoys??[]) if(Math.abs(s.ship.x-d.x)<25+6+s.powers.weapon*14 && d.y-35-(6+s.powers.weapon*14)<s.ship.y-25)
-          this.hitBoss(0,d.x,s.ship.y-25,6+s.powers.weapon*14,true);
         const targets = [
           ...s.enemies.filter((e) => e.health > 0),
           ...(s.miniBoss ? [s.miniBoss] : []),
@@ -1244,8 +1252,6 @@ export class GameModel {
           )
           .sort((a, b) => b.y - a.y)
           .slice(0, 3);
-        const well=s.hazards.find(h=>h.kind==='black-hole' && h.y<s.ship.y && Math.abs(h.x-s.ship.x)<24);
-        if(well) {well.hp-=0.97*superMultiplier(s.superMode)*[1,1.6,2.3][level-1];if(well.hp<=0)this.explode(well.x,well.y,undefined,110);}
         for (const t of targets) {
           const damage =
             0.97 * standardImpact((t as Enemy).balanceGroup,!!(t as Enemy).balance,"laser") * superMultiplier(s.superMode) *
@@ -1265,11 +1271,10 @@ export class GameModel {
               true,
             );
           else {
-            if((t as Enemy).shieldHP && (t as Enemy).shieldHP!>0) (t as Enemy).shieldHP=Math.max(0,(t as Enemy).shieldHP!-damage);
-            else t.health -= damage;
-            if (t === s.miniBoss) this.markHit(t);
+            if (t === s.miniBoss) {t.health -= damage;this.markHit(t);}
             else {
               const e = t as Enemy;
+              this.damageEnemy(e,damage);
               this.markHit(e);
               if (e.health <= 0) this.kill(e);
             }
@@ -1343,39 +1348,23 @@ export class GameModel {
     ending.elapsed = Math.min(ending.duration, ending.elapsed + Math.min(0.05, Math.max(0, dt)));
   }
   private updateHazards(step: number) {
-    const s = this.state, stage = this.config.stage;
-    const slot = Math.floor(s.time / 18);
-    const previous = Math.floor((s.time - step) / 18);
-    if (slot !== previous && s.time > 20 && !s.beams.length && !s.hazards.length && !s.boss?.dash) {
-      if (stage > 0) {
-        const kind = slot % 2 === 0 ? 'black-hole' : stage === 1 ? 'plasma' : 'grid';
-        s.hazards.push({ kind, x: clamp(s.ship.x + (slot % 2 ? 80 : -80),70,320), y: kind === 'black-hole' ? 360 : 440, age:0, radius:kind === 'plasma' ? 95 : 80, hp:24 });
-        this.notice(kind === 'black-hole' ? 'GRAVITY WELL' : kind === 'plasma' ? 'PLASMA FIELD' : 'DEFENSE GRID',1.2);
-      }
+    const s=this.state,slot=Math.floor(s.time/18),previous=Math.floor((s.time-step)/18);
+    // Preserve the old grid slots; removed gravity/plasma slots stay empty.
+    if(this.config.stage===2 && slot!==previous && slot%2!==0 && s.time>20 && !s.beams.length && !s.hazards.length && !s.boss?.dash) {
+      s.hazards.push({kind:'grid',x:clamp(s.ship.x+80,70,320),y:440,age:0,radius:80,hp:24});
+      this.notice('DEFENSE GRID',1.2);
     }
-    s.weaponJammed = false;
-    for (const h of s.hazards) {
-      h.age += step;
-      if (h.kind === 'plasma') {
-        h.y += 18*step;
-        if(h.age >= 1.2 && Math.hypot(s.ship.x-h.x,s.ship.y-h.y)<h.radius) s.weaponJammed=true;
-      } else if(h.kind === 'black-hole' && h.age >= 1.2 && h.age < 8) {
-        const pull = (body: Body, strength:number) => {
-          const dx=h.x-body.x,dy=h.y-body.y,d=Math.hypot(dx,dy);
-          if(d>1 && d<170) {const v=strength*(1-d/170)*step;body.x+=dx/d*v;body.y+=dy/d*v;}
-        };
-        pull(s.ship,310*0.35);
-        Object.assign(s.ship,clampShip(s.ship.x,s.ship.y));
-        for(const b of s.bullets) pull(b,100);
-        for(const b of s.enemyBullets) {
-          const old={x:b.x,y:b.y};pull(b,100);
-          if(s.boss && threatensPassage(b,b.lane??s.boss.safeLaneX??195,90)) Object.assign(b,old);
-        }
-      } else if(h.kind === 'black-hole' && h.age >= 9) {
-        if(Math.hypot(s.ship.x-h.x,s.ship.y-h.y)<h.radius) this.damage('beam');
-      } else if(h.kind === 'grid' && h.age >= 1.2 && h.age < 1.8 && Math.abs(s.ship.x-h.x)<24+s.ship.radius) this.damage('beam');
+    for(const h of s.hazards) {
+      h.age+=step;
+      if(h.age>=1.2 && h.age<1.8 && Math.abs(s.ship.x-h.x)<24+s.ship.radius) this.damage('beam');
     }
-    s.hazards=s.hazards.filter(h=>h.hp>0 && h.age<(h.kind==='black-hole'?9.2:h.kind==='plasma'?7:1.8));
+    s.hazards=s.hazards.filter(h=>h.age<1.8);
+  }
+  /** All friendly impacts on enemy hulls/shields pass through this once. */
+  private damageEnemy(enemy:Enemy,damage:number) {
+    damage*=sectorEnemyImpact(this.config.stage,this.config.mode);
+    if((enemy.shieldHP??0)>0) enemy.shieldHP=Math.max(0,enemy.shieldHP!-damage);
+    else enemy.health-=damage;
   }
   private markHit(target: { flash?: number; flashAt?: number }) {
     if (this.state.time - (target.flashAt ?? -10) >= 0.1) {
@@ -1402,10 +1391,6 @@ export class GameModel {
   ) {
     const b = this.state.boss;
     if (!b || b.state === "transition" || b.state === "defeated") return false;
-    for(const d of b.decoys??[]) if(Math.abs(x-d.x)<25+radius && (laser ? d.y-35-radius<y : Math.abs(y-d.y)<35+radius)) {
-      if((b.decoyCooldown??0)<=0 && !this.state.beams.length) { b.decoyCooldown=1.2;this.ring(d.x,d.y,100,0,24); }
-      this.spark(x,d.y);return false;
-    }
     const hit = findBossHit(b, x, y, radius, laser);
     if (!hit) return false;
     if (hit === "core" && b.state === "armored") {
@@ -1465,9 +1450,7 @@ export class GameModel {
     const phase=b.phase??1;
     b.muzzle=Math.max(0,(b.muzzle??0)-step);
     b.age=(b.age??0)+step;b.flash=Math.max(0,(b.flash??0)-step);
-    b.decoyCooldown=Math.max(0,(b.decoyCooldown??0)-step);
     if(b.state==='transition') {
-      b.decoys=[];
       b.transitionRemaining=Math.max(0,(b.transitionRemaining??0)-step);
       if(b.transitionRemaining>0) return;
       const hp=10+phase*5;
@@ -1480,7 +1463,6 @@ export class GameModel {
       b.restUntil=s.time+1.2;b.shot=1.2;this.event('warning','REACTOR OVERLOAD · RAGE');this.notice('RAGE MODE',1.2);
     }
     b.x=195+Math.sin(b.age*0.42)*(stage===2?43:65);
-    b.decoys=stage>0 && phase===2 ? [{x:65,y:b.y+45},{x:325,y:b.y+45}] : [];
     if(b.dash) {
       b.dash.age+=step;
       const d=b.dash;
@@ -1495,7 +1477,7 @@ export class GameModel {
     for(const t of b.turrets??[]) t.flash=Math.max(0,t.flash-step);
     this.beamClock-=step;
     b.shot-=step;
-    if(b.shot>0 || s.beams.length || (b.restUntil??0)>s.time || s.hazards.some(h=>h.kind!=='plasma')) return;
+    if(b.shot>0 || s.beams.length || (b.restUntil??0)>s.time || s.hazards.length) return;
     const serial=(b.attackSerial??0)+1;b.attackSerial=serial;
     // Keep the old corridor until the preceding shots leave the lower arena.
     // This prevents an old and a new volley from closing each other's exits.
@@ -1506,7 +1488,9 @@ export class GameModel {
     b.safeLaneX=candidates.find(lane=>!s.enemyBullets.some(round=>threatensPassage(round,lane,90)))??previousLane;
     const live=(b.turrets??[]).filter(t=>t.health>0);
     const speed=Math.min(1.4,1+stage*0.08+(s.wave-1)*0.025);
-    const count=live.length?13+phase*2:9+phase*2;
+    const baseCount=live.length?13+phase*2:9+phase*2;
+    const density=getBossPressure(stage,this.config.mode).packetDensity;
+    const count=Math.round(baseCount*density),spacing=0.14*(baseCount-1)/(count-1);
     const rage=b.rage?2:1;
     b.pattern=b.rage && serial%5===0?'dash':b.rage && serial%5===1?'overload':serial%3===0?'ring':serial%3===1?'spiral':'aimed';
     if(b.pattern==='dash') {
@@ -1524,13 +1508,13 @@ export class GameModel {
     this.emittingBoss=true;
     for(let pulse=0;pulse<pulses;pulse++) {
       const y=b.y+45-pulse*22;
-      if(b.pattern==='ring') this.ring(b.x,y,100,b.age*0.1+pulse*0.08,live.length?20+live.length*6:20);
+      if(b.pattern==='ring') this.ring(b.x,y,100,b.age*0.1+pulse*0.08,Math.round((live.length?20+live.length*6:20)*density));
       else {
         const active=live.length?live.filter((_,i)=>i%2===serial%2):[{x:0,y:25}];
         for(const t of active) {
           const x=b.x+t.x;
           const aim=b.pattern==='aimed'?Math.atan2(s.ship.x-x,Math.max(120,s.ship.y-y)):Math.sin(serial*0.7+pulse*0.15)*0.55;
-          this.fan(x,y,count,112,aim,0.14);
+          this.fan(x,y,count,112,aim,spacing);
         }
       }
     }
@@ -1596,8 +1580,6 @@ export class GameModel {
       spent = new Set<Bullet>(),
       rocks = new Set<Rock>();
     for (const b of s.bullets) {
-      const well=s.hazards.find(h=>h.kind==='black-hole' && h.hp>0 && Math.hypot(b.x-h.x,b.y-h.y)<18+b.radius);
-      if(well) {well.hp-=b.damage??1;spent.add(b);this.spark(b.x,b.y);if(well.hp<=0)this.explode(well.x,well.y,undefined,110);continue;}
       for (const r of s.rocks)
         if (!rocks.has(r) && collides(b, r)) {
           if(r.iron) {spent.add(b);this.spark(b.x,b.y);break;}
@@ -1624,10 +1606,9 @@ export class GameModel {
         spent.add(b);
         this.markHit(e);
         this.spark(b.x, b.y);
-        if((e.shieldHP??0)>0) {e.shieldHP=Math.max(0,e.shieldHP!-(b.damage??1)*(b.type==="plasma"?1.25:1));continue;}
-        e.health -=
-          (b.damage ?? 1) *
-          damageMultiplier(b.type ?? "pulse", e.kind === 2, e.kind === 0) * standardImpact(e.balanceGroup,!!e.balance,b.type??"pulse");
+        const shielded=(e.shieldHP??0)>0;
+        this.damageEnemy(e,(b.damage??1)*(shielded ? (b.type==="plasma"?1.25:1) :
+          damageMultiplier(b.type??"pulse",e.kind===2,e.kind===0)*standardImpact(e.balanceGroup,!!e.balance,b.type??"pulse")));
         if (e.health <= 0) this.kill(e);
       } else if (s.miniBoss && collides(b, s.miniBoss)) {
         spent.add(b);
@@ -1636,7 +1617,7 @@ export class GameModel {
         this.spark(b.x, b.y);
       } else if (s.boss) {
         const boss = s.boss;
-        if (findBossHit(boss, b.x, b.y, b.radius) || boss.decoys?.some(d=>Math.hypot(d.x-b.x,d.y-b.y)<35+b.radius)) {
+        if (findBossHit(boss, b.x, b.y, b.radius)) {
           spent.add(b);
           const damaged = this.hitBoss(
             (b.damage ?? 1) *

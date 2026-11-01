@@ -91,7 +91,7 @@ describe("Evolution Arcade round rules", () => {
     expect(m.action("emp").accepted).toBe(false);
     expect(m.state.stats.enemiesDestroyed).toBe(2);
   });
-  it("shoots in the warm-up and keeps boss reinforcements to four", () => {
+  it("shoots in the warm-up and keeps stage-one reinforcements to six", () => {
     const m = new GameModel(() => 0.4);
     m.practice = true;
     let warmShots = 0;
@@ -118,9 +118,9 @@ describe("Evolution Arcade round rules", () => {
     for (let i = 0; i < 4000; i++) {
       m.state.bullets = [];
       m.update(0.01, { x: 0, y: 0 });
-      expect(m.state.enemies.length).toBeLessThanOrEqual(4);
-      expect(m.state.enemies.filter((e) => e.originX! < 195).length).toBeLessThanOrEqual(2);
-      expect(m.state.enemies.filter((e) => e.originX! >= 195).length).toBeLessThanOrEqual(2);
+      expect(m.state.enemies.length).toBeLessThanOrEqual(6);
+      expect(m.state.enemies.filter((e) => e.originX! < 195).length).toBeLessThanOrEqual(3);
+      expect(m.state.enemies.filter((e) => e.originX! >= 195).length).toBeLessThanOrEqual(3);
     }
   });
   it("multiplies consecutive kills, keeps the chain behind a shield and resets on hull loss", () => {

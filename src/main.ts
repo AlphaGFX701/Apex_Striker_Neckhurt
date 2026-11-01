@@ -244,7 +244,7 @@ if (qaPilot) {
 }
 if (qaPilot)
   void import("./qa-tools").then(({ installQaCapture }) =>
-    installQaCapture(scene, () => feedback.capture()),
+    installQaCapture(scene, () => feedback.capture(), () => feedback.musicStatus()),
   );
 document.addEventListener("pointerdown", () => feedback.unlock(), {
   once: true,
@@ -950,7 +950,7 @@ function updateHud(s: GameSnapshot) {
     el("shield-status").innerHTML =
       `<img src="/assets/onslaught/pickup-shield.png" alt="">${s.shield ? "SHIELD ON" : "SHIELD OFF"}`;
   }
-  el("drone-status").textContent = s.superMode.remaining>0 ? `SUPER · ${s.superMode.remaining.toFixed(1)}s` : s.weaponJammed ? "WEAPON JAM" : s.drones.length
+  el("drone-status").textContent = s.superMode.remaining>0 ? `SUPER · ${s.superMode.remaining.toFixed(1)}s` : s.drones.length
     ? `ESCORTS L${s.wingmen.level}`
     : "";
   el("battle").dataset.damage = s.hitEffect > 0 ? s.damageKind : "";
@@ -1042,7 +1042,7 @@ function completeRound() {
   const s = scene.model.state,
     c = scene.model.config,
     _reward = progress.settle(runId, {
-      practice: scene.model.practice,
+      practice: scene.model.practice || qaPilot,
       mode: c.mode,
       stage: c.stage,
       won: s.result === "won",

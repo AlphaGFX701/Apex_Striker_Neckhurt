@@ -18,6 +18,8 @@ export interface WaveBalance {
 }
 type PhaseTuning = Pick<WaveBalance, 'enemyHP'|'cadence'|'spawnInterval'|'enemyCap'|'waveSize'|'projectileScale'|'movementScale'>;
 export interface GameBalanceConfig {
+  bossPressure: { packetDensity:number; supportCaps:readonly [number,number,number]; waveSize:number };
+  sectorThreeImpact:number;
   stages: Readonly<Record<number, readonly [PhaseTuning,PhaseTuning,PhaseTuning]>>;
   impact: Readonly<Record<'pulse'|'plasma'|'laser'|'missile',number>>;
   transitionSeconds: number; firstVisibleDelay: number;
@@ -25,6 +27,7 @@ export interface GameBalanceConfig {
   standardScore: number; eliteScore: number;
 }
 export const GAME_BALANCE_CONFIG: GameBalanceConfig = {
+  bossPressure:{packetDensity:1.25,supportCaps:[6,8,10],waveSize:3},sectorThreeImpact:1.2,
   stages: {
     1: [
       {enemyHP:5.85,cadence:1.2,spawnInterval:3.2,enemyCap:12,waveSize:5,projectileScale:0.9,movementScale:1},
@@ -59,9 +62,14 @@ export function getStageBalance(stage:number,time:number,mode:string,bossSupport
 export function standardImpact(group:EnemyBalanceGroup|undefined,balanced:boolean,type:'pulse'|'plasma'|'laser'|'missile') {
   return balanced && group==='standard'?GAME_BALANCE_CONFIG.impact[type]:1;
 }
+export function getBossPressure(stage:number,mode:string) {
+  return mode==='endless' ? {packetDensity:1,supportCap:DIFFICULTY[stage].supportCap,waveSize:2}
+    : {packetDensity:GAME_BALANCE_CONFIG.bossPressure.packetDensity,supportCap:GAME_BALANCE_CONFIG.bossPressure.supportCaps[stage],waveSize:GAME_BALANCE_CONFIG.bossPressure.waveSize};
+}
+export const sectorEnemyImpact=(stage:number,mode:string)=>stage===2 && mode!=='endless' ? GAME_BALANCE_CONFIG.sectorThreeImpact : 1;
 export type BossPattern = 'fan' | 'spiral' | 'aimed' | 'ring' | 'dash' | 'overload' | 'barrage';
 export interface HazardState {
-  kind: 'black-hole' | 'plasma' | 'grid'; x: number; y: number;
+  kind: 'grid'; x: number; y: number;
   age: number; radius: number; hp: number;
 }
 export interface SuperModeState { remaining: number }

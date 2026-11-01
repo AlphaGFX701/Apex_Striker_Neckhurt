@@ -32,16 +32,9 @@ describe('Apex Strikers Neon Onslaught',()=>{
     supered.state.invincible=0;supered.state.enemyBullets=[{...supered.state.ship,vx:0,vy:0}];supered.state.bullets=[];
     supered.update(0.001,{x:0,y:0});expect(supered.state.lives).toBe(2);
   });
-  it('marks plasma interference only inside an active field',()=>{
-    const m=model(1);m.state.hazards=[{kind:'plasma',x:m.state.ship.x,y:m.state.ship.y,radius:90,hp:1,age:2}];
-    m.update(0.01,{x:0,y:0});expect(m.state.weaponJammed).toBe(true);
-    m.state.ship.x=23;m.update(0.01,{x:0,y:0});expect(m.state.weaponJammed).toBe(false);
-  });
-  it('lets a black hole core absorb shots once, keeps gravity bounded, and clears it with EMP',()=>{
-    const m=model(1);m.state.ship.x=240;m.state.hazards=[{kind:'black-hole',x:200,y:600,radius:80,hp:2,age:2}];
-    const x=m.state.ship.x;m.update(0.05,{x:0,y:0});expect(x-m.state.ship.x).toBeLessThanOrEqual(310*0.35*0.05);
-    m.state.bullets=[{x:200,y:600,radius:4,speed:0,damage:3}];m.update(0.001,{x:0,y:0});
-    expect(m.state.hazards[0].hp).toBeLessThanOrEqual(0);expect(m.state.bullets).toHaveLength(0);
+  it('keeps defense grid damage and EMP cancellation after removing circular hazards',()=>{
+    const m=model(2);m.state.hazards=[{kind:'grid',x:m.state.ship.x,y:440,radius:80,hp:24,age:1.19}];
+    m.update(.02,{x:0,y:0});expect(m.state.lives).toBe(2);
     m.state.energy=100;m.action('emp');expect(m.state.hazards).toEqual([]);
   });
   it('enters rage once below twenty percent only in the final sector',()=>{
@@ -66,21 +59,13 @@ describe('Apex Strikers Neon Onslaught',()=>{
     const m=boss(2);
     for(let i=0;i<1200;i++) {m.state.bullets=[];m.state.pickups=[];m.update(0.05,{x:0,y:0});m.drainEvents();}
     expect(m.state.boss!.attackSerial).toBeGreaterThan(5);
-    expect(m.state.enemies.length).toBeLessThanOrEqual(8);
+    expect(m.state.enemies.length).toBeLessThanOrEqual(10);
   });
-  it('routes laser-only decoy contact to a rate-limited retaliation',()=>{
-    const m=boss(1);m.config.equipment.main='laser';m.state.boss!.phase=2;
-    m.state.ship.x=65;m.state.boss!.shot=100;m.state.enemies=[];m.state.enemyBullets=[];
-    for(let i=0;i<3;i++)m.update(0.05,{x:0,y:0});
-    expect(m.state.boss!.decoyCooldown).toBeGreaterThan(0);
-    const cooldown=m.state.boss!.decoyCooldown!;
-    m.update(0.05,{x:0,y:0});expect(m.state.boss!.decoyCooldown).toBeLessThan(cooldown);
-  });
-  it('does not retaliate against an upward laser behind a decoy',()=>{
+  it('has no phantom retaliation when firing beside the real boss',()=>{
     const m=boss(1);m.config.equipment.main='laser';m.state.boss!.phase=2;m.state.boss!.shot=100;
-    m.state.ship.x=65;m.state.ship.y=100;m.state.enemies=[];m.state.enemyBullets=[];
-    for(let i=0;i<3;i++)m.update(0.05,{x:0,y:0});
-    expect(m.state.boss!.decoyCooldown??0).toBe(0);
+    m.state.ship.x=65;m.state.enemies=[];m.state.enemyBullets=[];
+    for(let i=0;i<3;i++)m.update(.05,{x:0,y:0});
+    expect(m.state.enemyBullets).toEqual([]);
   });
   it('shares the exact sweep geometry between visible beam and collision',()=>{
     const left=beamGeometry({x:195,y:205,age:1.2,sweep:true});

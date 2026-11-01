@@ -1,0 +1,889 @@
+{
+  "kind": "seeded-model-fixtures-not-human-play",
+  "seed": 743,
+  "baseline": "dba210d81b94e74ba4fdb8573f8f9c1d2f3f6e04",
+  "before": {
+    "packets": [
+      {
+        "stage": 1,
+        "phase": 1,
+        "armored": true,
+        "pattern": "spiral",
+        "count": 11,
+        "maxSpeed": 112.00000000000001
+      },
+      {
+        "stage": 1,
+        "phase": 1,
+        "armored": true,
+        "pattern": "aimed",
+        "count": 11,
+        "maxSpeed": 112.00000000000001
+      },
+      {
+        "stage": 1,
+        "phase": 1,
+        "armored": true,
+        "pattern": "ring",
+        "count": 27,
+        "maxSpeed": 100.00000000000001
+      },
+      {
+        "stage": 1,
+        "phase": 1,
+        "armored": false,
+        "pattern": "spiral",
+        "count": 7,
+        "maxSpeed": 112
+      },
+      {
+        "stage": 1,
+        "phase": 1,
+        "armored": false,
+        "pattern": "aimed",
+        "count": 7,
+        "maxSpeed": 112
+      },
+      {
+        "stage": 1,
+        "phase": 1,
+        "armored": false,
+        "pattern": "ring",
+        "count": 17,
+        "maxSpeed": 100.00000000000001
+      },
+      {
+        "stage": 1,
+        "phase": 2,
+        "armored": true,
+        "pattern": "spiral",
+        "count": 13,
+        "maxSpeed": 112.00000000000001
+      },
+      {
+        "stage": 1,
+        "phase": 2,
+        "armored": true,
+        "pattern": "aimed",
+        "count": 13,
+        "maxSpeed": 112.00000000000001
+      },
+      {
+        "stage": 1,
+        "phase": 2,
+        "armored": true,
+        "pattern": "ring",
+        "count": 27,
+        "maxSpeed": 100.00000000000001
+      },
+      {
+        "stage": 1,
+        "phase": 2,
+        "armored": false,
+        "pattern": "spiral",
+        "count": 9,
+        "maxSpeed": 112.00000000000001
+      },
+      {
+        "stage": 1,
+        "phase": 2,
+        "armored": false,
+        "pattern": "aimed",
+        "count": 9,
+        "maxSpeed": 112
+      },
+      {
+        "stage": 1,
+        "phase": 2,
+        "armored": false,
+        "pattern": "ring",
+        "count": 17,
+        "maxSpeed": 100.00000000000001
+      },
+      {
+        "stage": 2,
+        "phase": 1,
+        "armored": true,
+        "pattern": "spiral",
+        "count": 44,
+        "maxSpeed": 120.96000000000002
+      },
+      {
+        "stage": 2,
+        "phase": 1,
+        "armored": true,
+        "pattern": "aimed",
+        "count": 44,
+        "maxSpeed": 120.96000000000002
+      },
+      {
+        "stage": 2,
+        "phase": 1,
+        "armored": true,
+        "pattern": "ring",
+        "count": 73,
+        "maxSpeed": 108.00000000000001
+      },
+      {
+        "stage": 2,
+        "phase": 1,
+        "armored": false,
+        "pattern": "spiral",
+        "count": 15,
+        "maxSpeed": 120.96000000000002
+      },
+      {
+        "stage": 2,
+        "phase": 1,
+        "armored": false,
+        "pattern": "aimed",
+        "count": 15,
+        "maxSpeed": 120.96000000000002
+      },
+      {
+        "stage": 2,
+        "phase": 1,
+        "armored": false,
+        "pattern": "ring",
+        "count": 34,
+        "maxSpeed": 108.00000000000003
+      },
+      {
+        "stage": 2,
+        "phase": 2,
+        "armored": true,
+        "pattern": "spiral",
+        "count": 52,
+        "maxSpeed": 120.96000000000002
+      },
+      {
+        "stage": 2,
+        "phase": 2,
+        "armored": true,
+        "pattern": "aimed",
+        "count": 52,
+        "maxSpeed": 120.96000000000002
+      },
+      {
+        "stage": 2,
+        "phase": 2,
+        "armored": true,
+        "pattern": "ring",
+        "count": 73,
+        "maxSpeed": 108.00000000000001
+      },
+      {
+        "stage": 2,
+        "phase": 2,
+        "armored": false,
+        "pattern": "spiral",
+        "count": 19,
+        "maxSpeed": 120.96000000000002
+      },
+      {
+        "stage": 2,
+        "phase": 2,
+        "armored": false,
+        "pattern": "aimed",
+        "count": 19,
+        "maxSpeed": 120.96000000000002
+      },
+      {
+        "stage": 2,
+        "phase": 2,
+        "armored": false,
+        "pattern": "ring",
+        "count": 34,
+        "maxSpeed": 108.00000000000003
+      },
+      {
+        "stage": 2,
+        "phase": 3,
+        "armored": true,
+        "pattern": "spiral",
+        "count": 60,
+        "maxSpeed": 120.96000000000002
+      },
+      {
+        "stage": 2,
+        "phase": 3,
+        "armored": true,
+        "pattern": "aimed",
+        "count": 60,
+        "maxSpeed": 120.96000000000004
+      },
+      {
+        "stage": 2,
+        "phase": 3,
+        "armored": true,
+        "pattern": "ring",
+        "count": 73,
+        "maxSpeed": 108.00000000000001
+      },
+      {
+        "stage": 2,
+        "phase": 3,
+        "armored": false,
+        "pattern": "spiral",
+        "count": 23,
+        "maxSpeed": 120.96000000000002
+      },
+      {
+        "stage": 2,
+        "phase": 3,
+        "armored": false,
+        "pattern": "aimed",
+        "count": 23,
+        "maxSpeed": 120.96000000000002
+      },
+      {
+        "stage": 2,
+        "phase": 3,
+        "armored": false,
+        "pattern": "ring",
+        "count": 34,
+        "maxSpeed": 108.00000000000003
+      },
+      {
+        "stage": 3,
+        "phase": 1,
+        "armored": true,
+        "pattern": "spiral",
+        "count": 135,
+        "maxSpeed": 129.92000000000002
+      },
+      {
+        "stage": 3,
+        "phase": 1,
+        "armored": true,
+        "pattern": "aimed",
+        "count": 132,
+        "maxSpeed": 129.92000000000002
+      },
+      {
+        "stage": 3,
+        "phase": 1,
+        "armored": true,
+        "pattern": "ring",
+        "count": 186,
+        "maxSpeed": 116.00000000000001
+      },
+      {
+        "stage": 3,
+        "phase": 1,
+        "armored": false,
+        "pattern": "spiral",
+        "count": 30,
+        "maxSpeed": 129.92000000000002
+      },
+      {
+        "stage": 3,
+        "phase": 1,
+        "armored": false,
+        "pattern": "aimed",
+        "count": 30,
+        "maxSpeed": 129.92000000000002
+      },
+      {
+        "stage": 3,
+        "phase": 1,
+        "armored": false,
+        "pattern": "ring",
+        "count": 66,
+        "maxSpeed": 116
+      },
+      {
+        "stage": 3,
+        "phase": 2,
+        "armored": true,
+        "pattern": "spiral",
+        "count": 159,
+        "maxSpeed": 129.92000000000002
+      },
+      {
+        "stage": 3,
+        "phase": 2,
+        "armored": true,
+        "pattern": "aimed",
+        "count": 156,
+        "maxSpeed": 129.92000000000002
+      },
+      {
+        "stage": 3,
+        "phase": 2,
+        "armored": true,
+        "pattern": "ring",
+        "count": 186,
+        "maxSpeed": 116.00000000000001
+      },
+      {
+        "stage": 3,
+        "phase": 2,
+        "armored": false,
+        "pattern": "spiral",
+        "count": 38,
+        "maxSpeed": 129.92000000000002
+      },
+      {
+        "stage": 3,
+        "phase": 2,
+        "armored": false,
+        "pattern": "aimed",
+        "count": 38,
+        "maxSpeed": 129.92000000000002
+      },
+      {
+        "stage": 3,
+        "phase": 2,
+        "armored": false,
+        "pattern": "ring",
+        "count": 66,
+        "maxSpeed": 116
+      },
+      {
+        "stage": 3,
+        "phase": 3,
+        "armored": true,
+        "pattern": "spiral",
+        "count": 183,
+        "maxSpeed": 129.92000000000002
+      },
+      {
+        "stage": 3,
+        "phase": 3,
+        "armored": true,
+        "pattern": "aimed",
+        "count": 180,
+        "maxSpeed": 129.92000000000002
+      },
+      {
+        "stage": 3,
+        "phase": 3,
+        "armored": true,
+        "pattern": "ring",
+        "count": 186,
+        "maxSpeed": 116.00000000000001
+      },
+      {
+        "stage": 3,
+        "phase": 3,
+        "armored": false,
+        "pattern": "spiral",
+        "count": 46,
+        "maxSpeed": 129.92000000000002
+      },
+      {
+        "stage": 3,
+        "phase": 3,
+        "armored": false,
+        "pattern": "aimed",
+        "count": 46,
+        "maxSpeed": 129.92000000000002
+      },
+      {
+        "stage": 3,
+        "phase": 3,
+        "armored": false,
+        "pattern": "ring",
+        "count": 66,
+        "maxSpeed": 116
+      }
+    ],
+    "supports": [
+      {
+        "stage": 1,
+        "seconds": 60,
+        "total": 12,
+        "peak": 2,
+        "peakBullets": 36
+      },
+      {
+        "stage": 2,
+        "seconds": 60,
+        "total": 20,
+        "peak": 4,
+        "peakBullets": 98
+      },
+      {
+        "stage": 3,
+        "seconds": 60,
+        "total": 34,
+        "peak": 6,
+        "peakBullets": 244
+      }
+    ]
+  },
+  "after": {
+    "packets": [
+      {
+        "stage": 1,
+        "phase": 1,
+        "armored": true,
+        "pattern": "spiral",
+        "count": 14,
+        "maxSpeed": 112.00000000000001
+      },
+      {
+        "stage": 1,
+        "phase": 1,
+        "armored": true,
+        "pattern": "aimed",
+        "count": 14,
+        "maxSpeed": 112.00000000000001
+      },
+      {
+        "stage": 1,
+        "phase": 1,
+        "armored": true,
+        "pattern": "ring",
+        "count": 33,
+        "maxSpeed": 100.00000000000001
+      },
+      {
+        "stage": 1,
+        "phase": 1,
+        "armored": false,
+        "pattern": "spiral",
+        "count": 9,
+        "maxSpeed": 112.00000000000001
+      },
+      {
+        "stage": 1,
+        "phase": 1,
+        "armored": false,
+        "pattern": "aimed",
+        "count": 9,
+        "maxSpeed": 112.00000000000001
+      },
+      {
+        "stage": 1,
+        "phase": 1,
+        "armored": false,
+        "pattern": "ring",
+        "count": 21,
+        "maxSpeed": 100.00000000000001
+      },
+      {
+        "stage": 1,
+        "phase": 2,
+        "armored": true,
+        "pattern": "spiral",
+        "count": 16,
+        "maxSpeed": 112.00000000000001
+      },
+      {
+        "stage": 1,
+        "phase": 2,
+        "armored": true,
+        "pattern": "aimed",
+        "count": 17,
+        "maxSpeed": 112.00000000000001
+      },
+      {
+        "stage": 1,
+        "phase": 2,
+        "armored": true,
+        "pattern": "ring",
+        "count": 33,
+        "maxSpeed": 100.00000000000001
+      },
+      {
+        "stage": 1,
+        "phase": 2,
+        "armored": false,
+        "pattern": "spiral",
+        "count": 11,
+        "maxSpeed": 112.00000000000001
+      },
+      {
+        "stage": 1,
+        "phase": 2,
+        "armored": false,
+        "pattern": "aimed",
+        "count": 11,
+        "maxSpeed": 112.00000000000001
+      },
+      {
+        "stage": 1,
+        "phase": 2,
+        "armored": false,
+        "pattern": "ring",
+        "count": 21,
+        "maxSpeed": 100.00000000000001
+      },
+      {
+        "stage": 2,
+        "phase": 1,
+        "armored": true,
+        "pattern": "spiral",
+        "count": 57,
+        "maxSpeed": 120.96000000000002
+      },
+      {
+        "stage": 2,
+        "phase": 1,
+        "armored": true,
+        "pattern": "aimed",
+        "count": 57,
+        "maxSpeed": 120.96000000000002
+      },
+      {
+        "stage": 2,
+        "phase": 1,
+        "armored": true,
+        "pattern": "ring",
+        "count": 91,
+        "maxSpeed": 108.00000000000001
+      },
+      {
+        "stage": 2,
+        "phase": 1,
+        "armored": false,
+        "pattern": "spiral",
+        "count": 18,
+        "maxSpeed": 120.96000000000004
+      },
+      {
+        "stage": 2,
+        "phase": 1,
+        "armored": false,
+        "pattern": "aimed",
+        "count": 18,
+        "maxSpeed": 120.96000000000002
+      },
+      {
+        "stage": 2,
+        "phase": 1,
+        "armored": false,
+        "pattern": "ring",
+        "count": 42,
+        "maxSpeed": 108.00000000000001
+      },
+      {
+        "stage": 2,
+        "phase": 2,
+        "armored": true,
+        "pattern": "spiral",
+        "count": 64,
+        "maxSpeed": 120.96000000000002
+      },
+      {
+        "stage": 2,
+        "phase": 2,
+        "armored": true,
+        "pattern": "aimed",
+        "count": 65,
+        "maxSpeed": 120.96000000000002
+      },
+      {
+        "stage": 2,
+        "phase": 2,
+        "armored": true,
+        "pattern": "ring",
+        "count": 91,
+        "maxSpeed": 108.00000000000001
+      },
+      {
+        "stage": 2,
+        "phase": 2,
+        "armored": false,
+        "pattern": "spiral",
+        "count": 22,
+        "maxSpeed": 120.96000000000004
+      },
+      {
+        "stage": 2,
+        "phase": 2,
+        "armored": false,
+        "pattern": "aimed",
+        "count": 23,
+        "maxSpeed": 120.96000000000002
+      },
+      {
+        "stage": 2,
+        "phase": 2,
+        "armored": false,
+        "pattern": "ring",
+        "count": 42,
+        "maxSpeed": 108.00000000000001
+      },
+      {
+        "stage": 2,
+        "phase": 3,
+        "armored": true,
+        "pattern": "spiral",
+        "count": 77,
+        "maxSpeed": 120.96000000000002
+      },
+      {
+        "stage": 2,
+        "phase": 3,
+        "armored": true,
+        "pattern": "aimed",
+        "count": 77,
+        "maxSpeed": 120.96000000000004
+      },
+      {
+        "stage": 2,
+        "phase": 3,
+        "armored": true,
+        "pattern": "ring",
+        "count": 91,
+        "maxSpeed": 108.00000000000001
+      },
+      {
+        "stage": 2,
+        "phase": 3,
+        "armored": false,
+        "pattern": "spiral",
+        "count": 29,
+        "maxSpeed": 120.96000000000004
+      },
+      {
+        "stage": 2,
+        "phase": 3,
+        "armored": false,
+        "pattern": "aimed",
+        "count": 28,
+        "maxSpeed": 120.96000000000002
+      },
+      {
+        "stage": 2,
+        "phase": 3,
+        "armored": false,
+        "pattern": "ring",
+        "count": 42,
+        "maxSpeed": 108.00000000000001
+      },
+      {
+        "stage": 3,
+        "phase": 1,
+        "armored": true,
+        "pattern": "spiral",
+        "count": 173,
+        "maxSpeed": 129.92000000000002
+      },
+      {
+        "stage": 3,
+        "phase": 1,
+        "armored": true,
+        "pattern": "aimed",
+        "count": 168,
+        "maxSpeed": 129.92000000000002
+      },
+      {
+        "stage": 3,
+        "phase": 1,
+        "armored": true,
+        "pattern": "ring",
+        "count": 233,
+        "maxSpeed": 116.00000000000001
+      },
+      {
+        "stage": 3,
+        "phase": 1,
+        "armored": false,
+        "pattern": "spiral",
+        "count": 38,
+        "maxSpeed": 129.92000000000002
+      },
+      {
+        "stage": 3,
+        "phase": 1,
+        "armored": false,
+        "pattern": "aimed",
+        "count": 37,
+        "maxSpeed": 129.92000000000002
+      },
+      {
+        "stage": 3,
+        "phase": 1,
+        "armored": false,
+        "pattern": "ring",
+        "count": 82,
+        "maxSpeed": 116
+      },
+      {
+        "stage": 3,
+        "phase": 2,
+        "armored": true,
+        "pattern": "spiral",
+        "count": 198,
+        "maxSpeed": 129.92000000000002
+      },
+      {
+        "stage": 3,
+        "phase": 2,
+        "armored": true,
+        "pattern": "aimed",
+        "count": 196,
+        "maxSpeed": 129.92000000000002
+      },
+      {
+        "stage": 3,
+        "phase": 2,
+        "armored": true,
+        "pattern": "ring",
+        "count": 233,
+        "maxSpeed": 116.00000000000001
+      },
+      {
+        "stage": 3,
+        "phase": 2,
+        "armored": false,
+        "pattern": "spiral",
+        "count": 47,
+        "maxSpeed": 129.92000000000002
+      },
+      {
+        "stage": 3,
+        "phase": 2,
+        "armored": false,
+        "pattern": "aimed",
+        "count": 46,
+        "maxSpeed": 129.92000000000002
+      },
+      {
+        "stage": 3,
+        "phase": 2,
+        "armored": false,
+        "pattern": "ring",
+        "count": 82,
+        "maxSpeed": 116
+      },
+      {
+        "stage": 3,
+        "phase": 3,
+        "armored": true,
+        "pattern": "spiral",
+        "count": 231,
+        "maxSpeed": 129.92000000000002
+      },
+      {
+        "stage": 3,
+        "phase": 3,
+        "armored": true,
+        "pattern": "aimed",
+        "count": 230,
+        "maxSpeed": 129.92000000000002
+      },
+      {
+        "stage": 3,
+        "phase": 3,
+        "armored": true,
+        "pattern": "ring",
+        "count": 233,
+        "maxSpeed": 116.00000000000001
+      },
+      {
+        "stage": 3,
+        "phase": 3,
+        "armored": false,
+        "pattern": "spiral",
+        "count": 56,
+        "maxSpeed": 129.92000000000002
+      },
+      {
+        "stage": 3,
+        "phase": 3,
+        "armored": false,
+        "pattern": "aimed",
+        "count": 56,
+        "maxSpeed": 129.92000000000002
+      },
+      {
+        "stage": 3,
+        "phase": 3,
+        "armored": false,
+        "pattern": "ring",
+        "count": 82,
+        "maxSpeed": 116
+      }
+    ],
+    "supports": [
+      {
+        "stage": 1,
+        "seconds": 60,
+        "total": 18,
+        "peak": 5,
+        "peakBullets": 43
+      },
+      {
+        "stage": 2,
+        "seconds": 60,
+        "total": 30,
+        "peak": 6,
+        "peakBullets": 115
+      },
+      {
+        "stage": 3,
+        "seconds": 60,
+        "total": 51,
+        "peak": 9,
+        "peakBullets": 304
+      }
+    ]
+  },
+  "summary": [
+    {
+      "stage": 1,
+      "before": 168,
+      "after": 209,
+      "increase": 24.4,
+      "supportsBefore": {
+        "stage": 1,
+        "seconds": 60,
+        "total": 12,
+        "peak": 2,
+        "peakBullets": 36
+      },
+      "supportsAfter": {
+        "stage": 1,
+        "seconds": 60,
+        "total": 18,
+        "peak": 5,
+        "peakBullets": 43
+      }
+    },
+    {
+      "stage": 2,
+      "before": 747,
+      "after": 934,
+      "increase": 25,
+      "supportsBefore": {
+        "stage": 2,
+        "seconds": 60,
+        "total": 20,
+        "peak": 4,
+        "peakBullets": 98
+      },
+      "supportsAfter": {
+        "stage": 2,
+        "seconds": 60,
+        "total": 30,
+        "peak": 6,
+        "peakBullets": 115
+      }
+    },
+    {
+      "stage": 3,
+      "before": 1929,
+      "after": 2421,
+      "increase": 25.5,
+      "supportsBefore": {
+        "stage": 3,
+        "seconds": 60,
+        "total": 34,
+        "peak": 6,
+        "peakBullets": 244
+      },
+      "supportsAfter": {
+        "stage": 3,
+        "seconds": 60,
+        "total": 51,
+        "peak": 9,
+        "peakBullets": 304
+      }
+    }
+  ]
+}

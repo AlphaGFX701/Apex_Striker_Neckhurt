@@ -3,6 +3,7 @@ import type { SpaceScene } from "./game";
 export function installQaCapture(
   scene: SpaceScene,
   audio: () => MediaStream | null,
+  music?: () => { desired:string|null; audible:string|null; playing:boolean; currentTime:number },
 ) {
   const host = document.createElement("div");
   host.className = "qa-capture-tools";
@@ -41,6 +42,24 @@ export function installQaCapture(
     host.append(demo);
   }
   host.append(capture, soak, stats);
+  const entry=document.createElement("button");entry.textContent="QA Boss entry";entry.style.cssText=capture.style.cssText;
+  entry.onclick=()=>{
+    scene.start();const m=scene.model;m.practice=true;
+    m.state.evolution={orbs:2,level:2,transformRemaining:0};m.state.powers.weapon=1;
+    m.state.wingmen.level=2;m.state.drones=[{id:1,side:-1,rank:0},{id:2,side:1,rank:0}];
+    m.state.pickups=(["weapon","drone","repair","shield","missile","energy"] as const).map((kind,i)=>({kind,x:55+i*55,y:340,age:0,value:0}));
+    m.state.time=119.99;m.update(.02,{x:0,y:0});
+  };
+  host.append(entry);
+  for(const outcome of ["Victory","Defeat"] as const) {
+    const end=document.createElement("button");end.textContent=`QA ${outcome}`;end.style.cssText=capture.style.cssText;
+    end.onclick=()=>{
+      const m=scene.model;
+      if(outcome==="Victory" && m.state.boss){m.practice=false;m.state.boss.health=0;}
+      if(outcome==="Defeat") {m.practice=false;m.state.lives=1;m.state.invincible=0;m.state.shield=false;m.state.enemyBullets=[{...m.state.ship,vx:0,vy:0}];}
+    };
+    host.append(end);
+  }
   document.body.append(host);
   const meter=document.createElement("div");meter.className="qa-frame-metrics";
   meter.style.cssText="position:fixed;bottom:2px;right:2px;z-index:60;background:#071019;color:white;padding:5px;font:10px monospace";
@@ -105,7 +124,11 @@ export function installQaCapture(
       frames: frames.length,
       enemies: s.enemies.length,
       enemyBullets: s.enemyBullets.length,
+      hazards:s.hazards.map(h=>h.kind),bossPhase:s.boss?.phase??null,pickups:s.pickups.length,
+      music:music?.(),
     });
+    const musicState=music?.();
+    if(musicState)stats.textContent+=` · BGM ${musicState.audible??"none"} ${musicState.playing?"PLAY":"WAIT"} ${musicState.currentTime.toFixed(1)}s`;
   }, 1000);
   const record = (endurance: boolean, demo = false) => {
     const canvas = document.querySelector<HTMLCanvasElement>("#game canvas");

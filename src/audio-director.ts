@@ -1,5 +1,6 @@
 import type { LaserCue } from "./laser-presentation";
 import { Feedback } from "./feedback";
+import { MusicPlayback } from "./music-playback";
 import type { PickupKind } from "./model";
 export const MUSIC_TRACKS = {
   menu: "/assets/environment/menu.mp3",
@@ -20,14 +21,19 @@ const LABELS: Record<PickupKind | "score" | "super", string> = {
 export class AudioDirector extends Feedback {
   musicVolume = 0.35;
   musicEnabled = true;
-  private tracks = new Map<string, HTMLAudioElement>();
   private mediaSources = new Map<
     HTMLAudioElement,
     MediaElementAudioSourceNode
   >();
-  private fadeFrom = new Map<string, number>();
-  private active = "";
-  private fadeStart = 0;
+  private playback = new MusicPlayback<keyof typeof MUSIC_TRACKS>((track) => {
+    const audio = new Audio(MUSIC_TRACKS[track]);
+    audio.loop = true;
+    audio.preload = "auto";
+    audio.volume = 0;
+    this.connectMedia(audio);
+    audio.load?.();
+    return audio;
+  });
   private suspended = false;
   private laserBuffers = new Map<string, AudioBuffer>();
   private laserLoading = false;
@@ -77,38 +83,14 @@ export class AudioDirector extends Feedback {
       for (const source of this.mediaSources.values())
         source.connect(this.recording);
     }
-    for (const audio of this.tracks.values()) this.connectMedia(audio);
+    for (const audio of this.playback.elements()) this.connectMedia(audio as HTMLAudioElement);
     return this.recording.stream;
   }
-  private prepareTrack(track: keyof typeof MUSIC_TRACKS) {
-    let audio = this.tracks.get(track);
-    if (!audio) {
-      audio = new Audio(MUSIC_TRACKS[track]);
-      audio.loop = true;
-      audio.preload = "auto";
-      audio.volume = 0;
-      this.tracks.set(track, audio);
-      this.connectMedia(audio);
-      audio.load?.();
-    }
-    return audio;
-  }
   music(track: keyof typeof MUSIC_TRACKS) {
-    // Called every HUD tick; this guard also preserves music position across boss phases.
-    if (this.active === track) return;
-    const audio = this.prepareTrack(track);
-    // Fetch the long boss recording during the approach, without playing it.
-    // The same preloaded element is reused when the capital ship arrives.
-    if (track === "in-the-wreckage") this.prepareTrack("battle");
-    this.fadeFrom.clear();
-    for (const [key, item] of this.tracks) this.fadeFrom.set(key, item.volume);
-    this.active = track;
-    this.fadeStart = performance.now();
-    if (!this.suspended)
-      void audio.play().catch(() => {
-        /* Retry on the next gesture. */
-      });
+    this.playback.request(track);
+    if (track === "in-the-wreckage") this.playback.prepare("battle");
   }
+  musicStatus() { return this.playback.status(); }
   unlock() {
     super.unlock();
     if(this.context && !this.laserLoading) {
@@ -117,34 +99,14 @@ export class AudioDirector extends Feedback {
         .then(r=>{if(!r.ok)throw Error("Audio unavailable");return r.arrayBuffer();})
         .then(bytes=>ctx.decodeAudioData(bytes)).then(buffer=>this.laserBuffers.set(kind,buffer)).catch(()=>{});
     }
-    for (const [key, audio] of this.tracks) {
-      this.connectMedia(audio);
-      if (!this.suspended && key === this.active && audio.paused)
-        void audio.play().catch(() => {});
-    }
+    for (const audio of this.playback.elements()) this.connectMedia(audio as HTMLAudioElement);
+    this.playback.unlock();
   }
   update(now = performance.now()) {
     if(!this.enabled || this.suspended) this.stopLasers();
     for(const voice of this.laserVoices.values()) voice.gain.gain.value=voice.level*this.sfxVolume;
 
-    const blend = Math.max(0, Math.min(1, (now - this.fadeStart) / 400));
-    for (const [key, audio] of this.tracks) {
-      const target =
-        key === this.active && this.musicEnabled
-          ? Math.max(0, Math.min(1, this.musicVolume))
-          : 0;
-      audio.volume = Math.max(
-        0,
-        Math.min(
-          1,
-          (this.fadeFrom.get(key) || 0) * (1 - blend) + target * blend,
-        ),
-      );
-      if (key !== this.active && blend === 1 && !audio.paused) {
-        audio.pause();
-        audio.currentTime = 0;
-      }
-    }
+    this.playback.update(this.musicEnabled, this.musicVolume, now);
   }
   pickup(kind: PickupKind | "score" | "super") {
     this.play("pickup");
@@ -173,10 +135,11 @@ export class AudioDirector extends Feedback {
     this.suspended = true;
     this.stopLasers();
     this.clearAnnouncements();
-    for (const a of this.tracks.values()) a.pause();
+    this.playback.pause();
   }
   resumeAudio() {
     this.suspended = false;
+    this.playback.resume();
     this.unlock();
   }
   victory() {

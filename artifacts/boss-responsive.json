@@ -1,0 +1,37 @@
+[
+  {
+    "height": 568,
+    "overflow": false,
+    "pause": true,
+    "small": [],
+    "width": 320
+  },
+  {
+    "height": 844,
+    "overflow": false,
+    "pause": true,
+    "small": [],
+    "width": 390
+  },
+  {
+    "height": 932,
+    "overflow": false,
+    "pause": true,
+    "small": [],
+    "width": 430
+  },
+  {
+    "height": 390,
+    "overflow": false,
+    "pause": true,
+    "small": [],
+    "width": 844
+  },
+  {
+    "height": 800,
+    "overflow": false,
+    "pause": true,
+    "small": [],
+    "width": 1280
+  }
+]

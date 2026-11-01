@@ -19,7 +19,7 @@ Publish dist/ as static files. Phone sensors require HTTPS. Existing Capacitor a
 
 Two/five power orbs evolve the selected ship. Red Overdrive lasts25 seconds. Two permanent escorts level up together. Collect another escort at maximum rank for five-second Super: all friendly weapons deal double damage and intercept ordinary rounds; giant lasers still hurt. All powers reset on a new run.
 
-Sectors use Kla'ed/Nairan/Nautolan fleets and2/3/3 boss phases. Destroy hardpoints to expose each core. Final-sector Rage adds warned dash, sweeping beam and dense packets. DifficultyProfile in src/neon.ts owns stage balance and caps. Black-hole cores can be destroyed; plasma fields interfere with fire; defense grids require movement. EMP clears ordinary threats and hazards, not commanders or their turrets.
+Sectors use Kla'ed/Nairan/Nautolan fleets and2/3/3 boss phases. Destroy hardpoints to expose each core. Final-sector Rage adds warned dash, sweeping beam and dense packets. DifficultyProfile in src/neon.ts owns stage balance and caps. Defense grids require movement. Plasma fields, black holes and boss decoys have been removed. Stage boss packets are25% denser, with6/8/10 support caps; Stage3 enemy hull/shield impacts gain20% without boosting boss or miniboss damage. EMP clears ordinary threats and hazards, not commanders or their turrets.
 
 Battle uses Phone Motion, controller, touch or keyboard. Enable sensors and calibrate in Preflight; recalibrate after rotation. Q/E warp, Space EMP, arrows/WASD move. Pause contains Calibration, Music and SFX. Controller Lab shows observed device input. Actual phone/controller behavior requires hardware testing.
 
@@ -34,3 +34,6 @@ The first screen now renders before Phaser and flight textures. Press Start to o
 
 ## Tactical Neon Remake
 Full tactical menu/HUD theme with local MGS1 fonts, shared animated menu space and authored beam textures. Font optical scale was reduced to150% after mobile feedback, with compact14–16px controls and fitted secondary labels. Laser warning/fire audio is nonverbal original DSP. Combat values and save keys remain unchanged. See TACTICAL-REMAKE-TESTING.md for verification, measurements and clips.
+
+## Boss encounter revision
+Boss entry shatters loose drops once, without removing collected powers or later supplies. Music keeps the confirmed audible track until the requested recording starts, with bounded recovery across failures, pause and mute. See BOSS-REVISION-TESTING.md for seeded pressure measurements, desktop browser playback evidence and limits.

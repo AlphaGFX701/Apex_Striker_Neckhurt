@@ -168,6 +168,7 @@ describe("stage-one pixel combat", () => {
     const m = new GameModel();
     m.practice = true;
     for (const time of [32, 78, 124, 170, 216]) {
+      if(time===124) {m.state.time=119.99;m.update(.02,{x:0,y:0});}
       m.state.time = time - 0.01;
       m.state.pickups = [];
       m.state.bullets = [];

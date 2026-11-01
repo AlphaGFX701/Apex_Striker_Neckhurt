@@ -396,12 +396,8 @@ export class SpaceScene extends Phaser.Scene {
     if (s.boss && !(s.gameOver && this.endAge > 0.55)) {
       const b = s.boss,
         art = BOSS_ART[stage];
-      for(const d of b.decoys??[]) {
-        this.sprite(art.key,d.x,d.y,art.width*0.55,0,0.4);
-
-      }
       this.sprite(b.rage ? "boss-2-rage" : art.key, b.x, b.y, art.width);
-      if(b.decoys?.length || b.rage) {
+      if(b.rage) {
         g.lineStyle(2,b.rage?0xff3858:0x7dfff4,0.7);g.strokeEllipse(b.x,b.y,art.width*0.8,art.width*0.9);
       }
       if(b.dash && b.dash.age<1.2) {
@@ -512,20 +508,8 @@ export class SpaceScene extends Phaser.Scene {
     }
     for(const h of s.hazards) {
       const active=h.age>=1.2;
-      if(h.kind==='black-hole') {
-        this.sprite(`gravity-${Math.floor(s.time*8)%8}`,h.x,h.y,240,0,0.7);
-        g.lineStyle(2,h.age>=8?0xff755a:0xffc56b,0.6);
-        g.strokeCircle(h.x,h.y,h.age>=8?h.radius:18);
-        g.fillStyle(0x0a081c,0.8);g.fillCircle(h.x,h.y,14);
-        g.lineStyle(2,0xffd796,0.9);g.strokeCircle(h.x,h.y,18);
-        g.fillStyle(0xffd796);g.fillRect(h.x-20,h.y-30,40*Math.max(0,h.hp/24),3);
-      } else if(h.kind==='plasma') {
-        g.fillStyle(0x59e7e0,active?0.14:0.05);g.fillCircle(h.x,h.y,h.radius);
-        g.lineStyle(2,0x59e7e0,0.22);g.strokeCircle(h.x,h.y,h.radius);
-      } else {
-        g.fillStyle(active?0xff6555:0xffa477,active?0.7:0.1);g.fillRect(h.x-24,0,48,WORLD.height);
-        g.lineStyle(2,0xffb894,0.65);g.strokeRect(h.x-24,0,48,WORLD.height);
-      }
+      g.fillStyle(active?0xff6555:0xffa477,active?0.7:0.1);g.fillRect(h.x-24,0,48,WORLD.height);
+      g.lineStyle(2,0xffb894,0.65);g.strokeRect(h.x-24,0,48,WORLD.height);
     }
     if (s.storm) {
       const h = s.storm;
