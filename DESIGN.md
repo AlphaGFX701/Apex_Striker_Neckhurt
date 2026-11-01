@@ -14,7 +14,7 @@ No new generative imagery. NULLSIGNAL is a provided AI-assisted UI kit; disclose
 
 Static semantic markup belongs to screens.ts. Main owns navigation and modal lifetime; Controller Lab owns observed input. Shared buttons, panels, tabs and states live in one stylesheet. Space Game GUI supplies blank material frames and buttons; NULLSIGNAL supplies progress, status and corner details. Text remains HTML. Do not embed Ethnocentric software from a readme link; use the bundled OFL fonts.
 
-Title leads to Play, Hangar or Settings. Main navigation is Hangar / Battle / Records and disappears during combat. The hangar selects one of three free equal-stat pixel ships: Falcon, Raven or Atlas. Ship choice remains a draft until Save ship; Discard selection restores the saved ship. All stages and main weapons are available. Evolution is run-only. Pixel records use gyro-pixel-progress-v1 and ship selection uses gyro-pixel-loadout-v1. The earlier modular save and record archives remain untouched.
+Title leads to Play, Hangar or Settings. Main navigation is Hangar / Battle / Records and disappears during combat. The hangar selects one of three free equal-stat pixel ships: Falcon, Raven or Atlas. Ship and weapon choices save immediately. All stages and main weapons are available. Evolution is run-only. Pixel records use gyro-pixel-progress-v1 and ship selection uses gyro-pixel-loadout-v1. The earlier modular save and record archives remain untouched.
 
 ## Combat layout and input
 
@@ -22,7 +22,7 @@ The field is 390 by 693.333 logical units, fitted without stretching. Bottom War
 
 Only the active input source controls flight. App loss, stale motion, controller loss and orientation changes pause and clear transient input. Orientation changes require calibration. Touch Smart Pause follows only the movement pointer. Menus must receive native keyboard input without Phaser capturing range-slider arrows. Resume gives 0.6 seconds of protection without a countdown.
 
-Pause and Settings share Music/SFX toggles and volumes; returning from Settings resynchronizes Pause controls. Calibration is available in Pause for motion input. Game Over, Victory, Practice Complete and Withdrawn are distinct outcomes. A short visual outro cannot reopen Pause or overwrite Restart/Withdraw navigation.
+Pause and Settings share Music/SFX toggles; volume controls stay in Settings. Calibration is available in Pause for motion input. Game Over, Victory, Practice Complete and Withdrawn are distinct outcomes. A short visual outro cannot reopen Pause or overwrite Restart/Withdraw navigation.
 
 ## Evolution and combat rules
 
@@ -62,14 +62,14 @@ NEON-PLAN.md supersedes earlier balance and boss rules. PIXEL-COMBAT-PLAN.md is 
 
 STAGE-BALANCE-PLAN.md supersedes pre-boss standard-enemy HP/cadence/caps in the earlier Neon baseline. GAME_BALANCE_CONFIG in neon.ts owns intro/mid/late5-second ramps: HP5.85/6.3/6.75 and7.8/8.4/9. Standard-only Pulse/Plasma/Laser impact1.1/1.2/1.05 is separate from Evolution and Super. No new-spawn configuration changes existing entity HP. Elite/homing permissions begin45s; first fire waits0.5 visible simulation seconds; wave generation pauses88.5–92 for miniboss arrival. Stage1, commanders, minibosses, boss supports and Endless retain baseline behavior. Existing score/drop formulas and saves remain intact. See STAGE-BALANCE-TESTING.md for pinned before/after results.
 
-## Wenrexa mobile launcher (current menu authority)
+## Wenrexa mobile launcher (historical menu authority)
 Start → Flight Deck → Play → Missions → Preflight → Launch. Start is semantic HTML available before Phaser; the game bundle imports asynchronously. No full-screen asset loader. Flight textures continue loading while menus work; Launch alone is gated by both scene and ship-art readiness. Errors retain Retry without starting a round.
 
 Menu materials are selected PNGs from Wenrexa Minimalism #01 (CC0). `src/launcher.css` owns scoped menu tokens: void #0A0A12, cyan #00F3FF, warning #FF2A5F. It composes with baseline `src/style.css`; combat, Pause and Results retain baseline materials and tokens. Chakra Petch / JetBrains Mono remain local OFL fonts. No sample logos or generated images. The selected ship above a holographic pad is the Flight Deck focal point.
 
 Start has one CTA and no navigation. Main Menu has Play, Hangar and Records, plus Settings / Return to Start. Return confirmation pauses menu music, does not close the browser or clear saves. Settings has Audio / Controls / Display tabs. Preferences remain a draft until Apply; leaving via Back, Escape, controller Back or navigation confirms discard. Sensor permission, calibration and fullscreen are immediate actions. Controller Lab retains real input behavior. No accounts, credits, permanent upgrades or speech. Existing storage keys remain unchanged. Menu motion honors Reduced Effects and system reduced motion.
 
-## Tactical Neon full remake (current visual authority)
+## Tactical Neon full remake (historical typography; retained materials)
 `src/tactical-theme.css` owns canonical global surface/type/motion tokens and replaces the menu-only Wenrexa rules; `launcher.css` imports it. Base style.css retains layout/compatibility. All routes including HUD/Pause/Results use MGS Codec, HUD and Ammo (unchanged Andrew Gleeson TTFs, CC-BY-SA4). Font optical adjustment1.5x follows user feedback to avoid oversize/overflow; secondary copy14, controls14–16, headings28, Start title48 with narrow-screen fitting. Navigation labels stack below icons. Results use a clean two-column stat layout without the old decorative border-image. Palette #090D12/#18232B/#E4ECE8/#59E7E0/#FFC56B/#FF5266. No new generated imagery. Wenrexa CC0 selected textures, code-drawn SVG icons and alert mark.
 
 One MenuSpace canvas in bootstrap draws authored nebula/planet layers, bounded stars/dust at30fps, with capped device scale. It hides in battle and freezes nonessential motion on reduced effects/visibility loss. Menus use semantic controls; tactile states140ms hover,80ms press and280ms one-shot release. Screen/dialog transitions180ms. Saved/Draft, observed controller state and real loader progress remain truthful.
@@ -82,3 +82,22 @@ BOSS-REVISION-PLAN.md supersedes earlier plasma/gravity/decoy rules. Only defens
 GAME_BALANCE_CONFIG owns stage-only1.25 packet density, support caps6/8/10 and three-ship staggered side waves at the original wave clock. Fan endpoints/speeds and90-unit corridor remain. Endless uses legacy packet density,4/6/8 caps and two-ship waves. All friendly impacts on ordinary Stage3 enemies/shields pass once through damageEnemy with factor1.2; minibosses, hardpoints/cores and Endless are excluded. Existing Evolution/Super values are unchanged.
 
 MusicPlayback deepens the playback module behind AudioDirector's music/pause/resume interface. Desired and confirmed audible tracks differ during loading/failure. Browser media is an adapter; fake media provides deterministic delayed/rejected playback. Per-track bounded starts/retries, cancellation generations and400ms confirmed handoff keep lifecycle locality and regression-test leverage. Resume restores the confirmed fallback while a desired track fails. Resetting retries never mutates a pending attempt's count. QA result fixtures cannot write local records.
+
+## Portrait Mobile (current UI, balance and native authority)
+PORTRAIT-MOBILE-PLAN.md supersedes earlier typography, menu flow and sector2/3 preboss tuning. One Home screen with ship/logo/Play; secondary Ship/Settings. Records lives in Settings. The lightweight HTML shell queues early Play once during runtime import. No separate Start and no full-screen loader. Launch alone waits for actual flight assets.
+
+Canonical src/tactical-theme.css owns typography: MGS HUD only logo/headings at125% optical size, Chakra Petch14px UI,12px secondary, JetBrains18px score. Logo32px (28 narrow), heading22px. Controls retain44px minimum targets. Ship/Weapon save on choice; no draft action bar. Missions show sector/image/name/threat marks. Preflight shows control/status/Center/Launch. Pause has Resume/Center/toggles/Quit and Settings gear. Results show Score/Time/Kills; extra stats collapse under Details. Settings retains Apply/Discard for preferences.
+
+Sector2 uses intervals2.46/2.15/1.92 and caps14/18/20, HP unchanged. Sector3 intervals3.50/2.88/2.50 and caps11/14/18, HP6.63/7.14/7.65, armor27.2 and matching shield. Existing5s ramps, impact multipliers, formations and all drop/supply rules remain. Bosses/supports/minibosses, Stage1 and Endless retain baseline rules.
+
+AppSession is the lifecycle module: one interface owns active state, pause, input clearing, audio suspension and Back. Browser visibility/focus and Capacitor App are the two adapters. Initial hidden/native state is seeded; stale initial queries cannot overwrite newer events. Home/menu audio respects active state. Returning does not auto-resume flight; readiness and explicit Resume remain. Android Back pauses battle, navigates menus, confirms home exit. Android bundles dist without a remote server URL, locks portrait and retains application ID and save keys; browser storage is a separate origin. Native APK output stays outside public/dist.
+
+Final user steering restores the fuller Flight Deck home: sector label, Personal best, active airframe, Play plus Hangar/Records and short flight hints. One entry page remains. Pause uses a full-width solid cyan56px Resume with a brief explanation and separate secondary Center/Quit. Menu composition changes do not restore oversized MGS UI copy. Resume ignores stale/closed-modal actions and waits for active app/control readiness; successful return is immediate with0.6s protection.
+
+
+## UI restoration (current visual/navigation authority)
+UI-RESTORATION-PLAN.md supersedes Portrait menu simplification. Restore Start→Home→Missions→Preflight with Return to Start and noncombat bottom navigation. Hangar uses the existing PixelShipStore draft/Save/Discard transaction, rotate/reset and open firing preview. Mission/preflight dropdowns and Hangar weapon buttons share selectWeapon. Preserve complete controls and concise one-sentence descriptions instead of deleting capability.
+
+Chakra16px body/buttons,14px secondary, JetBrains20px score; MGS HUD only logo/headings36/24 (32/22 narrow),125% optical sizing. tactical-theme.css owns tokens/layout; base style.css supplies retained compatibility/art surfaces. Full results data and Pause volume/Restart controls are restored; Resume stays a56px primary action with readiness/lifecycle guards and0.6s protection. EntryIntent owns queued Start consumption; initial Start must not reset a pre-import tap. Repeated entry is guarded and Return resets intent.
+
+Stage2/3 balance and all drop/music/AppSession fixes remain. APK work is suspended until explicit user review approval; no new native build/install/release during web restoration.

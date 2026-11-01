@@ -698,7 +698,7 @@ export class GameModel {
         ...e,
         radius: e.kind === 2 ? 22 : 16,
         health:
-          (e.kind === 2 ? DIFFICULTY[stage].armorHP : balance?.enemyHP ?? DIFFICULTY[stage].enemyHP) *
+          (e.kind === 2 ? (balance?.armorHP ?? DIFFICULTY[stage].armorHP) : balance?.enemyHP ?? DIFFICULTY[stage].enemyHP) *
           Math.min(1.6, 1 + (s.wave - 1) * 0.025),
         shot: balance ? 0 : e.motion === "crossfire" ? 1.2 : 0.6,
         balance:balance??undefined, balanceGroup:bossSupport?"boss-support":e.kind===2?"elite":"standard",
@@ -707,7 +707,7 @@ export class GameModel {
         age: 0,
         faction: stage,
         archetype,
-        shieldHP: e.kind === 2 ? DIFFICULTY[stage].armorHP * 0.35 : 0,
+        shieldHP: e.kind === 2 ? (balance?.armorHP ?? DIFFICULTY[stage].armorHP) * 0.35 : 0,
       });
     }
   }

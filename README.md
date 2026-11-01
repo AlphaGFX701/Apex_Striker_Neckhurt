@@ -13,7 +13,7 @@ npm test -- --testTimeout=20000
 npm run build
 ```
 
-Publish dist/ as static files. Phone sensors require HTTPS. Existing Capacitor app ID remains unchanged; this delivery does not package IPA/APK.
+Publish dist/ as static files. Phone sensors require HTTPS. Existing Capacitor app ID remains unchanged; Android test APKs bundle the game offline; iOS packaging is not included.
 
 ## Combat
 
@@ -37,3 +37,22 @@ Full tactical menu/HUD theme with local MGS1 fonts, shared animated menu space a
 
 ## Boss encounter revision
 Boss entry shatters loose drops once, without removing collected powers or later supplies. Music keeps the confirmed audible track until the requested recording starts, with bounded recovery across failures, pause and mute. See BOSS-REVISION-TESTING.md for seeded pressure measurements, desktop browser playback evidence and limits.
+
+## Portrait Android test build
+Use JDK21 (Android Studio jbr), Android SDK36 and Node22+. The Android directory preserves com.mjadsakul.gyrospacelab and supports API24+. No remote server URL is configured.
+
+```powershell
+npm ci
+npm run build
+npx cap sync android
+$env:JAVA_HOME='C:\Program Files\Android\Android Studio\jbr'
+$env:ANDROID_HOME="$env:LOCALAPPDATA\Android\Sdk"
+cd android
+.\gradlew.bat assembleDebug
+```
+
+The debug-signed APK is android/app/build/outputs/apk/debug/app-debug.apk. Copy it outside public/dist as Apex-Strikers-1.0.0-test.1.apk. Never publish signing keystores. Browser saves do not automatically migrate into WebView. See PORTRAIT-MOBILE-PLAN.md and PORTRAIT-MOBILE-TESTING.md for current UI/balance and test limitations. No20-minute Endless soak is required.
+
+
+## Current UI review build
+The original Start/main-menu tools are restored with16px readable mobile UI. See UI-RESTORATION-PLAN.md and UI-RESTORATION-TESTING.md. Android packaging is currently on hold until the user reviews the web; the earlier test APK does not include this restoration.

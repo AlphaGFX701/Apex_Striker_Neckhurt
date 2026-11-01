@@ -1,4 +1,5 @@
 import { MenuSpace, installTacticalInteractions } from './menu-space';
+import {EntryIntent} from './launcher';
 import './style.css';
 import './launcher.css';
 
@@ -6,20 +7,18 @@ new MenuSpace();
 installTacticalInteractions();
 
 // Keep the first screen independent of Phaser's bundle and flight texture loader.
-let runtimeReady = false;
-let startRequested = false;
+const entry=new EntryIntent();
 const status = document.querySelector<HTMLElement>('#start-status')!;
 const button = document.querySelector<HTMLButtonElement>('#start-button')!;
 button.onclick = () => {
-  startRequested = true;
-  if (runtimeReady) window.dispatchEvent(new Event('apex:start'));
-  else status.textContent = 'Opening the flight deck…';
+  if (entry.request()) window.dispatchEvent(new Event('apex:start'));
+  else status.textContent = 'Opening…';
 };
+window.addEventListener('apex:reset-entry',()=>{entry.reset();status.textContent='Enter the flight deck';});
 void import('./main').then(() => {
-  runtimeReady = true;
-  if (startRequested) window.dispatchEvent(new Event('apex:start'));
+  if (entry.ready()) window.dispatchEvent(new Event('apex:start'));
 }).catch(() => {
-  status.textContent = 'Flight deck could not load. Check your connection and retry.';
+  status.textContent = 'Could not start. Retry.';
   const retry = document.querySelector<HTMLButtonElement>('#runtime-retry')!;
   retry.hidden = false;
   retry.onclick = () => location.reload();

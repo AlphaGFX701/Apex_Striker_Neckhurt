@@ -20,6 +20,7 @@ type PhaseTuning = Pick<WaveBalance, 'enemyHP'|'cadence'|'spawnInterval'|'enemyC
 export interface GameBalanceConfig {
   bossPressure: { packetDensity:number; supportCaps:readonly [number,number,number]; waveSize:number };
   sectorThreeImpact:number;
+  prebossArmorHP:Readonly<Record<number,number>>;
   stages: Readonly<Record<number, readonly [PhaseTuning,PhaseTuning,PhaseTuning]>>;
   impact: Readonly<Record<'pulse'|'plasma'|'laser'|'missile',number>>;
   transitionSeconds: number; firstVisibleDelay: number;
@@ -27,17 +28,17 @@ export interface GameBalanceConfig {
   standardScore: number; eliteScore: number;
 }
 export const GAME_BALANCE_CONFIG: GameBalanceConfig = {
-  bossPressure:{packetDensity:1.25,supportCaps:[6,8,10],waveSize:3},sectorThreeImpact:1.2,
+  bossPressure:{packetDensity:1.25,supportCaps:[6,8,10],waveSize:3},sectorThreeImpact:1.2,prebossArmorHP:{1:24,2:27.2},
   stages: {
     1: [
-      {enemyHP:5.85,cadence:1.2,spawnInterval:3.2,enemyCap:12,waveSize:5,projectileScale:0.9,movementScale:1},
-      {enemyHP:6.3,cadence:1.6,spawnInterval:2.8,enemyCap:16,waveSize:6,projectileScale:1,movementScale:1.05},
-      {enemyHP:6.75,cadence:2,spawnInterval:2.5,enemyCap:18,waveSize:6,projectileScale:1,movementScale:1.1},
+      {enemyHP:5.85,cadence:1.2,spawnInterval:2.46,enemyCap:14,waveSize:5,projectileScale:0.9,movementScale:1},
+      {enemyHP:6.3,cadence:1.6,spawnInterval:2.15,enemyCap:18,waveSize:6,projectileScale:1,movementScale:1.05},
+      {enemyHP:6.75,cadence:2,spawnInterval:1.92,enemyCap:20,waveSize:6,projectileScale:1,movementScale:1.1},
     ],
     2: [
-      {enemyHP:7.8,cadence:1.6,spawnInterval:2.8,enemyCap:14,waveSize:6,projectileScale:0.9,movementScale:1},
-      {enemyHP:8.4,cadence:2.8,spawnInterval:2.3,enemyCap:18,waveSize:7,projectileScale:1,movementScale:1.1},
-      {enemyHP:9,cadence:4,spawnInterval:2,enemyCap:22,waveSize:7,projectileScale:1,movementScale:1.15},
+      {enemyHP:6.63,cadence:1.6,spawnInterval:3.5,enemyCap:11,waveSize:6,projectileScale:0.9,movementScale:1},
+      {enemyHP:7.14,cadence:2.8,spawnInterval:2.88,enemyCap:14,waveSize:7,projectileScale:1,movementScale:1.1},
+      {enemyHP:7.65,cadence:4,spawnInterval:2.5,enemyCap:18,waveSize:7,projectileScale:1,movementScale:1.15},
     ],
   },
   impact:{pulse:1.1,plasma:1.2,laser:1.05,missile:1}, transitionSeconds:5,firstVisibleDelay:0.5,
@@ -54,7 +55,7 @@ export function getStageBalance(stage:number,time:number,mode:string,bossSupport
   const archetypes: EnemyArchetype[]=time<30?['fighter']:time<45?['fighter','crossfire','kamikaze']:['fighter','crossfire','kamikaze','rear-gunner','shield-wall'];
   return {...current,enemyHP:mix('enemyHP'),cadence:mix('cadence'),spawnInterval:mix('spawnInterval'),projectileScale:mix('projectileScale'),movementScale:mix('movementScale'),
     enemyCap:Math.floor(mix('enemyCap')),waveSize:Math.floor(mix('waveSize')),
-    armorHP:DIFFICULTY[stage].armorHP,armorCap:time<45?0:time<75?1:2,archetypes,
+    armorHP:GAME_BALANCE_CONFIG.prebossArmorHP[stage]??DIFFICULTY[stage].armorHP,armorCap:time<45?0:time<75?1:2,archetypes,
     formations:time<30?['line','vee']:time<45?['line','vee','semicircle','zigzag','crossfire']:time<75?['semicircle','zigzag','crossfire','escort','turrets']:['semicircle','zigzag','crossfire','escort','turrets','wall','bombers'],
     firstVisibleDelay:GAME_BALANCE_CONFIG.firstVisibleDelay,standardScore:GAME_BALANCE_CONFIG.standardScore,eliteScore:GAME_BALANCE_CONFIG.eliteScore,
     spawnEnabled:!(time>=88.5 && time<92)};

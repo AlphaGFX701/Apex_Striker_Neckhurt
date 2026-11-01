@@ -10,8 +10,8 @@ function run(stage:number) {
 }
 
 describe('smoother sector two and three balance', () => {
-  it('reduces intro HP by 35 percent and blends only new-spawn values', () => {
-    for (const [stage, original, middle, late] of [[1,9,6.3,6.75],[2,12,8.4,9]]) {
+  it('keeps revised HP and blends only new-spawn values', () => {
+    for (const [stage, original, middle, late] of [[1,9,6.3,6.75],[2,10.2,7.14,7.65]]) {
       expect(getStageBalance(stage,0,'stage')!.enemyHP).toBeCloseTo(original*.65);
       expect(getStageBalance(stage,30,'stage')!.enemyHP).toBeCloseTo(original*.65);
       expect(getStageBalance(stage,32.5,'stage')!.enemyHP).toBeCloseTo((original*.65+middle)/2);
@@ -51,7 +51,7 @@ describe('smoother sector two and three balance', () => {
     expect(m.state.enemies.length).toBeGreaterThan(0);
     expect(m.state.enemies.length).toBeLessThanOrEqual(stage===1?5:6);
     for(const enemy of m.state.enemies) {
-      expect(enemy.health).toBeCloseTo(stage===1?5.85:7.8);
+      expect(enemy.health).toBeCloseTo(stage===1?5.85:6.63);
       expect(enemy.archetype).toBe('fighter');expect(enemy.shieldHP).toBe(0);
     }
   });

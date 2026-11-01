@@ -1,0 +1,223 @@
+{
+  "kind": "DOM geometry; QA controls are development-only exceptions",
+  "checks": [
+    {
+      "h": 568,
+      "overflows": [],
+      "scroll": 310,
+      "smallTargets": [],
+      "view": "stages",
+      "w": 320
+    },
+    {
+      "h": 800,
+      "overflows": [],
+      "scroll": 350,
+      "smallTargets": [],
+      "view": "stages",
+      "w": 360
+    },
+    {
+      "h": 844,
+      "overflows": [],
+      "scroll": 380,
+      "smallTargets": [],
+      "view": "stages",
+      "w": 390
+    },
+    {
+      "h": 932,
+      "overflows": [],
+      "scroll": 420,
+      "smallTargets": [],
+      "view": "stages",
+      "w": 430
+    },
+    {
+      "h": 390,
+      "overflows": [],
+      "scroll": 834,
+      "smallTargets": [],
+      "view": "stages",
+      "w": 844
+    },
+    {
+      "h": 568,
+      "overflows": [],
+      "scroll": 310,
+      "smallTargets": [],
+      "view": "preflight",
+      "w": 320
+    },
+    {
+      "h": 568,
+      "overflows": [],
+      "scroll": 320,
+      "smallTargets": [],
+      "view": "battle",
+      "w": 320
+    },
+    {
+      "h": 568,
+      "overflows": [],
+      "scroll": 320,
+      "smallTargets": [],
+      "view": "battle",
+      "w": 320
+    },
+    {
+      "h": 568,
+      "overflows": [],
+      "scroll": 310,
+      "smallTargets": [],
+      "view": "settings",
+      "w": 320
+    },
+    {
+      "h": 568,
+      "overflows": [],
+      "scroll": 320,
+      "smallTargets": [],
+      "view": "battle",
+      "w": 320
+    },
+    {
+      "h": 568,
+      "overflows": [],
+      "scroll": 310,
+      "smallTargets": [],
+      "view": "results",
+      "w": 320
+    },
+    {
+      "h": 568,
+      "overflows": [],
+      "scroll": 310,
+      "smallTargets": [],
+      "view": "stages",
+      "w": 320
+    },
+    {
+      "h": 568,
+      "overflows": [],
+      "scroll": 310,
+      "smallTargets": [],
+      "view": "home",
+      "w": 320
+    },
+    {
+      "h": 568,
+      "overflows": [],
+      "scroll": 310,
+      "smallTargets": [],
+      "view": "home",
+      "w": 320
+    },
+    {
+      "h": 568,
+      "overflows": [],
+      "scroll": 310,
+      "smallTargets": [],
+      "view": "home",
+      "w": 320
+    },
+    {
+      "h": 568,
+      "overflows": [],
+      "scroll": 310,
+      "smallTargets": [],
+      "view": "home",
+      "w": 320
+    },
+    {
+      "h": 568,
+      "overflows": [],
+      "scroll": 310,
+      "smallTargets": [],
+      "view": "home",
+      "w": 320
+    },
+    {
+      "h": 568,
+      "overflows": [],
+      "scroll": 310,
+      "smallTargets": [],
+      "view": "home",
+      "w": 320
+    },
+    {
+      "h": 800,
+      "overflows": [],
+      "scroll": 360,
+      "smallTargets": [],
+      "view": "home",
+      "w": 360
+    },
+    {
+      "h": 844,
+      "overflows": [],
+      "scroll": 390,
+      "smallTargets": [],
+      "view": "home",
+      "w": 390
+    },
+    {
+      "h": 932,
+      "overflows": [],
+      "scroll": 430,
+      "smallTargets": [],
+      "view": "home",
+      "w": 430
+    },
+    {
+      "h": 390,
+      "overflows": [],
+      "scroll": 834,
+      "smallTargets": [],
+      "view": "home",
+      "w": 844
+    },
+    {
+      "h": 390,
+      "overflows": [],
+      "scroll": 844,
+      "smallTargets": [
+        "QA Laser",
+        "QA Sweep",
+        "QA Record 12s",
+        "QA Soak 20m",
+        "QA Boss entry",
+        "QA Victory",
+        "QA Defeat",
+        "QA Laser clip 12s"
+      ],
+      "view": "battle",
+      "w": 844
+    },
+    {
+      "h": 390,
+      "overflows": [],
+      "scroll": 844,
+      "smallTargets": [
+        "QA Laser",
+        "QA Sweep",
+        "QA Record 12s",
+        "QA Soak 20m",
+        "QA Boss entry",
+        "QA Victory",
+        "QA Defeat",
+        "QA Laser clip 12s"
+      ],
+      "view": "battle",
+      "w": 844
+    },
+    {
+      "h": 568,
+      "overflows": [],
+      "scroll": 310,
+      "smallTargets": [],
+      "view": "controller",
+      "w": 320
+    }
+  ]
+}

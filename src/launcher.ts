@@ -1,4 +1,16 @@
 /** Asset readiness is independent of the menu that the pilot is browsing. */
+export class EntryIntent {
+  private loaded=false;
+  private requested=false;
+  private entered=false;
+  request(){this.requested=true;return this.consume();}
+  ready(){this.loaded=true;return this.consume();}
+  reset(){this.requested=false;this.entered=false;}
+  private consume(){
+    if(!this.loaded||!this.requested||this.entered)return false;
+    this.entered=true;return true;
+  }
+}
 export class FlightAssetGate {
   progress = 0;
   artReady = false;

@@ -1,3 +1,6 @@
+import {Capacitor} from "@capacitor/core";
+import {AppSession} from "./app-session";
+import {installSessionAdapters,exitNativeApp} from "./session-adapters";
 import { uiIcon } from "./ui-icons";
 import { FlightAssetGate } from "./launcher";
 import { SettingsPanel } from "./settings-panel";
@@ -44,7 +47,7 @@ const progress = new ProgressStore(
   sensor = new SensorController(),
   pad = new GamepadAdapter(),
   feedback = new AudioDirector();
-let source = matchMedia("(pointer: coarse)").matches ? "sensor" : "manual",
+let source = Capacitor.isNativePlatform() || matchMedia("(pointer: coarse)").matches ? "sensor" : "manual",
   view = "start",
   settingsReturn = "home",
   selectedStage = 0,
@@ -259,21 +262,24 @@ el("test-sound").onclick = () => {
   feedback.unlock();
   feedback.play("emp");
 };
+el("pause-settings").onclick = () => navigate("settings");
 function balance() {
   el("balance").textContent = "";
   el("save-status").textContent = progress.persistent
     ? "Progress saves locally in this browser."
     : "Local storage is unavailable. Progress lasts for this session.";
 }
+let loadoutReturn="home";
 function setView(next: string) {
+  const changed=view!==next;
   if (view !== next && next !== "battle" && next !== "start") feedback.play("ui-open");
   if (next !== "controller") controller.cancelRemap();
   view = next;
   el("start").hidden = next !== "start";
-  if (next === "start") feedback.pauseAudio();
+  if(next === "start"){feedback.pauseAudio();if(changed)window.dispatchEvent(new Event("apex:reset-entry"));}
   else if (next !== "battle") {
     feedback.clearAnnouncements();
-    feedback.resumeAudio();
+    if(session.active)feedback.resumeAudio();
     feedback.music("menu");
   }
   document.body.dataset.view = next;
@@ -300,7 +306,10 @@ function setView(next: string) {
   if (next === "preflight") renderPreflight();
   if (next === "records") renderRecords();
   if (next === "settings") settingsPanel?.open();
-  if (next === "home") el("menu-best").textContent = Math.max(0, ...progress.state.records.map(r => r.score)).toLocaleString("en-US");
+  if (next === "home") {
+    el("menu-best").textContent = Math.max(0, ...progress.state.records.map(r => r.score)).toLocaleString("en-US");
+    el("title-ship-name").textContent=pixelShip(build.saved.hull).name.toUpperCase();
+  }
   balance();
   requestAnimationFrame(() => {
     if (view !== next || next === "battle") return;
@@ -328,6 +337,7 @@ function navigate(next: string) {
 }
 function navigateResolved(next: string) {
   if (next === view) return;
+  if(next==="hangar")loadoutReturn=view;
   if (next === "settings" || next === "controller") {
     settingsReturn = view;
     returnRoutes.push(view);
@@ -348,7 +358,7 @@ function navigateResolved(next: string) {
     );
     return;
   }
-  if (view === "hangar" && build.dirty && next !== "hangar") {
+  if (build.dirty && !["hangar", "settings", "controller"].includes(next)) {
     confirmAction(
       "Discard ship selection?",
       "Your saved ship will stay unchanged.",
@@ -366,6 +376,7 @@ document.querySelectorAll<HTMLElement>("[data-go]").forEach(
   (b) =>
     (b.onclick = (e) => {
       e.preventDefault();
+      if(b.classList.contains("back") && view==="hangar"){navigate(loadoutReturn);return;}
       if (
         b.classList.contains("back") &&
         (view === "settings" || view === "controller")
@@ -402,6 +413,7 @@ document.addEventListener("click", e => {
     e.preventDefault(); e.stopImmediatePropagation();
   }
 }, true);
+
 document.addEventListener("click", e => {
   const button = (e.target as HTMLElement).closest("button");
   if (button && !button.disabled && view !== "battle") feedback.play(
@@ -443,10 +455,11 @@ function paintAll() {
   paint("ship-preview", true, previewLevel);
   el("title-ship-name").textContent = pixelShip(build.saved.hull).name.toUpperCase();
   el("ship-name").textContent = pixelShip(build.draft.hull).name.toUpperCase();
-  el("ship-role").textContent = pixelShip(build.draft.hull).role;
-  el("showcase-level").textContent = `LEVEL ${previewLevel} · ${previewLevel === 1 ? "STANDARD FRAME" : previewLevel === 2 ? "ASSAULT FRAME" : "HEAVY FRAME"}`;
-  el("save-build").textContent = build.dirty ? "Save ship" : "Ship selected";
-  el<HTMLButtonElement>("save-build").disabled = !build.dirty;
+  el("ship-role").textContent=pixelShip(build.draft.hull).role;
+  el("showcase-level").textContent=`L${previewLevel} · ${["Standard","Assault","Heavy"][previewLevel-1]}`;
+  el("save-build").textContent=build.dirty?"Save":"Saved";
+  el<HTMLButtonElement>("save-build").disabled=!build.dirty;
+  el<HTMLButtonElement>("reset-build").disabled=!build.dirty;
 }
 loadShipParts()
   .then((images) => {
@@ -477,7 +490,7 @@ function renderHangar() {
     portrait.setAttribute("aria-hidden", "true");
     paintPixelCanvas(portrait, ship.id, 1);
     name.textContent = ship.name;
-    status.textContent = build.draft.hull === ship.id ? "SELECTED" : "AVAILABLE";
+    status.textContent = build.draft.hull === ship.id ? "Selected" : "";
     button.append(portrait, name, status);
     button.onclick = () => {
       build.select("hull", ship.id);
@@ -547,12 +560,12 @@ function practice() {
 }
 function renderEquipment() {
   el("hangar-status").textContent =
-    "All ships and weapons are free. Power grows only during your flight.";
+    "";
   el("equipment-slots").innerHTML = "";
   el("equipment-catalog").innerHTML = EQUIPMENT.filter((e) => e.slot === "main")
     .map(
       (e) =>
-        `<button class="catalog-item ${arcadeWeapon === e.id ? "selected" : ""}" data-weapon="${e.id}" aria-pressed="${arcadeWeapon === e.id}">${icon(e.id)}<span><strong>${e.name}</strong><small>${e.description}</small></span><b>${arcadeWeapon === e.id ? "EQUIPPED" : "SELECT"}</b></button>`,
+        `<button class="catalog-item ${arcadeWeapon === e.id ? "selected" : ""}" data-weapon="${e.id}" aria-pressed="${arcadeWeapon === e.id}">${icon(e.id)}<span><strong>${({pulse:"Pulse",plasma:"Plasma",laser:"Laser"} as Record<string,string>)[e.id]}</strong></span></button>`,
     )
     .join("");
   el("equipment-catalog")
@@ -560,15 +573,8 @@ function renderEquipment() {
     .forEach(
       (b) =>
         (b.onclick = () => {
-          arcadeWeapon = b.dataset.weapon as typeof arcadeWeapon;
-          selectedItem = arcadeWeapon;
-          try {
-            localStorage.setItem("gyro-arcade-weapon", arcadeWeapon);
-          } catch {
-            toast("Weapon saved for this session.");
-          }
-          previewDirty = true;
-          renderEquipment();
+          selectWeapon(b.dataset.weapon!);
+        renderEquipment();
         }),
     );
 }
@@ -578,9 +584,9 @@ function renderStages() {
   el("stage-cards").innerHTML =
     STAGES.map((s, i) => {
       const locked = false;
-      return `<article class="stage-card stage-${i}"><span class="eyebrow">SECTOR 0${i + 1} · ${progress.state.cleared.includes(i) ? "CLEARED" : locked ? "LOCKED" : "AVAILABLE"}</span><img src="/assets/onslaught/boss-${i}-preview.png" alt="${s.boss}"><h2>${s.name}</h2><p>${s.description}</p><div class="stage-meta"><span>BOSS <b>${s.boss}</b></span><span>WEAKNESS <b>${s.weakness.toUpperCase()} ×1.25</b></span><span>THREAT <b>${["VANGUARD", "ESCALATED", "ONSLAUGHT"][i]}</b></span></div><button class="${locked ? "secondary" : "primary"}" data-stage="${i}" ${locked ? "disabled" : ""}>${locked ? "Clear the previous stage" : `Deploy ${uiIcon("deploy")}`}</button></article>`;
+      return `<article class="stage-card stage-${i}"><span class="eyebrow">SECTOR 0${i + 1} · ${progress.state.cleared.includes(i) ? "CLEARED" : locked ? "LOCKED" : "OPEN"}</span><img src="/assets/onslaught/boss-${i}-preview.png" alt="${s.boss}"><h2>${s.name}</h2><div class="stage-meta"><span>BOSS <b>${s.boss}</b></span><span>WEAKNESS <b>${s.weakness.toUpperCase()} ×1.25</b></span><span>THREAT <b>${["VANGUARD", "ESCALATED", "ONSLAUGHT"][i]}</b></span></div><button class="${locked ? "secondary" : "primary"}" data-stage="${i}" ${locked ? "disabled" : ""}>${locked ? "Clear the previous stage" : `Deploy ${uiIcon("deploy")}`}</button></article>`;
     }).join("") +
-    `<article class="stage-card endless-card"><span class="eyebrow">SURVIVAL OPERATIONS</span><h2>Endless frontier.</h2><p>No time limit. Escalating waves, rotating threats and a boss every three waves.</p><button class="primary" id="endless-start" >Deploy endless ${uiIcon("deploy")}</button></article>`;
+    `<article class="stage-card endless-card"><span class="eyebrow">SURVIVAL</span><h2>Endless</h2><p>A boss every three waves.</p><button class="primary" id="endless-start" >Deploy ${uiIcon("deploy")}</button></article>`;
   el("stage-cards")
     .querySelectorAll<HTMLButtonElement>("[data-stage]")
     .forEach(
@@ -597,14 +603,14 @@ function renderStages() {
     setView("preflight");
   };
 }
-el<HTMLSelectElement>("stage-weapon").onchange = () => {
-  arcadeWeapon = el<HTMLSelectElement>("stage-weapon")
-    .value as typeof arcadeWeapon;
-  selectedItem = arcadeWeapon;
-  try {
-    localStorage.setItem("gyro-arcade-weapon", arcadeWeapon);
-  } catch {}
-};
+function selectWeapon(value:string){
+  if(value!=="pulse"&&value!=="plasma"&&value!=="laser")return;
+  arcadeWeapon=value;selectedItem=value;previewDirty=true;
+  try{localStorage.setItem("gyro-arcade-weapon",value);}catch{toast("Weapon selected for this session.");}
+  el<HTMLSelectElement>("stage-weapon").value=value;
+  el<HTMLSelectElement>("mission-weapon").value=value;
+}
+for(const id of ["stage-weapon","mission-weapon"])el<HTMLSelectElement>(id).onchange=()=>{selectWeapon(el<HTMLSelectElement>(id).value);renderPreflight();};
 el("practice-mode").onchange = () => renderStages();
 function config(): RunConfig {
   const c = defaultRun();
@@ -626,7 +632,7 @@ function renderPreflight() {
   el("mission-name").textContent =
     mode === "endless" ? "Endless Frontier" : STAGES[selectedStage].name;
   el("mission-detail").textContent =
-    `${practice() ? "PRACTICE · " : ""}${mode === "stage" ? `2 min assault · ${DIFFICULTY[selectedStage].phases}-phase boss · ` : ""}3 lives · Auto-fire`;
+    `${practice()?"Practice · ":""}${mode==="stage"?"2 min assault · ":""}3 hull · Auto-fire`;
   el("mission-loadout").innerHTML = Object.values(c.equipment)
     .filter(Boolean)
     .map((id) => {
@@ -634,30 +640,21 @@ function renderPreflight() {
       return `<span>${icon(e.id)}${e.name}</span>`;
     })
     .join("");
-  el<HTMLSelectElement>("mission-weapon").value = arcadeWeapon;
+  el<HTMLSelectElement>("mission-weapon").value=arcadeWeapon;
   updateControlHelp();
 }
-el<HTMLSelectElement>("mission-weapon").onchange = () => {
-  arcadeWeapon = el<HTMLSelectElement>("mission-weapon")
-    .value as typeof arcadeWeapon;
-  selectedItem = arcadeWeapon;
-  try {
-    localStorage.setItem("gyro-arcade-weapon", arcadeWeapon);
-  } catch {}
-  renderPreflight();
-};
 function updateControlHelp() {
   const copy: Record<string, string> = {
     sensor:
-      "1. Enable sensors and allow Motion. 2. Hold comfortably and set center. 3. Tilt to move the ship preview.",
+      "Hold comfortably. Center, then tilt.",
     manual:
-      "Drag below the ship. Arrows / WASD to move. Q / E dodge. Space deploys EMP. Releasing a touch drag pauses flight.",
-    pad: "Pair in Bluetooth settings, then press a button. Left stick / D-pad move, LB / RB dodge, bottom button EMP, Start pauses.",
-    tilt: "Run and confirm a mapped tilt test in Controller Lab, then set center. Only analog signals reported by the browser are used.",
+      "Drag to fly.",
+    pad: "Connect a controller.",
+    tilt: "Confirm tilt in Controller Lab.",
   };
   el("control-help").textContent = copy[source];
   el("enable-sensors").hidden = source !== "sensor" || sensor.telemetry.state === "active";
-  el("center-sensors").hidden = source !== "sensor" || sensor.telemetry.calibrated;
+  el("center-sensors").hidden = source !== "sensor";
 }
 el<HTMLSelectElement>("input-source").onchange = () => {
   source = el<HTMLSelectElement>("input-source").value;
@@ -812,7 +809,7 @@ el("launch").onclick = () => {
   feedback.music("in-the-wreckage");
   el("practice-energy").hidden = !practice();
 };
-function pause(reason = "Take a breath. The frontier can wait.") {
+function pause(reason = "") {
   if (view !== "battle" || scene.model.state.gameOver) return;
   scene.pause();
   feedback.pauseAudio();
@@ -821,27 +818,23 @@ function pause(reason = "Take a breath. The frontier can wait.") {
   el("pause-calibration-status").textContent = "";
   el<HTMLInputElement>("pause-music").checked = feedback.musicEnabled;
   el<HTMLInputElement>("pause-sfx").checked = feedback.enabled;
-  el<HTMLInputElement>("pause-music-volume").value = String(
-    feedback.musicVolume,
-  );
-  el<HTMLInputElement>("pause-sfx-volume").value = String(feedback.sfxVolume);
   el("pause-calibrate").hidden = source !== "sensor";
+  el<HTMLInputElement>("pause-music-volume").value=String(feedback.musicVolume);
+  el<HTMLInputElement>("pause-sfx-volume").value=String(feedback.sfxVolume);
   el("pause-reason").textContent = reason;
   if (!dialog("pause-dialog").open) dialog("pause-dialog").showModal();
 }
 function resume() {
+  if(view!=="battle" || !dialog("pause-dialog").open || scene.model.state.gameOver)return;
   feedback.unlock();
+  if(!session.active){el("pause-reason").textContent="Return to the app to resume.";return;}
   const reason = ready();
   if (reason) {
     el("pause-calibration-status").textContent = "";
     el<HTMLInputElement>("pause-music").checked = feedback.musicEnabled;
     el<HTMLInputElement>("pause-sfx").checked = feedback.enabled;
-    el<HTMLInputElement>("pause-music-volume").value = String(
-      feedback.musicVolume,
-    );
-    el<HTMLInputElement>("pause-sfx-volume").value = String(feedback.sfxVolume);
     el("pause-calibrate").hidden = source !== "sensor";
-    el("pause-reason").textContent = reason;
+    el("pause-reason").textContent = source==="sensor"?"Move your phone, then tap Center. Touch is available in Settings.":reason;
     return;
   }
   dialog("pause-dialog").close();
@@ -882,7 +875,6 @@ for (const [id, setting, key] of [
     el<HTMLInputElement>(setting).value = String(feedback[key]);
     saveAudioPreferences();
   };
-el("pause-settings").onclick = () => navigate("settings");
 el("restart").onclick = () => {
   dialog("pause-dialog").close();
   confirmAction(
@@ -928,12 +920,12 @@ function updateHud(s: GameSnapshot) {
   el("time").textContent =
     `${Math.floor(clock / 60)}:${String(Math.floor(clock % 60)).padStart(2, "0")}`;
   el("wave").textContent = s.boss
-    ? "BOSS ENGAGED"
+    ? "BOSS"
     : scene.model.config.mode === "endless"
       ? `WAVE ${s.wave}`
-      : "ASSAULT";
+      : `S${scene.model.config.stage+1}`;
   el("combo").textContent = s.combo
-    ? `×${comboMultiplier(s.combo)} · ${s.combo} CHAIN`
+    ? `×${comboMultiplier(s.combo)}`
     : "";
   if (el("lives").dataset.hp !== String(s.lives)) {
     el("lives").dataset.hp = String(s.lives);
@@ -948,15 +940,15 @@ function updateHud(s: GameSnapshot) {
     el("shield-status").dataset.online = String(s.shield);
     el("shield-status").classList.toggle("online", s.shield);
     el("shield-status").innerHTML =
-      `<img src="/assets/onslaught/pickup-shield.png" alt="">${s.shield ? "SHIELD ON" : "SHIELD OFF"}`;
+      `<img src="/assets/onslaught/pickup-shield.png" alt="${s.shield ? "Shield on" : "Shield off"}">`;
   }
-  el("drone-status").textContent = s.superMode.remaining>0 ? `SUPER · ${s.superMode.remaining.toFixed(1)}s` : s.drones.length
-    ? `ESCORTS L${s.wingmen.level}`
-    : "";
+  el("drone-status").textContent = s.superMode.remaining>0 ? `SUPER ${Math.ceil(s.superMode.remaining)}s` : s.drones.length?`DRONE L${s.wingmen.level}`:"";
   el("battle").dataset.damage = s.hitEffect > 0 ? s.damageKind : "";
   el("battle").dataset.lowHull = String(s.lives === 1 && !s.gameOver);
   el("run-credits").textContent =
-    `L${s.evolution.level} ORB ${Math.min(5, s.evolution.orbs)}/5${s.powers.overdrive > 0 ? `  RED ${Math.ceil(s.powers.overdrive)}s` : ""}`;
+    `L${s.evolution.level} · ${Math.min(5,s.evolution.orbs)}/5${s.powers.overdrive>0?` · RED ${Math.ceil(s.powers.overdrive)}s`:""}`;
+  el("run-credits").setAttribute("aria-label",`Level ${s.evolution.level}, ${s.evolution.orbs} orbs`);
+  el("run-credits").style.setProperty("--charge",`${s.powers.overdrive/25*100}%`);
   el("run-credits").classList.toggle("overdrive", s.powers.overdrive > 0);
   for (const cue of scene.model.drainLaserEvents()) feedback.laserCue(cue);
   for (const event of scene.model.drainEvents()) {
@@ -985,7 +977,7 @@ function updateHud(s: GameSnapshot) {
   if (s.energy >= 100 && lastEnergy < 100) feedback.ready();
   lastEnergy = s.energy;
   el("emp-state").textContent =
-    s.energy >= 100 ? "READY" : `${Math.floor(s.energy)}%`;
+    `${Math.floor(s.energy)}%`;
   el("emp").classList.toggle("charged", s.energy >= 100);
   el("emp").style.setProperty("--charge", `${s.energy}%`);
   for (const id of ["dodge-left", "dodge-right"])
@@ -1011,11 +1003,12 @@ function updateHud(s: GameSnapshot) {
           scene.model.config.stage
         ];
     el("boss-phase").textContent =
-      `${Math.max(0, Math.ceil(targetBoss.health))} / ${targetBoss.maxHealth} · P${targetBoss.phase || 1}${s.boss ? "/"+DIFFICULTY[scene.model.config.stage].phases : ""}`;
+      `${Math.max(0,Math.ceil(targetBoss.health))}/${targetBoss.maxHealth} · P${targetBoss.phase||1}${s.boss?"/"+DIFFICULTY[scene.model.config.stage].phases:""}`;
     const bossState = s.boss?.state;
-    el("boss-objective").hidden = !bossState || bossState === "defeated";
-    el("boss-objective").textContent = bossState === "armored" ? "BREAK THE TURRETS" :
-      bossState === "exposed" ? `CORE EXPOSED · DAMAGE ×${DIFFICULTY[scene.model.config.stage].exposedDamage}` : bossState === "transition" ? "REARMING" : "";
+    if(el("boss-hud").dataset.state!==bossState)el("boss-hud").dataset.noticeUntil=String(s.time+1.6);
+    el("boss-objective").hidden = !bossState || bossState === "defeated" || s.time>Number(el("boss-hud").dataset.noticeUntil);
+    el("boss-objective").textContent = bossState === "armored" ? "BREAK TURRETS" :
+      bossState === "exposed" ? "CORE OPEN" : bossState === "transition" ? "REARMING" : "";
     el("boss-hud").dataset.state = bossState || "";
     el<HTMLProgressElement>("boss-health").value = Math.max(
       0,
@@ -1071,14 +1064,17 @@ function completeRound() {
   el("result-mode").textContent =
     `${scene.model.practice ? "PRACTICE / " : ""}${c.mode === "endless" ? "ENDLESS FRONTIER" : STAGES[c.stage].name.toUpperCase()}`;
   el("result-description").textContent = scene.model.practice
-    ? "Training run. Records unchanged."
+    ? "Practice"
     : s.result === "won"
       ? "Sector secured."
-      : "Ship lost. Try the sortie again.";
+      : s.result==="lost"?"Ship lost. Ready for another run?":"Run ended. Your score is saved.";
   el("result-stats").innerHTML = [
     ["Score", s.score.toLocaleString("en-US")],
-    ["Survived", s.time.toFixed(1) + "s"],
-    ["Enemies", s.stats.enemiesDestroyed],
+    ["Time", s.time.toFixed(1) + "s"],
+    ["Kills", s.stats.enemiesDestroyed],
+  ]
+    .map(([l,v])=>`<div><small>${l}</small><b>${v}</b></div>`).join("");
+  el("result-extra").innerHTML = [
     ["Best combo", `×${s.stats.bestMultiplier}`],
     ["EMP uses", s.emps],
     ["Intercepted", s.intercepted],
@@ -1109,8 +1105,9 @@ el("next-stage").onclick = () => {
   setView("preflight");
 };
 el("result-upgrade").onclick = () => {
+  loadoutReturn="results";
   setView("hangar");
-  hangarTab(true);
+  hangarTab(false);
 };
 function renderRecords() {
   el("record-list").replaceChildren();
@@ -1225,23 +1222,28 @@ el("trial-export").onclick = () => {
   a.click();
   setTimeout(() => URL.revokeObjectURL(u), 1000);
 };
-function stopForVisibility() {
-  if (scene.isRunning)
-    pause("App switched or window lost focus. Resume when ready.");
-  sensor.setGestureActive(false);
-  clearInput();
+function mobileBack(){
+  const modal=document.querySelector<HTMLDialogElement>('dialog[open]');
+  if(modal?.id==='confirm-dialog'){el('confirm-cancel').click();return;}
+  if(modal?.id==='help-dialog'){el('help-close').click();return;}
+  if(modal?.id==='pause-dialog'){el('withdraw').click();return;}
+  if(view==='battle'){pause();return;}
+  if(view==='settings'||view==='controller'){goBack();return;}
+  if(view==='hangar'){navigate(loadoutReturn);return;}
+  if(view==='start')return;
+  if(view!=='home'){navigate('home');return;}
+  if(Capacitor.isNativePlatform())confirmAction('Exit game?','',()=>void exitNativeApp());
 }
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden) stopForVisibility();
-});
-window.addEventListener("blur", stopForVisibility);
+const session=new AppSession({running:()=>scene.isRunning,inBattle:()=>view==='battle',pause,
+  clearInput:()=>{sensor.setGestureActive(false);clearInput();},stopAudio:()=>feedback.pauseAudio(),resumeMenu:()=>{if(view!=="start")feedback.resumeAudio();},back:mobileBack});
+void installSessionAdapters(session);
 sensor.subscribe((t) => {
   if (
     source === "sensor" &&
     scene.isRunning &&
     ["stale", "recalibrate", "denied", "unavailable"].includes(t.state)
   )
-    pause(t.message);
+    session.interrupt(t.message);
 });
 el("help-open").onclick = () => dialog("help-dialog").showModal();
 el("help-close").onclick = () => dialog("help-dialog").close();
@@ -1264,7 +1266,7 @@ window.setInterval(() => {
     updateControlHelp();
     el("preflight-status").textContent =
       source === "sensor"
-        ? t.message
+        ? t.state==="active"&&t.calibrated?"Motion ready.":t.state==="recalibrate"||t.state==="active"?"Set center.":t.state==="waiting"?"Waiting for motion.":t.state==="idle"?"Enable motion.":"No motion. Use Touch."
         : source === "manual"
           ? "Touch / keyboard ready."
           : padFrame?.connected

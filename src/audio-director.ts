@@ -8,14 +8,14 @@ export const MUSIC_TRACKS = {
   battle: "/assets/audio/orbital-bombardment.mp3",
 } as const;
 const LABELS: Record<PickupKind | "score" | "super", string> = {
-  weapon: "POWER ORB",
-  missile: "MISSILES ONLINE",
-  drone: "WINGMEN ENHANCED",
-  shield: "SHIELD ONLINE",
-  repair: "HULL REPAIRED",
-  energy: "EMP CELL",
-  score: "BONUS SCORE",
-  super: "SUPER MODE ACTIVE",
+  weapon: "POWER",
+  missile: "MISSILES",
+  drone: "WINGMEN",
+  shield: "SHIELD",
+  repair: "REPAIR",
+  energy: "EMP",
+  score: "BONUS",
+  super: "SUPER",
 };
 /** Music and non-verbal effects only. No device speech or recorded announcements. */
 export class AudioDirector extends Feedback {

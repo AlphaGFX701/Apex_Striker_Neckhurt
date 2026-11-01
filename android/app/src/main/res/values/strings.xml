@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Apex Strikers</string>
+    <string name="title_activity_main">Apex Strikers</string>
+    <string name="package_name">com.mjadsakul.gyrospacelab</string>
+    <string name="custom_url_scheme">com.mjadsakul.gyrospacelab</string>
+</resources>

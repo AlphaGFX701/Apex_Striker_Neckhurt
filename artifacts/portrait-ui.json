@@ -1,0 +1,37 @@
+[
+  {
+    "height": 568,
+    "scrollWidth": 320,
+    "smallTargets": [],
+    "view": "home",
+    "width": 320
+  },
+  {
+    "height": 800,
+    "scrollWidth": 360,
+    "smallTargets": [],
+    "view": "home",
+    "width": 360
+  },
+  {
+    "height": 844,
+    "scrollWidth": 390,
+    "smallTargets": [],
+    "view": "home",
+    "width": 390
+  },
+  {
+    "height": 932,
+    "scrollWidth": 430,
+    "smallTargets": [],
+    "view": "home",
+    "width": 430
+  },
+  {
+    "height": 390,
+    "scrollWidth": 834,
+    "smallTargets": [],
+    "view": "home",
+    "width": 844
+  }
+]

@@ -47,7 +47,7 @@ export class SettingsPanel {
     node('settings-apply').onclick = () => {
       if (!this.draft?.dirty) return;
       this.options.onApply(this.draft.apply());
-      this.changed(); node('settings-save-status').textContent = 'Changes applied.';
+      this.changed(); node('settings-save-status').textContent = 'Saved';
     };
     const fullscreen = node<HTMLButtonElement>('fullscreen');
     fullscreen.hidden = !document.fullscreenEnabled;
@@ -81,7 +81,7 @@ export class SettingsPanel {
       if (output) output.textContent = id.includes('volume') ? `${Math.round(Number(input.value) * 100)}%` : `${Number(input.value).toFixed(2)}×`;
     }
     node<HTMLButtonElement>('settings-apply').disabled = !this.draft?.dirty;
-    node('settings-save-status').textContent = this.draft?.dirty ? 'Unsaved changes' : 'Settings are up to date.';
+    node('settings-save-status').textContent = this.draft?.dirty ? 'Unsaved' : '';
   }
   open() {
     node<HTMLSelectElement>('settings-source').value = this.options.source();
