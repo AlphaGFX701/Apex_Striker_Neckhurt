@@ -7,8 +7,9 @@
     <meta name="description" content="Tilt to fly. Collect power orbs, evolve your spacecraft and clear the arena with EMP. A mobile motion-controlled arcade shooter." />
     <title>Apex Strikers - Neon Onslaught</title>
   </head>
-  <body>
+  <body data-view="start">
+    <section id="start" class="launcher-start" aria-labelledby="start-title"><div class="start-orbit" aria-hidden="true"></div><div class="start-brand"><p class="launcher-kicker">MOTION CONTROLLED · ARCADE SURVIVAL</p><h1 id="start-title">APEX<br><span>STRIKERS</span></h1><p class="start-tagline">Tilt. Collect. Evolve.</p></div><div class="start-launch"><button id="start-button" class="launcher-primary">START <span aria-hidden="true">↗</span></button><p id="start-status" role="status">Enter the flight deck</p><button id="runtime-retry" hidden>Retry</button></div><small class="start-footer">GYRO ARCADE / THREE SECTORS / ONE PILOT</small></section>
     <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
+    <script type="module" src="/src/bootstrap.ts"></script>
   </body>
 </html>

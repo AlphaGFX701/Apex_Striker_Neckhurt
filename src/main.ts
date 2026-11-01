@@ -1,3 +1,5 @@
+import { FlightAssetGate } from "./launcher";
+import { SettingsPanel } from "./settings-panel";
 import { DIFFICULTY } from "./neon";
 import { screens } from "./screens";
 import {
@@ -42,7 +44,7 @@ const progress = new ProgressStore(
   pad = new GamepadAdapter(),
   feedback = new AudioDirector();
 let source = matchMedia("(pointer: coarse)").matches ? "sensor" : "manual",
-  view = "home",
+  view = "start",
   settingsReturn = "home",
   selectedStage = 0,
   mode: "stage" | "endless" = "stage",
@@ -60,6 +62,9 @@ try {
   if (saved === "pulse" || saved === "plasma" || saved === "laser")
     arcadeWeapon = saved;
 } catch {}
+let appliedReducedEffects = false;
+let settingsPanel: SettingsPanel | undefined;
+const assetGate = new FlightAssetGate();
 let lastEnergy = 0,
   lastPickupCount = 0;
 let runId = "",
@@ -145,20 +150,20 @@ sensor.setGestureSensitivity(
 );
 const controller = new ControllerLab(el("controller"), pad, savePreferences);
 let sceneAssetsReady = false,
-  loaderProgress = 0,
-  assetFailure = false;
+  loaderProgress = 0;
 function refreshLoading() {
-  el<HTMLProgressElement>("load-progress").value =
-    loaderProgress * 0.9 + (parts?.["pixel-0-1"] ? 0.1 : 0);
-  if (assetFailure) return;
-  el("load-status").textContent =
-    `Loading flight assets · ${Math.round((loaderProgress * 0.9 + (parts?.["pixel-0-1"] ? 0.1 : 0)) * 100)}%`;
-  el("boot-loading").hidden = sceneAssetsReady && !!parts && !assetFailure;
+  assetGate.progress = loaderProgress;
+  assetGate.sceneReady = sceneAssetsReady;
+  assetGate.artReady = !!parts;
+  el<HTMLProgressElement>("load-progress").value = assetGate.fraction;
+  el("load-status").textContent = assetGate.error || `Loading flight assets · ${Math.round(assetGate.fraction * 100)}%`;
+  el("flight-loading").hidden = assetGate.ready;
+  el<HTMLButtonElement>("launch").disabled = !assetGate.ready;
+  el("load-retry").hidden = !assetGate.error;
 }
 function loadingFailed(message: string) {
-  assetFailure = true;
-  el("load-status").textContent = message;
-  el("load-retry").hidden = false;
+  assetGate.error = message;
+  refreshLoading();
 }
 el("load-retry").onclick = () => location.reload();
 function pilotAimPoint() {
@@ -181,7 +186,7 @@ const { scene } = createGame(el("game"), {
       "Some flight assets could not load. Check your connection and retry.",
     ),
   reducedEffects: () =>
-    el<HTMLInputElement>("low-effects").checked ||
+    appliedReducedEffects ||
     matchMedia("(prefers-reduced-motion: reduce)").matches,
   manual: () => source === "manual",
   tick: () => {
@@ -252,10 +257,6 @@ el("test-sound").onclick = () => {
   feedback.unlock();
   feedback.play("emp");
 };
-el<HTMLInputElement>("music").onchange = () => {
-  feedback.musicEnabled = el<HTMLInputElement>("music").checked;
-  saveAudioPreferences();
-};
 function balance() {
   el("balance").textContent = "";
   el("save-status").textContent = progress.persistent
@@ -263,15 +264,18 @@ function balance() {
     : "Local storage is unavailable. Progress lasts for this session.";
 }
 function setView(next: string) {
+  if (view !== next && next !== "battle" && next !== "start") feedback.play("ui-open");
   if (next !== "controller") controller.cancelRemap();
   view = next;
-  if (next !== "battle") {
+  el("start").hidden = next !== "start";
+  if (next === "start") feedback.pauseAudio();
+  else if (next !== "battle") {
     feedback.clearAnnouncements();
     feedback.resumeAudio();
     feedback.music("menu");
   }
   document.body.dataset.view = next;
-  document.title = `${({ home: "Home", stages: "Missions", hangar: "Hangar", battle: "In flight", preflight: "Preflight", settings: "Settings", controller: "Controller Lab", results: "Flight report", records: "Records" } as Record<string, string>)[next] || "Flight"} · Apex Strikers`;
+  document.title = `${({ start: "Start", home: "Flight deck", stages: "Missions", hangar: "Hangar", battle: "In flight", preflight: "Preflight", settings: "Settings", controller: "Controller Lab", results: "Flight report", records: "Records" } as Record<string, string>)[next] || "Flight"} · Apex Strikers`;
   document.querySelectorAll<HTMLElement>(".screen").forEach((s) => {
     s.hidden = s.id !== next;
   });
@@ -292,7 +296,14 @@ function setView(next: string) {
   if (next === "stages") renderStages();
   if (next === "preflight") renderPreflight();
   if (next === "records") renderRecords();
+  if (next === "settings") settingsPanel?.open();
+  if (next === "home") el("menu-best").textContent = Math.max(0, ...progress.state.records.map(r => r.score)).toLocaleString("en-US");
   balance();
+  requestAnimationFrame(() => {
+    if (view !== next || next === "battle") return;
+    const host = el(next);
+    if (host && !host.contains(document.activeElement)) host.querySelector<HTMLElement>("button:not(:disabled),a[href]")?.focus({ preventScroll: true });
+  });
 }
 function confirmAction(title: string, text: string, action: () => void) {
   el("confirm-title").textContent = title;
@@ -306,6 +317,13 @@ function confirmAction(title: string, text: string, action: () => void) {
 }
 el("confirm-cancel").onclick = () => dialog("confirm-dialog").close();
 function navigate(next: string) {
+  if (view === "settings" && next !== "settings" && settingsPanel) {
+    settingsPanel.leave(() => navigateResolved(next));
+    return;
+  }
+  navigateResolved(next);
+}
+function navigateResolved(next: string) {
   if (next === view) return;
   if (next === "settings" || next === "controller") {
     settingsReturn = view;
@@ -350,16 +368,47 @@ document.querySelectorAll<HTMLElement>("[data-go]").forEach(
         (view === "settings" || view === "controller")
       ) {
         {
-          const back = returnRoutes.pop() || "home";
-          settingsReturn = returnRoutes.at(-1) || "home";
-          setView(back);
-          if (back === "battle") pause();
+          goBack();
         }
         return;
       }
       navigate(b.dataset.go!);
     }),
 );
+function goBack() {
+  const leave = () => {
+    const back = returnRoutes.pop() || "home";
+    settingsReturn = returnRoutes.at(-1) || "home";
+    setView(back);
+    if (back === "battle") pause();
+  };
+  if (view === "settings" && settingsPanel) settingsPanel.leave(leave);
+  else leave();
+}
+el("return-start").onclick = () => confirmAction("Return to Start?", "Your ship and records will stay saved.", () => setView("start"));
+let entryClickGuardUntil = 0;
+window.addEventListener("apex:start", () => {
+  feedback.unlock();
+  if (view !== "start") return;
+  // A second tap must not fall through onto Play after Start disappears.
+  entryClickGuardUntil = performance.now() + 350;
+  setView("home");
+});
+document.addEventListener("click", e => {
+  if (view === "home" && (performance.now() < entryClickGuardUntil || e.detail > 1)) {
+    e.preventDefault(); e.stopImmediatePropagation();
+  }
+}, true);
+document.addEventListener("click", e => {
+  const button = (e.target as HTMLElement).closest("button");
+  if (button && !button.disabled && view !== "battle") feedback.play("ui-click");
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && !document.querySelector("dialog[open]")) {
+    if (view === "settings" || view === "controller") goBack();
+    else if (["stages", "records", "hangar", "preflight"].includes(view)) navigate("home");
+  }
+});
 el("title-hangar").onclick = () => navigate("hangar");
 function paintPixelCanvas(canvas: HTMLCanvasElement, shipId: number, level: 1 | 2 | 3) {
   if (!parts) return;
@@ -505,7 +554,7 @@ function renderStages() {
   el("stage-cards").innerHTML =
     STAGES.map((s, i) => {
       const locked = false;
-      return `<article class="stage-card stage-${i}"><span class="eyebrow">SECTOR 0${i + 1} · ${progress.state.cleared.includes(i) ? "CLEARED" : locked ? "LOCKED" : "AVAILABLE"}</span><img src="/assets/onslaught/boss-${i}-preview.png" alt="${s.boss}"><h2>${s.name}</h2><p>${s.description}</p><div class="stage-meta"><span>BOSS <b>${s.boss}</b></span><span>WEAKNESS <b>${s.weakness.toUpperCase()} ×1.25</b></span></div><button class="${locked ? "secondary" : "primary"}" data-stage="${i}" ${locked ? "disabled" : ""}>${locked ? "Clear the previous stage" : "Prepare mission →"}</button></article>`;
+      return `<article class="stage-card stage-${i}"><span class="eyebrow">SECTOR 0${i + 1} · ${progress.state.cleared.includes(i) ? "CLEARED" : locked ? "LOCKED" : "AVAILABLE"}</span><img src="/assets/onslaught/boss-${i}-preview.png" alt="${s.boss}"><h2>${s.name}</h2><p>${s.description}</p><div class="stage-meta"><span>BOSS <b>${s.boss}</b></span><span>WEAKNESS <b>${s.weakness.toUpperCase()} ×1.25</b></span><span>THREAT <b>${["VANGUARD", "ESCALATED", "ONSLAUGHT"][i]}</b></span></div><button class="${locked ? "secondary" : "primary"}" data-stage="${i}" ${locked ? "disabled" : ""}>${locked ? "Clear the previous stage" : "Prepare mission →"}</button></article>`;
     }).join("") +
     `<article class="stage-card endless-card"><span class="eyebrow">SURVIVAL OPERATIONS</span><h2>Endless frontier.</h2><p>No time limit. Escalating waves, rotating threats and a boss every three waves.</p><button class="primary" id="endless-start" >Prepare endless run →</button></article>`;
   el("stage-cards")
@@ -583,8 +632,8 @@ function updateControlHelp() {
     tilt: "Run and confirm a mapped tilt test in Controller Lab, then set center. Only analog signals reported by the browser are used.",
   };
   el("control-help").textContent = copy[source];
-  el("enable-sensors").hidden = source !== "sensor";
-  el("center-sensors").hidden = source !== "sensor";
+  el("enable-sensors").hidden = source !== "sensor" || sensor.telemetry.state === "active";
+  el("center-sensors").hidden = source !== "sensor" || sensor.telemetry.calibrated;
 }
 el<HTMLSelectElement>("input-source").onchange = () => {
   source = el<HTMLSelectElement>("input-source").value;
@@ -617,6 +666,7 @@ function ready() {
   return "";
 }
 el("launch").onclick = () => {
+  if (view !== "preflight" || !assetGate.ready) return;
   const message = ready();
   if (message) {
     el("preflight-status").textContent = message;
@@ -1054,31 +1104,6 @@ function renderRecords() {
     el("record-list").append(e);
   });
 }
-for (const id of ["tilt-sensitivity", "gesture-sensitivity"])
-  el<HTMLInputElement>(id).oninput = () => {
-    sensor.setSensitivity(
-      Number(el<HTMLInputElement>("tilt-sensitivity").value),
-    );
-    sensor.setGestureSensitivity(
-      Number(el<HTMLInputElement>("gesture-sensitivity").value),
-    );
-    clearInput();
-    savePreferences();
-  };
-el<HTMLInputElement>("sound").onchange = () => {
-  feedback.enabled = el<HTMLInputElement>("sound").checked;
-  feedback.unlock();
-  saveAudioPreferences();
-};
-el<HTMLInputElement>("haptics").disabled = !("vibrate" in navigator);
-el<HTMLInputElement>("haptics").onchange = () => {
-  feedback.haptics = el<HTMLInputElement>("haptics").checked;
-};
-el<HTMLInputElement>("low-effects").onchange = () =>
-  document.body.classList.toggle(
-    "reduced-effects",
-    el<HTMLInputElement>("low-effects").checked,
-  );
 el("gesture-lab-toggle").onclick = () => {
   labActive = !labActive;
   sensor.setGestureActive(labActive);
@@ -1210,6 +1235,7 @@ window.setInterval(() => {
   el("sensor-status").textContent =
     `${t.state.toUpperCase()} · ${t.message} ${t.motionMessage}`;
   if (view === "preflight") {
+    updateControlHelp();
     el("preflight-status").textContent =
       source === "sensor"
         ? t.message
@@ -1264,28 +1290,37 @@ window.setInterval(() => {
       !controller.remapping &&
       (view !== "battle" || !!document.querySelector("dialog[open]"))
     ) {
-      const host =
-        document.querySelector<HTMLDialogElement>("dialog[open]") || el(view);
-      const buttons = Array.from(
-        host.querySelectorAll<HTMLButtonElement>("button:not(:disabled)"),
-      ).filter((x) => x.offsetWidth > 0 && x.offsetHeight > 0);
-      const index = buttons.indexOf(
-        document.activeElement as HTMLButtonElement,
-      );
-      if (edge(12) || edge(14))
-        buttons[(index <= 0 ? buttons.length : index) - 1]?.focus();
-      if (edge(13) || edge(15)) buttons[(index + 1) % buttons.length]?.focus();
-      if (edge(0) && document.activeElement instanceof HTMLButtonElement)
-        document.activeElement.click();
-      if (edge(1)) {
-        if (view === "controller" || view === "settings") {
-          {
-            const back = returnRoutes.pop() || "home";
-            settingsReturn = returnRoutes.at(-1) || "home";
-            setView(back);
-            if (back === "battle") pause();
-          }
+      const modal = document.querySelector<HTMLDialogElement>("dialog[open]");
+      const host = modal || el(view);
+      const controls = Array.from(host.querySelectorAll<HTMLElement>("button:not(:disabled),input:not(:disabled),select:not(:disabled),summary"))
+        .filter(x => x.offsetWidth > 0 && x.offsetHeight > 0);
+      const focused = document.activeElement as HTMLElement;
+      const index = controls.indexOf(focused);
+      const adjust = (direction: number) => {
+        if (focused instanceof HTMLInputElement && focused.type === "range") {
+          if (direction > 0) focused.stepUp(); else focused.stepDown();
+          focused.dispatchEvent(new Event("input", { bubbles: true }));
+          return true;
         }
+        if (focused instanceof HTMLSelectElement) {
+          focused.selectedIndex = Math.max(0, Math.min(focused.options.length - 1, focused.selectedIndex + direction));
+          focused.dispatchEvent(new Event("change", { bubbles: true }));
+          return true;
+        }
+        return false;
+      };
+      if (edge(12) || (edge(14) && !adjust(-1))) controls[(index <= 0 ? controls.length : index) - 1]?.focus();
+      if (edge(13) || (edge(15) && !adjust(1))) controls[(index + 1) % controls.length]?.focus();
+      if (edge(0)) {
+        if (focused instanceof HTMLSelectElement) adjust(1);
+        else focused?.click();
+      }
+      if (edge(1)) {
+        if (modal?.id === "confirm-dialog") el("confirm-cancel").click();
+        else if (modal?.id === "help-dialog") el("help-close").click();
+        else if (modal?.id === "pause-dialog") el("resume").click();
+        else if (view === "controller" || view === "settings") goBack();
+        else if (["stages", "records", "hangar", "preflight"].includes(view)) navigate("home");
       }
     }
     padMenu = [...b];
@@ -1311,14 +1346,6 @@ feedback.onAnnouncement = (text) => {
   el("pickup-announcement").textContent = text.toUpperCase();
   el("pickup-announcement").dataset.until = String(performance.now() + 1800);
 };
-for (const [id, key] of [
-  ["music-volume", "musicVolume"],
-  ["sfx-volume", "sfxVolume"],
-] as const)
-  el<HTMLInputElement>(id).oninput = () => {
-    feedback[key] = Number(el<HTMLInputElement>(id).value);
-    saveAudioPreferences();
-  };
 for (const button of Array.from(
   el("preview-levels").querySelectorAll<HTMLButtonElement>("button"),
 ))
@@ -1461,7 +1488,37 @@ function animate(now: number) {
 requestAnimationFrame(animate);
 renderHangar();
 renderStages();
-setView("home");
+settingsPanel = new SettingsPanel({
+  source: () => source,
+  confirm: confirmAction,
+  onApply: values => {
+    source = values.source;
+    el<HTMLSelectElement>("input-source").value = source;
+    pad.mode = source === "tilt" ? "tilt" : "stick";
+    sensor.setSensitivity(values.sensitivity);
+    sensor.setGestureSensitivity(values.gesture);
+    feedback.musicEnabled = values.music;
+    feedback.enabled = values.sfx;
+    feedback.musicVolume = values.musicVolume;
+    feedback.sfxVolume = values.sfxVolume;
+    feedback.haptics = values.haptics;
+    appliedReducedEffects = values.reduced;
+    document.body.classList.toggle("reduced-effects", values.reduced);
+    clearInput(); updateControlHelp(); savePreferences(); saveAudioPreferences();
+    try { localStorage.setItem("apex-launcher-display", JSON.stringify({ reduced: values.reduced, haptics: values.haptics })); }
+    catch { toast("Settings are available for this session only."); }
+  },
+});
+try {
+  const saved = JSON.parse(localStorage.getItem("apex-launcher-display") || "{}");
+  appliedReducedEffects = saved.reduced === true;
+  feedback.haptics = saved.haptics === true && "vibrate" in navigator;
+  el<HTMLInputElement>("low-effects").checked = appliedReducedEffects;
+  el<HTMLInputElement>("haptics").checked = feedback.haptics;
+  document.body.classList.toggle("reduced-effects", appliedReducedEffects);
+} catch {}
+refreshLoading();
+setView("start");
 
 export { scene };
 

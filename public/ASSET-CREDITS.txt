@@ -102,3 +102,7 @@ Selected Nautolan hulls, engine effects, weapon overlays, shields and destructio
 Escort hull cells: Gustavo Vituri SpaceShooterAssetPack, existing project license attribution retained. Changes: selected authored hull cells, cool palette, normalized anchors and added hardpoint modules. Directional booster frames: GrafxKid Mini Pixel Pack3, CC0 per LICENSE.txt; cyan recoloring and integer enlargement. Missing Kla’ed shield contours are derived from hull alpha; neon Orb symbols and Super modules are manually drawn by code, not generated images.
 
 Canvas Rage colors are baked into red derivative textures. Selected adapted artwork is in assets/neon; manifest and provenance in assets/neon/credits.json. Reproduce with scripts/build-neon-assets.py. No source archives or extracted APK artwork are distributed.
+
+Wenrexa — Assets Free: UI Sci-Fi Minimalism #01
+https://wenrexa.itch.io/nesia01
+Creator declares CC0 1.0. Selected PNG buttons, panels, arrows and slider only.
