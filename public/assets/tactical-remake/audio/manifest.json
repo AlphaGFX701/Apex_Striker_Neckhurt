@@ -1,0 +1,45 @@
+{
+  "generation": "Original deterministic DSP: analytical oscillators and seeded filtered noise.",
+  "generativeAudioUsed": false,
+  "recordedSamplesUsed": false,
+  "copiedGameAudioUsed": false,
+  "files": [
+    {
+      "durationSeconds": 1.2,
+      "role": "A rising electrical charge warning before the hostile beam.",
+      "recipe": "110\u21921320Hz analytic chirp with second/third harmonics,55Hz hum, accelerating amplitude pulse and seeded filtered noise;18ms attack,85ms cosine release.",
+      "seed": 49201,
+      "file": "laser-charge.wav",
+      "sampleRate": 22050,
+      "channels": 1,
+      "sampleFormat": "PCM16 little-endian",
+      "sampleCount": 26460,
+      "peak": 0.8000122074037904,
+      "rms": 0.2437233953945809,
+      "bytes": 52964,
+      "firstSample": 0,
+      "lastSample": 0,
+      "last20msPeak": 0.10162663655507065,
+      "sha256": "c40538ba968b3ef8ae89213608e71fca6547594329722136f121eddcfb3fa248"
+    },
+    {
+      "durationSeconds": 1.4,
+      "role": "A low-impact onset and sustained electric beam, distinct from the rising warning.",
+      "recipe": "Exponentially falling kick,64Hz bass,275Hz/73Hz FM body,815Hz/113Hz FM edge, seeded filtered noise and18Hz amplitude texture;8ms attack,320ms cosine release.",
+      "seed": 49202,
+      "file": "laser-fire.wav",
+      "sampleRate": 22050,
+      "channels": 1,
+      "sampleFormat": "PCM16 little-endian",
+      "sampleCount": 30870,
+      "peak": 0.8000122074037904,
+      "rms": 0.17210397191318744,
+      "bytes": 61784,
+      "firstSample": 0,
+      "lastSample": 0,
+      "last20msPeak": 0.00347911008026368,
+      "sha256": "b18c90e08f407ff975ee61c1824c2abf9e61b718fbb96fde15dac0eb352dd76e"
+    }
+  ],
+  "verification": "Numerical PCM decode, duration/peak/endpoint assertions. Not a human listening test."
+}

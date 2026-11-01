@@ -29,12 +29,29 @@ export function installQaCapture(
   const stats = document.createElement("span");
   stats.style.cssText =
     "font:9px monospace;color:#9cdeff;background:#071322;padding:5px";
+  for(const sweep of [false,true]) {
+    const demo=document.createElement("button");demo.textContent=sweep?"QA Sweep":"QA Laser";demo.style.cssText=capture.style.cssText;
+    demo.onclick=()=>{
+      const s=scene.model.state;
+      if(!scene.isRunning)return;
+      s.enemyBullets=[];s.hazards=[];s.storm=null;
+      if(s.boss){s.boss.shot=10;s.boss.restUntil=s.time+10;}
+      s.beams=[{x:sweep?195:s.ship.x,y:sweep?205:s.ship.y,age:0,sweep}];
+    };
+    host.append(demo);
+  }
   host.append(capture, soak, stats);
   document.body.append(host);
+  const meter=document.createElement("div");meter.className="qa-frame-metrics";
+  meter.style.cssText="position:fixed;bottom:2px;right:2px;z-index:60;background:#071019;color:white;padding:5px;font:10px monospace";
+  const resetFrames=document.createElement("button");resetFrames.textContent="QA Reset frame sample";
+  const frameNumbers=document.createElement("span");
+  if(new URLSearchParams(location.search).has("perf")){meter.append(resetFrames,frameNumbers);document.body.append(meter);}
   const frames: number[] = [];
   const samples: Record<string, number>[] = [];
   let runStart = 0,
     lastTime = 0;
+  resetFrames.onclick=()=>{frames.length=0;frameNumbers.textContent=" Sampling…";};
   let trackedState=scene.model.state;
   let previous = performance.now();
   let renderedSeconds = 0;
@@ -79,6 +96,8 @@ export function installQaCapture(
         heapMB: heapBytes === undefined ? -1 : heapBytes / 1048576,
       });
     host.dataset.samples = JSON.stringify(samples);
+    frameNumbers.textContent=` MS ${Number(sorted[Math.floor(sorted.length*.5)]??0).toFixed(1)}/${Number(sorted[Math.floor(sorted.length*.95)]??0).toFixed(1)} · ${sorted.length} frames`;
+
     stats.textContent = `QA SIM · ${Math.floor(s.time)}s · ${s.enemies.length}E/${s.enemyBullets.length}B`;
     host.dataset.metrics = JSON.stringify({
       time: s.time,
@@ -88,9 +107,26 @@ export function installQaCapture(
       enemyBullets: s.enemyBullets.length,
     });
   }, 1000);
-  const record = (endurance: boolean) => {
+  const record = (endurance: boolean, demo = false) => {
     const canvas = document.querySelector<HTMLCanvasElement>("#game canvas");
     if (!canvas) return;
+    let demoTimer: ReturnType<typeof setInterval> | undefined;
+    if(demo) {
+      const s=scene.model.state;
+      // Presentation fixture only, not a sampled natural boss pattern.
+      if(s.boss) {
+        s.boss.health=s.boss.maxHealth=10000;
+        for(const turret of s.boss.turrets??[]) turret.health=turret.maxHealth=10000;
+        s.boss.restUntil=s.time+14;s.boss.shot=14;
+      }
+      s.enemyBullets=[];s.hazards=[];s.storm=null;s.beams=[{x:195,y:s.ship.y,age:0}];
+      const began=s.time;let phase=0;
+      demoTimer=setInterval(()=>{
+        if(!scene.isRunning){clearInterval(demoTimer);return;}
+        if(s.time-began>=4 && phase===0){s.beams=[{x:195,y:205,age:0,sweep:true}];phase=1;}
+        if(s.time-began>=9 && phase===1){s.beams=[{x:s.ship.x,y:s.ship.y,age:0}];phase=2;}
+      },40);
+    }
     const stream = canvas.captureStream(30);
     for (const track of audio()?.getAudioTracks() ?? [])
       stream.addTrack(track.clone());
@@ -104,6 +140,7 @@ export function installQaCapture(
       if (e.data.size) chunks.push(e.data);
     };
     recorder.onstop = () => {
+      clearInterval(demoTimer);
       const u = URL.createObjectURL(new Blob(chunks, { type: "video/webm" })),
         a = document.createElement("a");
       a.href = u;
@@ -138,6 +175,8 @@ export function installQaCapture(
       soak.textContent = "Soak recording…";
     } else setTimeout(() => recorder.stop(), 12000);
   };
+  const laserClip=document.createElement("button");laserClip.textContent="QA Laser clip 12s";laserClip.style.cssText=capture.style.cssText;
+  laserClip.onclick=()=>record(false,true);host.append(laserClip);
   capture.onclick = () => record(false);
   soak.onclick = () => record(true);
 }

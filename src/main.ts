@@ -1,3 +1,4 @@
+import { uiIcon } from "./ui-icons";
 import { FlightAssetGate } from "./launcher";
 import { SettingsPanel } from "./settings-panel";
 import { DIFFICULTY } from "./neon";
@@ -155,6 +156,7 @@ function refreshLoading() {
   assetGate.progress = loaderProgress;
   assetGate.sceneReady = sceneAssetsReady;
   assetGate.artReady = !!parts;
+  el("home").dataset.artReady = String(!!parts);
   el<HTMLProgressElement>("load-progress").value = assetGate.fraction;
   el("load-status").textContent = assetGate.error || `Loading flight assets · ${Math.round(assetGate.fraction * 100)}%`;
   el("flight-loading").hidden = assetGate.ready;
@@ -275,6 +277,7 @@ function setView(next: string) {
     feedback.music("menu");
   }
   document.body.dataset.view = next;
+  document.body.dataset.sector = String(selectedStage);
   document.title = `${({ start: "Start", home: "Flight deck", stages: "Missions", hangar: "Hangar", battle: "In flight", preflight: "Preflight", settings: "Settings", controller: "Controller Lab", results: "Flight report", records: "Records" } as Record<string, string>)[next] || "Flight"} · Apex Strikers`;
   document.querySelectorAll<HTMLElement>(".screen").forEach((s) => {
     s.hidden = s.id !== next;
@@ -401,7 +404,9 @@ document.addEventListener("click", e => {
 }, true);
 document.addEventListener("click", e => {
   const button = (e.target as HTMLElement).closest("button");
-  if (button && !button.disabled && view !== "battle") feedback.play("ui-click");
+  if (button && !button.disabled && view !== "battle") feedback.play(
+    button.classList.contains("back") || /cancel|return|discard/i.test(button.textContent||"") ? "ui-back" :
+    button.classList.contains("primary") ? "ui-confirm" : "ui-click");
 });
 document.addEventListener("keydown", e => {
   if (e.key === "Escape" && !document.querySelector("dialog[open]")) {
@@ -420,8 +425,15 @@ function paintPixelCanvas(canvas: HTMLCanvasElement, shipId: number, level: 1 | 
     scale = Math.min(canvas.width * .72 / bounds.width, canvas.height * .72 / bounds.height),
     width = Math.round(bounds.width * scale), height = Math.round(bounds.height * scale);
   ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(image, bounds.x, bounds.y, bounds.width, bounds.height,
-    Math.round((canvas.width - width) / 2), Math.round((canvas.height - height) / 2), width, height);
+  const left=Math.round((canvas.width-width)/2), top=Math.round((canvas.height-height)/2);
+  const engineKey=frame.engineFrames[Math.floor(performance.now()/85)%frame.engineFrames.length].key;
+  const engine=previewTextures.get(engineKey);
+  if(engine?.complete && engine.naturalWidth) {
+    ctx.globalAlpha=.8;
+    ctx.drawImage(engine,left-bounds.x*scale,top-bounds.y*scale,frame.canvasSize*scale,frame.canvasSize*scale);
+    ctx.globalAlpha=1;
+  }
+  ctx.drawImage(image, bounds.x, bounds.y, bounds.width, bounds.height,left,top,width,height);
 }
 function paint(id: string, draft = false, level: 1 | 2 | 3 = 1) {
   paintPixelCanvas(el<HTMLCanvasElement>(id), (draft ? build.draft : build.saved).hull, level);
@@ -470,6 +482,8 @@ function renderHangar() {
     button.onclick = () => {
       build.select("hull", ship.id);
       renderHangar(); paintAll(); previewDirty = true;
+      const showcase=el("ship-preview").closest(".hangar-showcase")!;
+      showcase.classList.remove("is-switching");void (showcase as HTMLElement).offsetWidth;showcase.classList.add("is-switching");
       host.querySelector<HTMLButtonElement>(`[data-ship="${ship.id}"]`)?.focus();
     };
     host.append(button);
@@ -492,7 +506,17 @@ el("rotate-reset").onclick = () => {
 };
 function rotate(delta: number) {
   rotation += delta;
-  el("ship-preview").style.transform = `rotate(${rotation}deg)`;
+  el("ship-preview").style.setProperty("--ship-rotation", `${rotation}deg`);
+}
+for(const id of ["title-ship","ship-preview"]) {
+  const canvas=el<HTMLCanvasElement>(id); let startX:number|null=null,startAngle=0;
+  canvas.addEventListener("pointerdown",e=>{startX=e.clientX;startAngle=id==="ship-preview"?rotation:parseFloat(canvas.style.getPropertyValue("--ship-rotation")||"0");canvas.setPointerCapture(e.pointerId);});
+  canvas.addEventListener("pointermove",e=>{
+    if(startX!=null){const angle=startAngle+(e.clientX-startX)/5;if(id==="ship-preview") rotation=angle;canvas.style.setProperty("--ship-rotation",`${angle}deg`);}
+    else if(e.pointerType==="mouse") {const r=canvas.getBoundingClientRect();canvas.style.setProperty("--ship-yaw",`${((e.clientX-r.left)/r.width-.5)*10}deg`);}
+  });
+  const stop=()=>{startX=null;canvas.style.setProperty("--ship-yaw","0deg");};
+  canvas.addEventListener("pointerup",stop);canvas.addEventListener("pointercancel",stop);canvas.addEventListener("pointerleave",()=>{if(startX==null)stop();});
 }
 function hangarTab(equipment: boolean) {
   el("appearance-panel").hidden = equipment;
@@ -554,9 +578,9 @@ function renderStages() {
   el("stage-cards").innerHTML =
     STAGES.map((s, i) => {
       const locked = false;
-      return `<article class="stage-card stage-${i}"><span class="eyebrow">SECTOR 0${i + 1} · ${progress.state.cleared.includes(i) ? "CLEARED" : locked ? "LOCKED" : "AVAILABLE"}</span><img src="/assets/onslaught/boss-${i}-preview.png" alt="${s.boss}"><h2>${s.name}</h2><p>${s.description}</p><div class="stage-meta"><span>BOSS <b>${s.boss}</b></span><span>WEAKNESS <b>${s.weakness.toUpperCase()} ×1.25</b></span><span>THREAT <b>${["VANGUARD", "ESCALATED", "ONSLAUGHT"][i]}</b></span></div><button class="${locked ? "secondary" : "primary"}" data-stage="${i}" ${locked ? "disabled" : ""}>${locked ? "Clear the previous stage" : "Prepare mission →"}</button></article>`;
+      return `<article class="stage-card stage-${i}"><span class="eyebrow">SECTOR 0${i + 1} · ${progress.state.cleared.includes(i) ? "CLEARED" : locked ? "LOCKED" : "AVAILABLE"}</span><img src="/assets/onslaught/boss-${i}-preview.png" alt="${s.boss}"><h2>${s.name}</h2><p>${s.description}</p><div class="stage-meta"><span>BOSS <b>${s.boss}</b></span><span>WEAKNESS <b>${s.weakness.toUpperCase()} ×1.25</b></span><span>THREAT <b>${["VANGUARD", "ESCALATED", "ONSLAUGHT"][i]}</b></span></div><button class="${locked ? "secondary" : "primary"}" data-stage="${i}" ${locked ? "disabled" : ""}>${locked ? "Clear the previous stage" : `Deploy ${uiIcon("deploy")}`}</button></article>`;
     }).join("") +
-    `<article class="stage-card endless-card"><span class="eyebrow">SURVIVAL OPERATIONS</span><h2>Endless frontier.</h2><p>No time limit. Escalating waves, rotating threats and a boss every three waves.</p><button class="primary" id="endless-start" >Prepare endless run →</button></article>`;
+    `<article class="stage-card endless-card"><span class="eyebrow">SURVIVAL OPERATIONS</span><h2>Endless frontier.</h2><p>No time limit. Escalating waves, rotating threats and a boss every three waves.</p><button class="primary" id="endless-start" >Deploy endless ${uiIcon("deploy")}</button></article>`;
   el("stage-cards")
     .querySelectorAll<HTMLButtonElement>("[data-stage]")
     .forEach(
@@ -924,16 +948,17 @@ function updateHud(s: GameSnapshot) {
     el("shield-status").dataset.online = String(s.shield);
     el("shield-status").classList.toggle("online", s.shield);
     el("shield-status").innerHTML =
-      `<img src="/assets/onslaught/pickup-shield.png" alt="">${s.shield ? "SHIELD ONLINE" : "NO SHIELD"}`;
+      `<img src="/assets/onslaught/pickup-shield.png" alt="">${s.shield ? "SHIELD ON" : "SHIELD OFF"}`;
   }
   el("drone-status").textContent = s.superMode.remaining>0 ? `SUPER · ${s.superMode.remaining.toFixed(1)}s` : s.weaponJammed ? "WEAPON JAM" : s.drones.length
-    ? `WINGMEN · LV.${s.wingmen.level}`
+    ? `ESCORTS L${s.wingmen.level}`
     : "";
   el("battle").dataset.damage = s.hitEffect > 0 ? s.damageKind : "";
   el("battle").dataset.lowHull = String(s.lives === 1 && !s.gameOver);
   el("run-credits").textContent =
-    `LV.${s.evolution.level} · ${Math.min(5, s.evolution.orbs)}/5 ORBS${s.powers.overdrive > 0 ? ` · RED ${Math.ceil(s.powers.overdrive)}s` : ""}`;
+    `L${s.evolution.level} ORB ${Math.min(5, s.evolution.orbs)}/5${s.powers.overdrive > 0 ? `  RED ${Math.ceil(s.powers.overdrive)}s` : ""}`;
   el("run-credits").classList.toggle("overdrive", s.powers.overdrive > 0);
+  for (const cue of scene.model.drainLaserEvents()) feedback.laserCue(cue);
   for (const event of scene.model.drainEvents()) {
     if (event.type === "pickup") feedback.pickup(event.data.effect);
     else if (event.type === "warning") feedback.warning();
@@ -986,7 +1011,7 @@ function updateHud(s: GameSnapshot) {
           scene.model.config.stage
         ];
     el("boss-phase").textContent =
-      `${Math.max(0, Math.ceil(targetBoss.health))} / ${targetBoss.maxHealth} · PHASE ${targetBoss.phase || 1}${s.boss ? "/"+DIFFICULTY[scene.model.config.stage].phases : ""}`;
+      `${Math.max(0, Math.ceil(targetBoss.health))} / ${targetBoss.maxHealth} · P${targetBoss.phase || 1}${s.boss ? "/"+DIFFICULTY[scene.model.config.stage].phases : ""}`;
     const bossState = s.boss?.state;
     el("boss-objective").hidden = !bossState || bossState === "defeated";
     el("boss-objective").textContent = bossState === "armored" ? "BREAK THE TURRETS" :
@@ -1042,21 +1067,22 @@ function completeRound() {
     practice: "Practice complete.",
     withdrawn: "Fleet recalled.",
   }[s.result || "withdrawn"];
+  el("result-title").textContent = `${pixelShip(build.saved.hull).name} / Level ${s.evolution.level}`;
   el("result-mode").textContent =
     `${scene.model.practice ? "PRACTICE / " : ""}${c.mode === "endless" ? "ENDLESS FRONTIER" : STAGES[c.stage].name.toUpperCase()}`;
   el("result-description").textContent = scene.model.practice
-    ? "Training only. No progression or records changed."
+    ? "Training run. Records unchanged."
     : s.result === "won"
-      ? "Route cleared. Return stronger for the next frontier."
-      : "Every flight teaches you something. Refit and try again.";
+      ? "Sector secured."
+      : "Ship lost. Try the sortie again.";
   el("result-stats").innerHTML = [
     ["Score", s.score.toLocaleString("en-US")],
-    ["Survival Time", s.time.toFixed(1) + "s"],
-    ["Enemies Destroyed", s.stats.enemiesDestroyed],
-    ["Best Multiplier", `×${s.stats.bestMultiplier}`],
+    ["Survived", s.time.toFixed(1) + "s"],
+    ["Enemies", s.stats.enemiesDestroyed],
+    ["Best combo", `×${s.stats.bestMultiplier}`],
     ["EMP uses", s.emps],
-    ["Shots intercepted", s.intercepted],
-    ["Power-ups", s.pickupCount],
+    ["Intercepted", s.intercepted],
+    ["Pickups", s.pickupCount],
   ]
     .map(([l, v]) => `<div><small>${l}</small><b>${v}</b></div>`)
     .join("");
@@ -1341,7 +1367,8 @@ let previewLevel: 1 | 2 | 3 = 1;
 let previewDirty = true,
   preview = new GameModel(),
   previewArt: HTMLCanvasElement | undefined,
-  lastFrame = performance.now();
+  lastFrame = performance.now(),
+  lastPortraitFrame = 0;
 feedback.onAnnouncement = (text) => {
   el("pickup-announcement").textContent = text.toUpperCase();
   el("pickup-announcement").dataset.until = String(performance.now() + 1800);
@@ -1382,6 +1409,13 @@ try {
 } catch {}
 function animate(now: number) {
   feedback.update();
+  if(parts && now-lastPortraitFrame>70 && !document.hidden) {
+    lastPortraitFrame=now;
+    if(view==="home") paint("title-ship");
+    if(view==="hangar") paint("ship-preview",true,previewLevel);
+    if(view==="preflight") paint("preflight-ship");
+    if(view==="results") paint("result-ship",false,scene.model.state.evolution.level);
+  }
   if (performance.now() > Number(el("pickup-announcement").dataset.until || 0))
     el("pickup-announcement").textContent = "";
   const dt = Math.min(0.05, (now - lastFrame) / 1000);

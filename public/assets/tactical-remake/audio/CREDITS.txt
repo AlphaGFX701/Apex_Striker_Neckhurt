@@ -1,0 +1,9 @@
+Tactical Neon laser cues — original deterministic synthesis for Gyro Space Combat.
+laser-charge.wav and laser-fire.wav were rendered with analytical oscillators, mathematical envelopes and seeded filtered noise.
+No generative audio service, voice recording, pre-existing sound sample or copied Metal Gear/game sound is used.
+Recipe/source: scripts/prepare-tactical-audio.py; per-file duration, peak, RMS, seed and SHA256 are in manifest.json.
+These two original rendered sounds and their synthesis recipe are dedicated to CC0 1.0: https://creativecommons.org/publicdomain/zero/1.0/
+
+Inspected but NOT used: supplied free-scifi-weapons-sounds-audio.zip. Its README permits game use/public project repositories, but states that the samples were generated with ElevenLabs Sound Effects and then edited by hand. The current task requests no AI-derived audio, so none of those sample bytes are included in these cues.
+
+Format:22050Hz mono PCM16 WAV. Each file is peak-normalized to0.80 with cosine attack/release and zero-valued endpoints.

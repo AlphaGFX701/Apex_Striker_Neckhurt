@@ -1,5 +1,7 @@
 /** Game audio is unlocked by a user gesture. Artist samples use a bounded pool. */
 export type EffectKind =
+  | "ui-confirm"
+  | "ui-back"
   | "ui-click"
   | "ui-open"
   | "dodge"
@@ -115,6 +117,8 @@ export class Feedback {
             EffectKind,
             [number, number, number, OscillatorType]
           > = {
+            "ui-confirm": [420, 980, 0.085, "sine"],
+            "ui-back": [620, 280, 0.07, "triangle"],
             "ui-click": [780, 520, 0.045, "sine"],
             "ui-open": [420, 800, 0.085, "sine"],
             dodge: [920, 180, 0.22, "sine"],

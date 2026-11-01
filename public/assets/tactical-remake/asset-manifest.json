@@ -1,0 +1,102 @@
+{
+  "images": {
+    "tactical-beam-core": {
+      "width": 44,
+      "height": 32,
+      "derivation": "20.png: x=150 cross-section, y=9..126, rotated; repeated identical rows",
+      "alpha": "RGBA; alpha <=2 and invisible RGB cleared"
+    },
+    "tactical-beam-energy": {
+      "width": 44,
+      "height": 32,
+      "derivation": "24.png: x=120 cross-section, y=2..89, rotated; repeated identical rows",
+      "alpha": "RGBA; alpha <=2 and invisible RGB cleared"
+    },
+    "tactical-beam-head": {
+      "width": 44,
+      "height": 32,
+      "derivation": "20.png: crop (150,9,226,127), rotated CCW, resized cap only",
+      "alpha": "RGBA; alpha <=2 and invisible RGB cleared"
+    },
+    "tactical-beam-tail": {
+      "width": 44,
+      "height": 48,
+      "derivation": "20.png: crop (12,9,151,127), rotated CCW, resized cap only",
+      "alpha": "RGBA; alpha <=2 and invisible RGB cleared"
+    },
+    "tactical-beam-halo": {
+      "width": 44,
+      "height": 32,
+      "derivation": "33.png: x=165 cross-section y=19..210, repeated rows, 1px Gaussian blur",
+      "alpha": "RGBA; alpha <=2 and invisible RGB cleared"
+    },
+    "tactical-danger-tile": {
+      "width": 44,
+      "height": 64,
+      "derivation": "Original deterministic geometric red lane with diagonal hatch",
+      "alpha": "RGBA; alpha <=2 and invisible RGB cleared"
+    },
+    "tactical-danger-alert": {
+      "width": 64,
+      "height": 64,
+      "derivation": "Original deterministic geometric triangle and exclamation; no font or AI",
+      "alpha": "RGBA; alpha <=2 and invisible RGB cleared"
+    },
+    "tactical-bullet-white": {
+      "width": 64,
+      "height": 116,
+      "derivation": "Corresponding 20/24/33 source cropped to alpha, rotated CCW, proportionally reduced",
+      "alpha": "RGBA; alpha <=2 and invisible RGB cleared"
+    },
+    "tactical-bullet-red": {
+      "width": 62,
+      "height": 144,
+      "derivation": "Corresponding 20/24/33 source cropped to alpha, rotated CCW, proportionally reduced",
+      "alpha": "RGBA; alpha <=2 and invisible RGB cleared"
+    },
+    "tactical-bullet-edge": {
+      "width": 64,
+      "height": 86,
+      "derivation": "Corresponding 20/24/33 source cropped to alpha, rotated CCW, proportionally reduced",
+      "alpha": "RGBA; alpha <=2 and invisible RGB cleared"
+    }
+  },
+  "fonts": {
+    "MGS1 Codec.ttf": {
+      "archive": "MGS1_Fonts.zip",
+      "member": "MGS1 Codec.ttf",
+      "sha256": "eed89314c9ef961f38842f0533d496e6a4af28a93f10fa3f40ea964e550f9736",
+      "modified": false
+    },
+    "MGS1 HUD.ttf": {
+      "archive": "MGS1_Fonts.zip",
+      "member": "MGS1 HUD.ttf",
+      "sha256": "1652657afded9b3e68df60143340c93641a100d024f968280a4fa034ae8fc99c",
+      "modified": false
+    },
+    "MGS1 Ammo.ttf": {
+      "archive": "MGS1_Fonts.zip",
+      "member": "MGS1 Ammo.ttf",
+      "sha256": "a39cca668ea7e9de80ad3d46c10e09070b7a982b00a860d561d23a652758e6c3",
+      "modified": false
+    },
+    "LICENSE.txt": {
+      "archive": "MGS1_Fonts.zip",
+      "member": "LICENSE.txt",
+      "sha256": "fa2f9143be5f38735dfb11a8d948904ce8e1bf96b1e03d338c54b1150d88a125",
+      "modified": false
+    },
+    "README.txt": {
+      "archive": "MGS1_Fonts.zip",
+      "member": "README.txt",
+      "sha256": "7af7851beb22ad968beb8ba28c893634817de3ea2542ba163adc9f64d317967c",
+      "modified": false
+    },
+    "GLYPHSET.txt": {
+      "archive": "MGS1_Fonts.zip",
+      "member": "GLYPHSET.txt",
+      "sha256": "45fb805d3f0523ed8b1d03047b59072aa8e024a78bda3fe1b3b256829176e8d5",
+      "modified": false
+    }
+  }
+}

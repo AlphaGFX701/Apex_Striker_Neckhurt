@@ -1,3 +1,5 @@
+import { TACTICAL_IMAGES } from "./tactical-assets";
+import { LaserVisuals } from "./laser-visuals";
 import { beamGeometry } from "./neon";
 import { NEON_IMAGES } from "./neon-assets";
 import { ParallaxEnvironment } from "./parallax";
@@ -27,6 +29,8 @@ export class SpaceScene extends Phaser.Scene {
   readonly model = new GameModel();
   private pixelShipId: 0 | 1 | 2 = 0;
   private muzzleRemaining = 0;
+  private visualLean = 0;
+  private laserVisuals!: LaserVisuals;
   setPixelShip(id: number) {
     this.pixelShipId = normalizeShipId(id);
   }
@@ -40,6 +44,7 @@ export class SpaceScene extends Phaser.Scene {
     this.load.on("progress", (value: number) =>
       this.control.onLoadProgress?.(value),
     );
+    for (const key of TACTICAL_IMAGES) this.load.image(key, `/assets/tactical-remake/${key}.png`);
     for (const key of NEON_IMAGES) this.load.image(key, `/assets/neon/${key}.png`);
     for (const key of EVOLUTION_IMAGES)
       this.load.image(key, `/assets/evolution/${key}.png`);
@@ -119,6 +124,7 @@ export class SpaceScene extends Phaser.Scene {
   create() {
     for (const { key } of PIXEL_FLEET_IMAGES)
       this.textures.get(key).setFilter(Phaser.Textures.FilterMode.NEAREST);
+    for(const key of TACTICAL_IMAGES) if(key.includes("escort")) this.textures.get(key).setFilter(Phaser.Textures.FilterMode.NEAREST);
     this.textures.get("environment").setFilter(Phaser.Textures.FilterMode.NEAREST);
     for (const key of ONSLAUGHT_IMAGES)
       this.textures.get(key).setFilter(Phaser.Textures.FilterMode.NEAREST);
@@ -127,6 +133,7 @@ export class SpaceScene extends Phaser.Scene {
         this.textures.get(key).setFilter(Phaser.Textures.FilterMode.NEAREST);
     this.control.onReady?.();
     this.environment = new ParallaxEnvironment(this);
+    this.laserVisuals = new LaserVisuals(this);
     this.hostileLayer = this.textures.createCanvas('hostile-layer', WORLD.width, Math.ceil(WORLD.height))!;
     this.add.image(WORLD.width/2,Math.ceil(WORLD.height)/2,'hostile-layer').setDepth(1.5);
     this.art = this.add.graphics().setDepth(3);
@@ -175,6 +182,7 @@ export class SpaceScene extends Phaser.Scene {
     this.model.reset();
     this.endAge = 0;
     this.muzzleRemaining = 0;
+    this.visualLean = 0;
     this.lastBossBurst = -10;
     this.clearInput();
     this.started = true;
@@ -390,7 +398,7 @@ export class SpaceScene extends Phaser.Scene {
         art = BOSS_ART[stage];
       for(const d of b.decoys??[]) {
         this.sprite(art.key,d.x,d.y,art.width*0.55,0,0.4);
-        g.lineStyle(1,0xa88bdf,0.4);g.strokeCircle(d.x,d.y,33);
+
       }
       this.sprite(b.rage ? "boss-2-rage" : art.key, b.x, b.y, art.width);
       if(b.decoys?.length || b.rage) {
@@ -506,14 +514,14 @@ export class SpaceScene extends Phaser.Scene {
       const active=h.age>=1.2;
       if(h.kind==='black-hole') {
         this.sprite(`gravity-${Math.floor(s.time*8)%8}`,h.x,h.y,240,0,0.7);
-        g.lineStyle(2,h.age>=8?0xff755a:0xaf85ff,0.6);
+        g.lineStyle(2,h.age>=8?0xff755a:0xffc56b,0.6);
         g.strokeCircle(h.x,h.y,h.age>=8?h.radius:18);
         g.fillStyle(0x0a081c,0.8);g.fillCircle(h.x,h.y,14);
-        g.lineStyle(2,0xd6aaff,0.9);g.strokeCircle(h.x,h.y,18);
-        g.fillStyle(0xe3bfff);g.fillRect(h.x-20,h.y-30,40*Math.max(0,h.hp/24),3);
+        g.lineStyle(2,0xffd796,0.9);g.strokeCircle(h.x,h.y,18);
+        g.fillStyle(0xffd796);g.fillRect(h.x-20,h.y-30,40*Math.max(0,h.hp/24),3);
       } else if(h.kind==='plasma') {
-        g.fillStyle(0xac68f5,active?0.14:0.05);g.fillCircle(h.x,h.y,h.radius);
-        g.lineStyle(2,0xc68dff,0.4);g.strokeCircle(h.x,h.y,h.radius);
+        g.fillStyle(0x59e7e0,active?0.14:0.05);g.fillCircle(h.x,h.y,h.radius);
+        g.lineStyle(2,0x59e7e0,0.22);g.strokeCircle(h.x,h.y,h.radius);
       } else {
         g.fillStyle(active?0xff6555:0xffa477,active?0.7:0.1);g.fillRect(h.x-24,0,48,WORLD.height);
         g.lineStyle(2,0xffb894,0.65);g.strokeRect(h.x-24,0,48,WORLD.height);
@@ -521,53 +529,14 @@ export class SpaceScene extends Phaser.Scene {
     }
     if (s.storm) {
       const h = s.storm;
-      g.fillStyle(0xb18cff, h.age >= 1.2 ? 0.08 : 0.025);
+      g.fillStyle(0xffc56b, h.age >= 1.2 ? 0.075 : 0.025);
       g.fillRect(h.x, 100, h.width, WORLD.height - 100);
       // Only actual hazard bounds; no forecast lanes or diagonal decorative lines.
-      g.lineStyle(1, 0xbda1ff, 0.28);
-      g.strokeRect(h.x, 100, h.width, WORLD.height - 100);
-    }
-    for (const beam of s.beams) {
-      const firing = beam.age >= 1.2,
-        alpha = 0.35 + Math.sin(beam.age * 24) * 0.15;
-      if(beam.sweep) {
-        const line=beamGeometry(beam);
-        g.lineStyle(firing?44:48,firing?0xff604f:0xffaa74,firing?0.6:0.12);
-        g.lineBetween(line.x1,line.y1,line.x2,line.y2);
-        g.lineStyle(firing?7:2,firing?0xfff8d1:0xffa47c,0.85);
-        g.lineBetween(line.x1,line.y1,line.x2,line.y2);
-        if(!firing) {g.lineStyle(2,0xff7e73,0.4);g.strokeCircle(beam.x,beam.y??205,50);}
-        continue;
-      }
-      if (!firing) {
-        g.fillStyle(0xf16d65, 0.08);
-        g.fillRect(beam.x - 22, 170, 44, WORLD.height - 170);
-        g.lineStyle(2, 0xff9b69, alpha + 0.3);
-        g.strokeCircle(beam.x, Math.min(630, beam.y ?? s.ship.y), 24);
-        g.lineBetween(
-          beam.x - 32,
-          beam.y ?? s.ship.y,
-          beam.x - 15,
-          beam.y ?? s.ship.y,
-        );
-        g.lineBetween(
-          beam.x + 15,
-          beam.y ?? s.ship.y,
-          beam.x + 32,
-          beam.y ?? s.ship.y,
-        );
-      } else {
-        g.fillStyle(0xff3429, 0.16);
-        g.fillRect(beam.x - 34, 170, 68, WORLD.height - 170);
-        g.fillStyle(0xff5b45, 0.65);
-        g.fillRect(beam.x - 22, 170, 44, WORLD.height - 170);
-        g.fillStyle(0xffd68c, 0.9);
-        g.fillRect(beam.x - 12, 170, 24, WORLD.height - 170);
-        g.fillStyle(0xffffe9);
-        g.fillRect(beam.x - 4, 170, 8, WORLD.height - 170);
-        this.sprite(`spark-${Math.floor(s.time * 20) % 6}`, beam.x, 181, 55);
+      for(let j=0;j<5;j++) {
+        g.fillStyle(0xffc56b,.15);g.fillRect(h.x+5+j*20,105,10,4);g.fillRect(h.x+5+j*20,WORLD.height-8,10,4);
       }
     }
+    this.laserVisuals.draw(s.beams,s.ship.y,reduced,s.time);
     const ship = s.ship,
       warp = s.dodgeTime > 0,
       definition = pixelShip(this.pixelShipId),
@@ -579,10 +548,11 @@ export class SpaceScene extends Phaser.Scene {
         : Math.abs(s.velocity.x) > 60 && !reduced
           ? (s.velocity.x < 0 ? frame.bankFrames.left : frame.bankFrames.right).key
           : frame.key,
-      shipWidth = definition.displayWidth,
-      lean = reduced
-        ? 0
-        : (Phaser.Math.Clamp(s.velocity.x / 310, -1, 1) * Math.PI) / 15;
+      shipWidth = definition.displayWidth * (reduced ? 1 : 1 + .008*Math.sin(s.time*2)),
+      targetLean = reduced ? 0 : (Phaser.Math.Clamp(s.velocity.x / 310,-1,1)*Math.PI)/15;
+    if(this.running) this.visualLean += (targetLean-this.visualLean)*(1-Math.exp(-_dt*14));
+    if(reduced) this.visualLean=0;
+    const lean=this.visualLean;
     if (this.running) this.muzzleRemaining = Math.max(0, this.muzzleRemaining - _dt);
     if (warp) {
       const alpha = s.dodgeTime / 0.6;
@@ -627,12 +597,8 @@ export class SpaceScene extends Phaser.Scene {
         ).setDepth(2);
     }
     if(s.superMode.remaining>0 && !s.gameOver) {
-      this.sprite('ship-upgrade-3',ship.x,ship.y,shipWidth*1.2,lean,0.85).setTint(0xe9a4ff);
-      g.lineStyle(2,0xc58cff,0.85);
-      for(const side of [-1,1]) {
-        g.lineBetween(ship.x+side*42,ship.y+30,ship.x+side*55,ship.y-32);
-        g.fillStyle(0xc0ffff,0.85);g.fillCircle(ship.x+side*55,ship.y-32,3);
-      }
+      this.sprite('ship-upgrade-3',ship.x,ship.y,shipWidth*1.2,lean,0.85).setAlpha(0.3);
+
     }
     if (s.evolution.transformRemaining > 0) {
       const p = 1 - s.evolution.transformRemaining / 0.45;
@@ -676,7 +642,7 @@ export class SpaceScene extends Phaser.Scene {
       g.lineStyle(1, 0x5fe1ff, 0.45);
       g.strokeCircle(p.x, p.y, 17 + rank);
       this.sprite(
-        `escort-${s.superMode.remaining>0?"super-":""}${rank}`,
+        s.superMode.remaining>0 ? `tactical-escort-super-${rank}` : `escort-${rank}`,
         p.x,
         p.y,
         39 + s.wingmen.level * 3,
@@ -701,7 +667,7 @@ export class SpaceScene extends Phaser.Scene {
         y = Phaser.Math.Linear(hit.fromY, hit.y, t);
       if (t < 1) {
         this.sprite("drone", x, y, 25);
-        g.lineStyle(2, 0xc4b1ff, 0.65);
+        g.lineStyle(2, 0x59e7e0, 0.35);
         g.lineBetween(hit.fromX, hit.fromY, x, y);
       } else
         this.sprite(

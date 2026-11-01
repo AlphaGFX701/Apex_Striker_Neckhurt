@@ -1,3 +1,4 @@
+import { LaserTimeline, LASER_WARNING_SECONDS, LASER_DAMAGE_WIDTH, type PresentedBeam } from "./laser-presentation";
 import { getStageBalance, standardImpact, GAME_BALANCE_CONFIG, type WaveBalance, type EnemyBalanceGroup } from "./neon";
 import { DIFFICULTY, beamDistance, ORB_SUPPLY_TIMES, superMultiplier, endingDuration, nextEscapeLane, type EnemyArchetype, type BossPattern, type HazardState, type SuperModeState, type EndingSequence } from "./neon";
 import {
@@ -215,7 +216,7 @@ export interface GameSnapshot {
     size?: number;
     spark?: boolean;
   }[];
-  beams: { x: number; age: number; y?: number; sweep?: boolean }[];
+  beams: PresentedBeam[];
   drones: Drone[];
   interceptions: {
     fromX: number;
@@ -296,6 +297,7 @@ export class GameModel {
   private missileClock = 0;
   private droneClock = 0;
   private beamClock = 3;
+  private laserTimeline = new LaserTimeline();
   private laserBlockBudget = 0;
   private waveAt = 30;
   private bossAt = 90;
@@ -415,6 +417,7 @@ export class GameModel {
     this.stationary = 0;
     this.anchor = { x: this.state.ship.x, y: this.state.ship.y };
   }
+  drainLaserEvents() { return this.laserTimeline.sync(this.state.beams); }
   drainEvents() {
     return this.events.splice(0);
   }
@@ -1133,9 +1136,9 @@ export class GameModel {
       b.age += step;
 
       if (
-        b.age >= 1.2 &&
+        b.age >= LASER_WARNING_SECONDS &&
         b.age < (b.sweep ? 2.6 : 1.8) &&
-        beamDistance(s.ship,b) < 22 + s.ship.radius
+        beamDistance(s.ship,b) < LASER_DAMAGE_WIDTH / 2 + s.ship.radius
       )
         this.damage("beam");
     }

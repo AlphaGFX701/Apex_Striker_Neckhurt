@@ -1,0 +1,282 @@
+[
+  {
+    "clippedLabels": [],
+    "height": 568,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "home",
+    "width": 320
+  },
+  {
+    "clippedLabels": [],
+    "height": 568,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "hangar",
+    "width": 320
+  },
+  {
+    "clippedLabels": [],
+    "height": 568,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "stages",
+    "width": 320
+  },
+  {
+    "clippedLabels": [],
+    "height": 568,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "preflight",
+    "width": 320
+  },
+  {
+    "clippedLabels": [],
+    "height": 568,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "records",
+    "width": 320
+  },
+  {
+    "clippedLabels": [],
+    "height": 568,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "settings",
+    "width": 320
+  },
+  {
+    "clippedLabels": [],
+    "height": 568,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "controller",
+    "width": 320
+  },
+  {
+    "clippedLabels": [],
+    "height": 844,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "home",
+    "width": 390
+  },
+  {
+    "clippedLabels": [],
+    "height": 844,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "hangar",
+    "width": 390
+  },
+  {
+    "clippedLabels": [],
+    "height": 844,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "stages",
+    "width": 390
+  },
+  {
+    "clippedLabels": [],
+    "height": 844,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "preflight",
+    "width": 390
+  },
+  {
+    "clippedLabels": [],
+    "height": 844,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "records",
+    "width": 390
+  },
+  {
+    "clippedLabels": [],
+    "height": 844,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "settings",
+    "width": 390
+  },
+  {
+    "clippedLabels": [],
+    "height": 844,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "controller",
+    "width": 390
+  },
+  {
+    "clippedLabels": [],
+    "height": 932,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "home",
+    "width": 430
+  },
+  {
+    "clippedLabels": [],
+    "height": 932,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "hangar",
+    "width": 430
+  },
+  {
+    "clippedLabels": [],
+    "height": 932,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "stages",
+    "width": 430
+  },
+  {
+    "clippedLabels": [],
+    "height": 932,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "preflight",
+    "width": 430
+  },
+  {
+    "clippedLabels": [],
+    "height": 932,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "records",
+    "width": 430
+  },
+  {
+    "clippedLabels": [],
+    "height": 932,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "settings",
+    "width": 430
+  },
+  {
+    "clippedLabels": [],
+    "height": 932,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "controller",
+    "width": 430
+  },
+  {
+    "clippedLabels": [],
+    "height": 390,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "home",
+    "width": 844
+  },
+  {
+    "clippedLabels": [],
+    "height": 390,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "hangar",
+    "width": 844
+  },
+  {
+    "clippedLabels": [],
+    "height": 390,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "stages",
+    "width": 844
+  },
+  {
+    "clippedLabels": [],
+    "height": 390,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "preflight",
+    "width": 844
+  },
+  {
+    "clippedLabels": [],
+    "height": 390,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "records",
+    "width": 844
+  },
+  {
+    "clippedLabels": [],
+    "height": 390,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "settings",
+    "width": 844
+  },
+  {
+    "clippedLabels": [],
+    "height": 390,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "controller",
+    "width": 844
+  },
+  {
+    "clippedLabels": [],
+    "height": 800,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "home",
+    "width": 1280
+  },
+  {
+    "clippedLabels": [],
+    "height": 800,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "hangar",
+    "width": 1280
+  },
+  {
+    "clippedLabels": [],
+    "height": 800,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "stages",
+    "width": 1280
+  },
+  {
+    "clippedLabels": [],
+    "height": 800,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "preflight",
+    "width": 1280
+  },
+  {
+    "clippedLabels": [],
+    "height": 800,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "records",
+    "width": 1280
+  },
+  {
+    "clippedLabels": [],
+    "height": 800,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "settings",
+    "width": 1280
+  },
+  {
+    "clippedLabels": [],
+    "height": 800,
+    "overflow": false,
+    "smallButtons": [],
+    "view": "controller",
+    "width": 1280
+  }
+]

@@ -1,5 +1,9 @@
+import { MenuSpace, installTacticalInteractions } from './menu-space';
 import './style.css';
 import './launcher.css';
+
+new MenuSpace();
+installTacticalInteractions();
 
 // Keep the first screen independent of Phaser's bundle and flight texture loader.
 let runtimeReady = false;

@@ -31,3 +31,6 @@ Rebuild selected neon art with scripts/build-neon-assets.py using Python3 + Pill
 
 ## Wenrexa launcher
 The first screen now renders before Phaser and flight textures. Press Start to open the flight deck. Browse missions, ships, records and tabbed settings during loading; only Launch waits for actual asset readiness. Preferences require Apply Changes and leaving a dirty form confirms discard. See LAUNCHER-TESTING.md for responsive/load checks and selected Wenrexa credits.
+
+## Tactical Neon Remake
+Full tactical menu/HUD theme with local MGS1 fonts, shared animated menu space and authored beam textures. Font optical scale was reduced to150% after mobile feedback, with compact14–16px controls and fitted secondary labels. Laser warning/fire audio is nonverbal original DSP. Combat values and save keys remain unchanged. See TACTICAL-REMAKE-TESTING.md for verification, measurements and clips.

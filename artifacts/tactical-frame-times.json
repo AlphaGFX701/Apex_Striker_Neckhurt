@@ -1,0 +1,7 @@
+{
+  "kind": "desktop-browser-menu-RAF-not-phone-guarantee",
+  "viewport": "390x844",
+  "baseline": "QA Reset frame sample MS 6.9/7.2 · 1800 frames",
+  "remake": "QA RESET FRAME SAMPLE MS 6.9/7.1 · 1800 frames",
+  "notes": "One game tab at a time on same machine; asset-ready menu. Baseline warmed and resampled. Remake sample1800frames. Earlier loading/contention samples discarded. No iPhone/Gyro hardware claim."
+}

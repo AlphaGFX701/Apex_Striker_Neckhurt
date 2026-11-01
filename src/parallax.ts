@@ -62,7 +62,7 @@ export class ParallaxEnvironment {
     const radius = [88, 112, 76][stage];
     const palette = [0x3c6481, 0x705271, 0x8c573c][stage];
     this.planet.setTexture(`planet-${stage}-${Math.floor(time*3)%8}`).setPosition(planetX,planetY).setDisplaySize(radius*2,radius*2);
-    this.distantStars.setTexture(`void-stars-${Math.floor(time*2)%8}`).setY(340+(time*3)%80);
+    this.distantStars.setTexture(`void-stars-${Math.floor(time*2)%8}`).setY(340+(time*3)%80).setAlpha(reduced?.12:.13+Math.sin(time*.7)*.025);
     planet.fillStyle(palette, 0.04);
     planet.fillCircle(planetX, planetY, radius);
     planet.lineStyle(2, 0xb9d6e7, 0.18);
@@ -110,6 +110,8 @@ export class ParallaxEnvironment {
     this.mist.clear();
     this.mist.fillStyle(tint, 0.04);
     this.mist.fillRect(0, 0, WORLD.width, WORLD.height);
+    // A dark reading bed behind the central projectile lanes, not another HUD panel.
+    this.mist.fillStyle(0x03090e,.1);this.mist.fillRect(35,160,320,WORLD.height-160);
     if (!reduced)
       for (let i = 0; i < 4; i++) {
         this.mist.fillStyle(tint, 0.018);

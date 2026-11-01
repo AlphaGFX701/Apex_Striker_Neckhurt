@@ -106,3 +106,9 @@ Canvas Rage colors are baked into red derivative textures. Selected adapted artw
 Wenrexa — Assets Free: UI Sci-Fi Minimalism #01
 https://wenrexa.itch.io/nesia01
 Creator declares CC0 1.0. Selected PNG buttons, panels, arrows and slider only.
+
+Tactical Neon Remake:
+MGS1 Codec/HUD/Ammo fonts ©2025 Andrew Gleeson, CC BY-SA4.0. https://gleeson.itch.io/mgs1-fonts . Unchanged fonts and original LICENSE/README in assets/tactical-remake/fonts.
+Wenrexa Laser2020 CC0 source20/24/33 sampled into beam tiles/caps; original geometric danger hatch/exclamation. Derivations in assets/tactical-remake/CREDITS.md.
+New laser charge/fire audio is original deterministic synthesis (CC0), not the provided AI-generated sample pack; recipes and provenance in assets/tactical-remake/audio.
+Super escort palette derivatives retain Gustavo Vituri SpaceShooterAssetPack original project attribution/license, cyan highlights only. See ESCORT-CREDITS.txt.

@@ -1,0 +1,6 @@
+Palette derivatives of this game's escort-super-1/2/3 images.
+Hull source: Gustavo Vituri, SpaceShooterAssetPack; existing project attribution and license retained.
+https://gvituri.itch.io/space-shooter
+Only for integration in this game, not a standalone sprite redistribution.
+Purple Super highlights changed to cyan; alpha, dimensions and anchors unchanged.
+No generative imagery. Reproduce with scripts/tactical-escort-palette.py.

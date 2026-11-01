@@ -1,6 +1,6 @@
 import { createServer } from 'vite';
 import { writeFile } from 'node:fs/promises';
-const server=await createServer({server:{middlewareMode:true,hmr:false},appType:'custom',logLevel:'error'});
+const server=await createServer({optimizeDeps:{noDiscovery:true,entries:[]},server:{middlewareMode:true,hmr:false},appType:'custom',logLevel:'error'});
 try {
   const {GameModel,bossAimPoints}=await server.ssrLoadModule('/src/model.ts');
   const {defaultRun}=await server.ssrLoadModule('/src/equipment.ts');
