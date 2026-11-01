@@ -110,8 +110,6 @@ export class ParallaxEnvironment {
     this.mist.clear();
     this.mist.fillStyle(tint, 0.04);
     this.mist.fillRect(0, 0, WORLD.width, WORLD.height);
-    // A dark reading bed behind the central projectile lanes, not another HUD panel.
-    this.mist.fillStyle(0x03090e,.1);this.mist.fillRect(35,160,320,WORLD.height-160);
     if (!reduced)
       for (let i = 0; i < 4; i++) {
         this.mist.fillStyle(tint, 0.018);

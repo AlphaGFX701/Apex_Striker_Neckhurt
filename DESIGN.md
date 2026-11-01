@@ -101,3 +101,9 @@ UI-RESTORATION-PLAN.md supersedes Portrait menu simplification. Restore Start→
 Chakra16px body/buttons,14px secondary, JetBrains20px score; MGS HUD only logo/headings36/24 (32/22 narrow),125% optical sizing. tactical-theme.css owns tokens/layout; base style.css supplies retained compatibility/art surfaces. Full results data and Pause volume/Restart controls are restored; Resume stays a56px primary action with readiness/lifecycle guards and0.6s protection. EntryIntent owns queued Start consumption; initial Start must not reset a pre-import tap. Repeated entry is guarded and Return resets intent.
 
 Stage2/3 balance and all drop/music/AppSession fixes remain. APK work is suspended until explicit user review approval; no new native build/install/release during web restoration.
+
+
+## Clean field and native app icon (test.2)
+Remove the interior10% reading-bed rectangle: no hard-edged dark panel may cover the central field. Full-field atmospheric color and nonrectangular mist remain; simulation-time parallax and hazard/laser overlays are unchanged. parallax-contrast.test.ts exercises the actual renderer's draw commands across all stages/themes/reduced settings/reset.
+
+Native app icon/splash is the user-requested imagegen neon fighter, graphite/cyan/amber, with provenance in assets-source/app-icon. Gameplay artist sprites remain unchanged. prepare-android-icons.py packages separate108dp foreground/background with artwork inside the66dp safe circle and central72dp legacy crop; do not revert to the old A mark. Version1.0.0-test.2 / code2 resumes the Android delivery authorized by the user; same application ID/save keys/debug signer.

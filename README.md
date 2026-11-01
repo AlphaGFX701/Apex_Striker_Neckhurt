@@ -55,4 +55,8 @@ The debug-signed APK is android/app/build/outputs/apk/debug/app-debug.apk. Copy 
 
 
 ## Current UI review build
-The original Start/main-menu tools are restored with16px readable mobile UI. See UI-RESTORATION-PLAN.md and UI-RESTORATION-TESTING.md. Android packaging is currently on hold until the user reviews the web; the earlier test APK does not include this restoration.
+The original Start/main-menu tools are restored with16px readable mobile UI. See UI-RESTORATION-PLAN.md and UI-RESTORATION-TESTING.md. The restored UI is now included in the user-authorized test.2 APK; the earlier test.1 APK does not include the full restoration.
+
+
+## Android icon and test.2
+Version1.0.0-test.2/code2 preserves application ID/debug signer and bundles the restored UI offline. Prepare native artwork with Python3, Pillow and NumPy: `python -m pip install pillow numpy`, then `python scripts/prepare-android-icons.py`. The script reads assets-source/app-icon/neon-fighter-original.png and produces density-specific legacy/round/adaptive/splash resources; original art and imagegen provenance are retained. See APK-TEST2-PLAN.md and APK-TEST2-TESTING.md.

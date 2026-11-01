@@ -112,3 +112,6 @@ MGS1 Codec/HUD/Ammo fonts ©2025 Andrew Gleeson, CC BY-SA4.0. https://gleeson.it
 Wenrexa Laser2020 CC0 source20/24/33 sampled into beam tiles/caps; original geometric danger hatch/exclamation. Derivations in assets/tactical-remake/CREDITS.md.
 New laser charge/fire audio is original deterministic synthesis (CC0), not the provided AI-generated sample pack; recipes and provenance in assets/tactical-remake/audio.
 Super escort palette derivatives retain Gustavo Vituri SpaceShooterAssetPack original project attribution/license, cyan highlights only. See ESCORT-CREDITS.txt.
+
+
+Android app icon/splash (1.0.0-test.2): original neon fighter generated with OpenAI imagegen at the user's request,2026-11-01. Existing gameplay artwork remains artist-authored as credited above. Graphite armor, cyan engines, amber lights; code-authored gradient background and Android-safe resizing. Original/prompt provenance in the source repository: assets-source/app-icon/PROVENANCE.md.

@@ -102,3 +102,7 @@ Selected Nautolan hulls, engine effects, weapon overlays, shields and destructio
 Escort hull cells: Gustavo Vituri SpaceShooterAssetPack, existing project license attribution retained. Changes: selected authored hull cells, cool palette, normalized anchors and added hardpoint modules. Directional booster frames: GrafxKid Mini Pixel Pack3, CC0 per LICENSE.txt; cyan recoloring and integer enlargement. Missing Kla’ed shield contours are derived from hull alpha; neon Orb symbols and Super modules are manually drawn by code, not generated images.
 
 Canvas Rage colors are baked into red derivative textures. Selected adapted artwork is in assets/neon; manifest and provenance in assets/neon/credits.json. Reproduce with scripts/build-neon-assets.py. No source archives or extracted APK artwork are distributed.
+
+
+## Android neon fighter icon (test.2)
+Generated with the built-in OpenAI imagegen tool on2026-11-01 at the user's request; no third-party ship art used. Native app icon/splash only, not a replacement for gameplay sprites. Graphite armor, cyan engines and amber weapon lights; code-authored gradient background. Original and prompt provenance: assets-source/app-icon/PROVENANCE.md. Density, safe-mask and splash packaging: scripts/prepare-android-icons.py.
